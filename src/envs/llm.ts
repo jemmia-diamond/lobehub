@@ -228,22 +228,22 @@ export const getLLMConfig = () => {
     runtimeEnv: {
       API_KEY_SELECT_MODE: process.env.API_KEY_SELECT_MODE,
 
-      ENABLED_OPENAI: process.env.ENABLED_OPENAI !== '0',
+      ENABLED_OPENAI: process.env.ENABLED_OPENAI === '1',
       OPENAI_API_KEY: process.env.OPENAI_API_KEY,
 
-      ENABLED_AZURE_OPENAI: !!process.env.AZURE_API_KEY,
+      ENABLED_AZURE_OPENAI: process.env.ENABLED_AZURE_OPENAI === '1',
       AZURE_API_KEY: process.env.AZURE_API_KEY,
       AZURE_API_VERSION: process.env.AZURE_API_VERSION,
       AZURE_ENDPOINT: process.env.AZURE_ENDPOINT,
 
-      ENABLED_AZUREAI: !!process.env.AZUREAI_ENDPOINT_KEY,
+      ENABLED_AZUREAI: process.env.ENABLED_AZUREAI === '1',
       AZUREAI_ENDPOINT_KEY: process.env.AZUREAI_ENDPOINT_KEY,
       AZUREAI_ENDPOINT: process.env.AZUREAI_ENDPOINT,
 
-      ENABLED_ZHIPU: !!process.env.ZHIPU_API_KEY,
+      ENABLED_ZHIPU: process.env.ENABLED_ZHIPU === '1',
       ZHIPU_API_KEY: process.env.ZHIPU_API_KEY,
 
-      ENABLED_DEEPSEEK: !!process.env.DEEPSEEK_API_KEY,
+      ENABLED_DEEPSEEK: process.env.ENABLED_DEEPSEEK === '1',
       DEEPSEEK_API_KEY: process.env.DEEPSEEK_API_KEY,
 
       ENABLED_GOOGLE: process.env.ENABLED_GOOGLE !== '0',
@@ -251,40 +251,40 @@ export const getLLMConfig = () => {
 
       ENABLED_VERTEXAI: !!process.env.VERTEXAI_CREDENTIALS,
 
-      ENABLED_VOLCENGINE: !!process.env.VOLCENGINE_API_KEY,
+      ENABLED_VOLCENGINE: process.env.ENABLED_VOLCENGINE === '1',
       VOLCENGINE_API_KEY: process.env.VOLCENGINE_API_KEY,
 
-      ENABLED_PERPLEXITY: !!process.env.PERPLEXITY_API_KEY,
+      ENABLED_PERPLEXITY: process.env.ENABLED_PERPLEXITY === '1',
       PERPLEXITY_API_KEY: process.env.PERPLEXITY_API_KEY,
 
-      ENABLED_ANTHROPIC: process.env.ENABLED_ANTHROPIC !== '0',
+      ENABLED_ANTHROPIC: process.env.ENABLED_ANTHROPIC === '1',
       ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
 
-      ENABLED_MINIMAX: !!process.env.MINIMAX_API_KEY,
+      ENABLED_MINIMAX: process.env.ENABLED_MINIMAX === '1',
       MINIMAX_API_KEY: process.env.MINIMAX_API_KEY,
 
-      ENABLED_MISTRAL: !!process.env.MISTRAL_API_KEY,
+      ENABLED_MISTRAL: process.env.ENABLED_MISTRAL === '1',
       MISTRAL_API_KEY: process.env.MISTRAL_API_KEY,
 
-      ENABLED_OPENROUTER: !!process.env.OPENROUTER_API_KEY,
+      ENABLED_OPENROUTER: process.env.ENABLED_OPENROUTER === '1',
       OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
 
-      ENABLED_TOGETHERAI: !!process.env.TOGETHERAI_API_KEY,
+      ENABLED_TOGETHERAI: process.env.ENABLED_TOGETHERAI === '1',
       TOGETHERAI_API_KEY: process.env.TOGETHERAI_API_KEY,
 
-      ENABLED_FIREWORKSAI: !!process.env.FIREWORKSAI_API_KEY,
+      ENABLED_FIREWORKSAI: process.env.ENABLED_FIREWORKSAI === '1',
       FIREWORKSAI_API_KEY: process.env.FIREWORKSAI_API_KEY,
 
-      ENABLED_MOONSHOT: !!process.env.MOONSHOT_API_KEY,
+      ENABLED_MOONSHOT: process.env.ENABLED_MOONSHOT === '1',
       MOONSHOT_API_KEY: process.env.MOONSHOT_API_KEY,
 
-      ENABLED_GROQ: !!process.env.GROQ_API_KEY,
+      ENABLED_GROQ: process.env.ENABLED_GROQ === '1',
       GROQ_API_KEY: process.env.GROQ_API_KEY,
 
-      ENABLED_GITHUB: !!process.env.GITHUB_TOKEN,
+      ENABLED_GITHUB: process.env.ENABLED_GITHUB === '1',
       GITHUB_TOKEN: process.env.GITHUB_TOKEN,
 
-      ENABLED_ZEROONE: !!process.env.ZEROONE_API_KEY,
+      ENABLED_ZEROONE: process.env.ENABLED_ZEROONE === '1',
       ZEROONE_API_KEY: process.env.ZEROONE_API_KEY,
 
       ENABLED_AWS_BEDROCK: process.env.ENABLED_AWS_BEDROCK === '1',
@@ -293,109 +293,108 @@ export const getLLMConfig = () => {
       AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
       AWS_SESSION_TOKEN: process.env.AWS_SESSION_TOKEN,
 
-      ENABLED_WENXIN: !!process.env.WENXIN_API_KEY,
+      ENABLED_WENXIN: process.env.ENABLED_WENXIN === '1',
       WENXIN_API_KEY: process.env.WENXIN_API_KEY,
 
-      ENABLED_OLLAMA: process.env.ENABLED_OLLAMA !== '0',
+      ENABLED_OLLAMA: process.env.ENABLED_OLLAMA === '1',
       ENABLED_OLLAMA_CLOUD: !!process.env.OLLAMA_CLOUD_API_KEY,
       OLLAMA_CLOUD_API_KEY: process.env.OLLAMA_CLOUD_API_KEY,
 
-      ENABLED_VLLM: !!process.env.VLLM_API_KEY,
+      ENABLED_VLLM: process.env.ENABLED_VLLM === '1',
       VLLM_API_KEY: process.env.VLLM_API_KEY,
 
-      ENABLED_XINFERENCE: !!process.env.XINFERENCE_API_KEY,
+      ENABLED_XINFERENCE: process.env.ENABLED_XINFERENCE === '1',
       XINFERENCE_API_KEY: process.env.XINFERENCE_API_KEY,
 
-      ENABLED_QINIU: !!process.env.QINIU_API_KEY,
+      ENABLED_QINIU: process.env.ENABLED_QINIU === '1',
       QINIU_API_KEY: process.env.QINIU_API_KEY,
 
-      ENABLED_QWEN: !!process.env.QWEN_API_KEY,
+      ENABLED_QWEN: process.env.ENABLED_QWEN === '1',
       QWEN_API_KEY: process.env.QWEN_API_KEY,
 
-      ENABLED_STEPFUN: !!process.env.STEPFUN_API_KEY,
+      ENABLED_STEPFUN: process.env.ENABLED_STEPFUN === '1',
       STEPFUN_API_KEY: process.env.STEPFUN_API_KEY,
 
-      ENABLED_NOVITA: !!process.env.NOVITA_API_KEY,
+      ENABLED_NOVITA: process.env.ENABLED_NOVITA === '1',
       NOVITA_API_KEY: process.env.NOVITA_API_KEY,
 
-      ENABLED_NVIDIA: !!process.env.NVIDIA_API_KEY,
+      ENABLED_NVIDIA: process.env.ENABLED_NVIDIA === '1',
       NVIDIA_API_KEY: process.env.NVIDIA_API_KEY,
 
-      ENABLED_BAICHUAN: !!process.env.BAICHUAN_API_KEY,
+      ENABLED_BAICHUAN: process.env.ENABLED_BAICHUAN === '1',
       BAICHUAN_API_KEY: process.env.BAICHUAN_API_KEY,
 
-      ENABLED_TAICHU: !!process.env.TAICHU_API_KEY,
+      ENABLED_TAICHU: process.env.ENABLED_TAICHU === '1',
       TAICHU_API_KEY: process.env.TAICHU_API_KEY,
 
-      ENABLED_CLOUDFLARE:
-        !!process.env.CLOUDFLARE_API_KEY && !!process.env.CLOUDFLARE_BASE_URL_OR_ACCOUNT_ID,
+      ENABLED_CLOUDFLARE: process.env.ENABLED_CLOUDFLARE === '1',
       CLOUDFLARE_API_KEY: process.env.CLOUDFLARE_API_KEY,
       CLOUDFLARE_BASE_URL_OR_ACCOUNT_ID: process.env.CLOUDFLARE_BASE_URL_OR_ACCOUNT_ID,
 
-      ENABLED_AI360: !!process.env.AI360_API_KEY,
+      ENABLED_AI360: process.env.ENABLED_AI360 === '1',
       AI360_API_KEY: process.env.AI360_API_KEY,
 
-      ENABLED_SILICONCLOUD: !!process.env.SILICONCLOUD_API_KEY,
+      ENABLED_SILICONCLOUD: process.env.ENABLED_SILICONCLOUD === '1',
       SILICONCLOUD_API_KEY: process.env.SILICONCLOUD_API_KEY,
 
-      ENABLED_GITEE_AI: !!process.env.GITEE_AI_API_KEY,
+      ENABLED_GITEE_AI: process.env.ENABLED_GITEE_AI === '1',
       GITEE_AI_API_KEY: process.env.GITEE_AI_API_KEY,
 
-      ENABLED_UPSTAGE: !!process.env.UPSTAGE_API_KEY,
+      ENABLED_UPSTAGE: process.env.ENABLED_UPSTAGE === '1',
       UPSTAGE_API_KEY: process.env.UPSTAGE_API_KEY,
 
-      ENABLED_SPARK: !!process.env.SPARK_API_KEY,
+      ENABLED_SPARK: process.env.ENABLED_SPARK === '1',
       SPARK_API_KEY: process.env.SPARK_API_KEY,
 
-      ENABLED_AI21: !!process.env.AI21_API_KEY,
+      ENABLED_AI21: process.env.ENABLED_AI21 === '1',
       AI21_API_KEY: process.env.AI21_API_KEY,
 
-      ENABLED_HUNYUAN: !!process.env.HUNYUAN_API_KEY,
+      ENABLED_HUNYUAN: process.env.ENABLED_HUNYUAN === '1',
       HUNYUAN_API_KEY: process.env.HUNYUAN_API_KEY,
 
-      ENABLED_HUGGINGFACE: !!process.env.HUGGINGFACE_API_KEY,
+      ENABLED_HUGGINGFACE: process.env.ENABLED_HUGGINGFACE === '1',
       HUGGINGFACE_API_KEY: process.env.HUGGINGFACE_API_KEY,
 
-      ENABLED_SENSENOVA: !!process.env.SENSENOVA_API_KEY,
+      ENABLED_SENSENOVA: process.env.ENABLED_SENSENOVA === '1',
       SENSENOVA_API_KEY: process.env.SENSENOVA_API_KEY,
 
-      ENABLED_XAI: !!process.env.XAI_API_KEY,
+      ENABLED_XAI: process.env.ENABLED_XAI === '1',
       XAI_API_KEY: process.env.XAI_API_KEY,
 
-      ENABLED_INTERNLM: !!process.env.INTERNLM_API_KEY,
+      ENABLED_INTERNLM: process.env.ENABLED_INTERNLM === '1',
       INTERNLM_API_KEY: process.env.INTERNLM_API_KEY,
 
-      ENABLED_HIGRESS: !!process.env.HIGRESS_API_KEY,
+      ENABLED_HIGRESS: process.env.ENABLED_HIGRESS === '1',
       HIGRESS_API_KEY: process.env.HIGRESS_API_KEY,
 
-      ENABLED_TENCENT_CLOUD: !!process.env.TENCENT_CLOUD_API_KEY,
+      ENABLED_TENCENT_CLOUD: process.env.ENABLED_TENCENT_CLOUD === '1',
       TENCENT_CLOUD_API_KEY: process.env.TENCENT_CLOUD_API_KEY,
 
-      ENABLED_JINA: !!process.env.JINA_API_KEY,
+      ENABLED_JINA: process.env.ENABLED_JINA === '1',
       JINA_API_KEY: process.env.JINA_API_KEY,
 
-      ENABLED_SAMBANOVA: !!process.env.SAMBANOVA_API_KEY,
+      ENABLED_SAMBANOVA: process.env.ENABLED_SAMBANOVA === '1',
       SAMBANOVA_API_KEY: process.env.SAMBANOVA_API_KEY,
 
-      ENABLED_PPIO: !!process.env.PPIO_API_KEY,
+      ENABLED_PPIO: process.env.ENABLED_PPIO === '1',
       PPIO_API_KEY: process.env.PPIO_API_KEY,
 
-      ENABLED_SEARCH1API: !!process.env.SEARCH1API_API_KEY,
+      ENABLED_SEARCH1API: process.env.ENABLED_SEARCH1API === '1',
       SEARCH1API_API_KEY: process.env.SEARCH1API_API_KEY,
 
-      ENABLED_COHERE: !!process.env.COHERE_API_KEY,
+      ENABLED_COHERE: process.env.ENABLED_COHERE === '1',
       COHERE_API_KEY: process.env.COHERE_API_KEY,
 
-      ENABLED_INFINIAI: !!process.env.INFINIAI_API_KEY,
+      ENABLED_INFINIAI: process.env.ENABLED_INFINIAI === '1',
       INFINIAI_API_KEY: process.env.INFINIAI_API_KEY,
 
-      ENABLED_FAL: process.env.ENABLED_FAL !== '0',
+      ENABLED_FAL: process.env.ENABLED_FAL === '1',
       FAL_API_KEY: process.env.FAL_API_KEY,
 
-      ENABLED_BFL: !!process.env.BFL_API_KEY,
+      ENABLED_BFL: process.env.ENABLED_BFL === '1',
       BFL_API_KEY: process.env.BFL_API_KEY,
 
-      ENABLED_COMFYUI: process.env.ENABLED_COMFYUI !== '0',
+      ENABLED_COMFYUI: process.env.ENABLED_COMFYUI === '1',
       COMFYUI_BASE_URL: process.env.COMFYUI_BASE_URL,
       COMFYUI_AUTH_TYPE: process.env.COMFYUI_AUTH_TYPE,
       COMFYUI_API_KEY: process.env.COMFYUI_API_KEY,
@@ -403,49 +402,49 @@ export const getLLMConfig = () => {
       COMFYUI_PASSWORD: process.env.COMFYUI_PASSWORD,
       COMFYUI_CUSTOM_HEADERS: process.env.COMFYUI_CUSTOM_HEADERS,
 
-      ENABLED_MODELSCOPE: !!process.env.MODELSCOPE_API_KEY,
+      ENABLED_MODELSCOPE: process.env.ENABLED_MODELSCOPE === '1',
       MODELSCOPE_API_KEY: process.env.MODELSCOPE_API_KEY,
 
-      ENABLED_V0: !!process.env.V0_API_KEY,
+      ENABLED_V0: process.env.ENABLED_V0 === '1',
       V0_API_KEY: process.env.V0_API_KEY,
 
-      ENABLED_VERCELAIGATEWAY: !!process.env.VERCELAIGATEWAY_API_KEY,
+      ENABLED_VERCELAIGATEWAY: process.env.ENABLED_VERCELAIGATEWAY === '1',
       VERCELAIGATEWAY_API_KEY: process.env.VERCELAIGATEWAY_API_KEY,
 
-      ENABLED_AI302: !!process.env.AI302_API_KEY,
+      ENABLED_AI302: process.env.ENABLED_AI302 === '1',
       AI302_API_KEY: process.env.AI302_API_KEY,
 
-      ENABLED_AKASHCHAT: !!process.env.AKASHCHAT_API_KEY,
+      ENABLED_AKASHCHAT: process.env.ENABLED_AKASHCHAT === '1',
       AKASHCHAT_API_KEY: process.env.AKASHCHAT_API_KEY,
 
-      ENABLED_COMETAPI: !!process.env.COMETAPI_KEY,
+      ENABLED_COMETAPI: process.env.ENABLED_COMETAPI === '1',
       COMETAPI_KEY: process.env.COMETAPI_KEY,
 
-      ENABLED_AIHUBMIX: !!process.env.AIHUBMIX_API_KEY,
+      ENABLED_AIHUBMIX: process.env.ENABLED_AIHUBMIX === '1',
       AIHUBMIX_API_KEY: process.env.AIHUBMIX_API_KEY,
 
-      ENABLED_NEWAPI: !!process.env.NEWAPI_API_KEY,
+      ENABLED_NEWAPI: process.env.ENABLED_NEWAPI === '1',
       NEWAPI_API_KEY: process.env.NEWAPI_API_KEY,
       NEWAPI_PROXY_URL: process.env.NEWAPI_PROXY_URL,
 
-      ENABLED_NEBIUS: !!process.env.NEBIUS_API_KEY,
+      ENABLED_NEBIUS: process.env.ENABLED_NEBIUS === '1',
       NEBIUS_API_KEY: process.env.NEBIUS_API_KEY,
 
-      ENABLED_CEREBRAS: !!process.env.CEREBRAS_API_KEY,
+      ENABLED_CEREBRAS: process.env.ENABLED_CEREBRAS === '1',
       CEREBRAS_API_KEY: process.env.CEREBRAS_API_KEY,
 
-      ENABLED_ZENMUX: !!process.env.ZENMUX_API_KEY,
+      ENABLED_ZENMUX: process.env.ENABLED_ZENMUX === '1',
       ZENMUX_API_KEY: process.env.ZENMUX_API_KEY,
 
-      ENABLED_STRAICO: !!process.env.STRAICO_API_KEY,
+      ENABLED_STRAICO: process.env.ENABLED_STRAICO === '1',
       STRAICO_API_KEY: process.env.STRAICO_API_KEY,
 
       ENABLED_LOBEHUB: !!process.env.ENABLED_LOBEHUB,
 
-      ENABLED_XIAOMIMIMO: !!process.env.XIAOMIMIMO_API_KEY,
+      ENABLED_XIAOMIMIMO: process.env.ENABLED_XIAOMIMIMO === '1',
       XIAOMIMIMO_API_KEY: process.env.XIAOMIMIMO_API_KEY,
 
-      ENABLED_LONGCAT: !!process.env.LONGCAT_API_KEY,
+      ENABLED_LONGCAT: process.env.ENABLED_LONGCAT === '1',
       LONGCAT_API_KEY: process.env.LONGCAT_API_KEY,
     },
   });

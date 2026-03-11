@@ -31,11 +31,22 @@ export const FeatureFlagsSchema = z.object({
   // internal flag
   cloud_promotion: FeatureFlagValue.optional(),
 
+  // The new custom MVP restriction flags
+  enable_pages: FeatureFlagValue.optional(),
+  enable_video: FeatureFlagValue.optional(),
+  enable_system_settings: FeatureFlagValue.optional(),
+
   // the flags below can only be used with commercial license
   // if you want to use it in the commercial usage
   // please contact us for more information: hello@lobehub.com
   commercial_hide_github: FeatureFlagValue.optional(),
   commercial_hide_docs: FeatureFlagValue.optional(),
+ 
+  // authentication
+  auth_sso_lark: FeatureFlagValue.optional(),
+  auth_sso_google: FeatureFlagValue.optional(),
+  auth_sso_github: FeatureFlagValue.optional(),
+  auth_email_password: FeatureFlagValue.optional(),
 });
 
 export type IFeatureFlags = z.infer<typeof FeatureFlagsSchema>;
@@ -58,34 +69,43 @@ export const evaluateFeatureFlag = (
 };
 
 export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
-  provider_settings: true,
+  provider_settings: false,
 
-  openai_api_key: true,
-  openai_proxy_url: true,
+  openai_api_key: false,
+  openai_proxy_url: false,
 
   api_key_manage: false,
   edit_agent: true,
 
-  ai_image: true,
+  ai_image: false,
 
   check_updates: true,
   welcome_suggest: true,
   token_counter: true,
 
-  knowledge_base: true,
+  knowledge_base: false,
   rag_eval: false,
 
   cloud_promotion: false,
 
-  market: true,
-  speech_to_text: true,
-  changelog: true,
+  market: false,
+  speech_to_text: false,
+  changelog: false,
+
+  enable_pages: false,
+  enable_video: false,
+  enable_system_settings: false,
 
   // the flags below can only be used with commercial license
   // if you want to use it in the commercial usage
   // please contact us for more information: hello@lobehub.com
   commercial_hide_github: false,
   commercial_hide_docs: false,
+ 
+  auth_sso_lark: true,
+  auth_sso_google: false,
+  auth_sso_github: false,
+  auth_email_password: false,
 };
 
 export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string) => {
@@ -112,8 +132,17 @@ export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string
     showMarket: evaluateFeatureFlag(config.market, userId),
     enableSTT: evaluateFeatureFlag(config.speech_to_text, userId),
 
+    enablePages: evaluateFeatureFlag(config.enable_pages, userId),
+    enableVideo: evaluateFeatureFlag(config.enable_video, userId),
+    enableSystemSettings: evaluateFeatureFlag(config.enable_system_settings, userId),
+
     hideGitHub: evaluateFeatureFlag(config.commercial_hide_github, userId),
     hideDocs: evaluateFeatureFlag(config.commercial_hide_docs, userId),
+ 
+    enableAuthSsoLark: evaluateFeatureFlag(config.auth_sso_lark, userId),
+    enableAuthSsoGoogle: evaluateFeatureFlag(config.auth_sso_google, userId),
+    enableAuthSsoGithub: evaluateFeatureFlag(config.auth_sso_github, userId),
+    enableAuthEmailPassword: evaluateFeatureFlag(config.auth_email_password, userId),
   };
 };
 
