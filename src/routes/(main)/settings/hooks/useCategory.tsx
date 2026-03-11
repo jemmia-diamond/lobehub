@@ -206,21 +206,24 @@ export const useCategory = () => {
 
     // System group - system-related settings
     const systemItems: CategoryItem[] = [
-      enableSystemSettings && isDesktop && {
-        icon: EthernetPort,
-        key: SettingsTabs.Proxy,
-        label: t('tab.proxy'),
-      },
-      enableSystemSettings && isDesktop && {
-        icon: TerminalSquare,
-        key: SettingsTabs.SystemTools,
-        label: t('tab.systemTools'),
-      },
-      enableSystemSettings && isDesktop && {
-        icon: FlaskConical,
-        key: SettingsTabs.Beta,
-        label: t('tab.beta'),
-      },
+      enableSystemSettings &&
+        isDesktop && {
+          icon: EthernetPort,
+          key: SettingsTabs.Proxy,
+          label: t('tab.proxy'),
+        },
+      enableSystemSettings &&
+        isDesktop && {
+          icon: TerminalSquare,
+          key: SettingsTabs.SystemTools,
+          label: t('tab.systemTools'),
+        },
+      enableSystemSettings &&
+        isDesktop && {
+          icon: FlaskConical,
+          key: SettingsTabs.Beta,
+          label: t('tab.beta'),
+        },
       enableSystemSettings && {
         icon: Database,
         key: SettingsTabs.Storage,
