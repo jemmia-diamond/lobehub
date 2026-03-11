@@ -3,7 +3,6 @@ name: Build and Push to GHCR
 on:
   push:
     branches:
-      - main
       - canary
   workflow_dispatch: {}
 
@@ -40,7 +39,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=sha,prefix=sha-,format=short
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/canary' }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
