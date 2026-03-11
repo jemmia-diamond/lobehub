@@ -1,7 +1,7 @@
 name: lobehub
 services:
   lobe:
-    image: lobehub/lobehub
+    image: ghcr.io/jemmia-diamond/lobehub:latest
     container_name: lobehub
     ports:
       - '${LOBE_PORT}:3210'
@@ -45,7 +45,7 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - './data:/var/lib/postgresql/data'
+      - 'postgres_data:/var/lib/postgresql/data'
     environment:
       - 'POSTGRES_DB=${LOBE_DB_NAME}'
       - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD}'
@@ -137,6 +137,8 @@ networks:
     driver: bridge
 
 volumes:
+  postgres_data:
+    driver: local
   redis_data:
     driver: local
   rustfs-data:
