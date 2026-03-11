@@ -4,6 +4,15 @@ on:
   push:
     branches:
       - canary
+    paths-ignore:
+      - '**.md'
+      - '**.mdx'
+      - 'docs/**'
+      - 'e2e/**'
+      - '**.test.ts'
+      - '**.test.tsx'
+      - '.vscode/**'
+      - '.github/workflows/test.yml'
   workflow_dispatch: {}
 
 env:
@@ -50,6 +59,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          provenance: false
           build-args: |
             SHA=${{ github.sha }}
 
@@ -58,6 +68,14 @@ jobs:
         env:
           DOKPLOY_WEBHOOK_URL: ${{ secrets.DOKPLOY_WEBHOOK_URL }}
         run: |
+          COMMIT_MESSAGE=$(git log -1 --pretty=%B)
+
+          PAYLOAD=$(jq -n \
+            --arg ref "refs/heads/canary" \
+            --arg id "${{ github.sha }}" \
+            --arg message "$COMMIT_MESSAGE" \
+            '{ref: $ref, head_commit: {id: $id, message: $message}}')
+
           curl -X POST "${{ secrets.DOKPLOY_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
-            -d '{"branch": "canary"}'
+            -d "$PAYLOAD"
