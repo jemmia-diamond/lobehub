@@ -56,6 +56,7 @@ To enable Better Auth in LobeHub, set the following environment variables:
 | ZITADEL               | `zitadel`               | `AUTH_ZITADEL_ID`, `AUTH_ZITADEL_SECRET`, `AUTH_ZITADEL_ISSUER`                                                    |
 | Generic OIDC          | `generic-oidc`          | `AUTH_GENERIC_OIDC_ID`, `AUTH_GENERIC_OIDC_SECRET`, `AUTH_GENERIC_OIDC_ISSUER`                                     |
 | Feishu                | `feishu`                | `AUTH_FEISHU_APP_ID`, `AUTH_FEISHU_APP_SECRET`                                                                     |
+| Lark                  | `lark`                  | `AUTH_LARK_APP_ID`, `AUTH_LARK_APP_SECRET`                                                                         |
 | WeChat                | `wechat`                | `AUTH_WECHAT_ID`, `AUTH_WECHAT_SECRET`                                                                             |
 
 Click on a provider below for detailed configuration guides:
@@ -95,15 +96,17 @@ Click on a provider below for detailed configuration guides:
 
   <Card href={'/docs/self-hosting/auth/providers/feishu'} title={'Feishu'} />
 
+  <Card href={'/docs/self-hosting/auth/providers/lark'} title={'Lark'} />
+
   <Card href={'/docs/self-hosting/auth/providers/wechat'} title={'WeChat'} />
 </Cards>
 
 ## Callback URL Format
 
-When configuring OAuth providers, use the following callback URL format:
+- **Built-in Providers**: `https://yourdomain.com/api/auth/callback/{provider}`
+- **Generic Providers**: `https://yourdomain.com/api/auth/oauth2/callback/{provider}`
 
-- **Development**: `http://localhost:3210/api/auth/callback/{provider}`
-- **Production**: `https://yourdomain.com/api/auth/callback/{provider}`
+*(Substitute `http://localhost:3210` for development)*
 
 ## Email/Password Options
 
@@ -152,6 +155,19 @@ AUTH_GOOGLE_SECRET=GOCSPX-xxxxxxxxxxxxxxxxxxxx
 AUTH_SSO_PROVIDERS=github
 AUTH_GITHUB_ID=Ov23xxxxxxxxxxxxx
 AUTH_GITHUB_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+**Lark OAuth:**
+
+1. Create a "Custom App" at [Lark Open Platform](https://open.larksuite.com/)
+2. Enable "Web App" and set redirect URL: `https://yourdomain.com/api/auth/oauth2/callback/lark`
+3. Scope requirements: `contact:user.base:readonly`, `contact:user.email:readonly`
+4. Configure environment variables:
+
+```bash
+AUTH_SSO_PROVIDERS=lark
+AUTH_LARK_APP_ID=cli_xxxxxxxxxxxxxx
+AUTH_LARK_APP_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 ## Email Service Configuration

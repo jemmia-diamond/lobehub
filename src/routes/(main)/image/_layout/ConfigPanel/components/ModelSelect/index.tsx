@@ -11,6 +11,7 @@ import { useAiInfraStore } from '@/store/aiInfra';
 import { aiProviderSelectors } from '@/store/aiInfra/slices/aiProvider/selectors';
 import { useImageStore } from '@/store/image';
 import { imageGenerationConfigSelectors } from '@/store/image/selectors';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { type EnabledProviderWithModels } from '@/types/index';
 
 import ImageModelItem from './ImageModelItem';
@@ -34,6 +35,7 @@ interface ModelOption {
 const ModelSelect = memo(() => {
   const { t } = useTranslation('components');
   const navigate = useNavigate();
+  const { showProvider } = useServerConfigStore(featureFlagsSelectors);
 
   const [currentModel, currentProvider] = useImageStore((s) => [
     imageGenerationConfigSelectors.model(s),
@@ -59,11 +61,11 @@ const ModelSelect = memo(() => {
             label: (
               <Flexbox horizontal gap={8} style={{ color: cssVar.colorTextTertiary }}>
                 {t('ModelSwitchPanel.emptyModel')}
-                <Icon icon={LucideArrowRight} />
+                {showProvider && <Icon icon={LucideArrowRight} />}
               </Flexbox>
             ),
             onClick: () => {
-              navigate(`/settings/provider/${provider.id}`);
+              if (showProvider) navigate(`/settings/provider/${provider.id}`);
             },
             value: `${provider.id}/empty`,
           },
@@ -81,11 +83,11 @@ const ModelSelect = memo(() => {
           label: (
             <Flexbox horizontal gap={8} style={{ color: cssVar.colorTextTertiary }}>
               {t('ModelSwitchPanel.emptyProvider')}
-              <Icon icon={LucideArrowRight} />
+              {showProvider && <Icon icon={LucideArrowRight} />}
             </Flexbox>
           ),
           onClick: () => {
-            navigate('/settings/provider/all');
+            if (showProvider) navigate('/settings/provider/all');
           },
           value: 'no-provider',
         },
@@ -106,20 +108,22 @@ const ModelSelect = memo(() => {
             provider={provider.id}
             source={provider.source}
           />
-          <ActionIcon
-            icon={LucideBolt}
-            size={'small'}
-            title={t('ModelSwitchPanel.goToSettings')}
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/settings/provider/${provider.id}`);
-            }}
-          />
+          {showProvider && (
+            <ActionIcon
+              icon={LucideBolt}
+              size={'small'}
+              title={t('ModelSwitchPanel.goToSettings')}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/settings/provider/${provider.id}`);
+              }}
+            />
+          )}
         </Flexbox>
       ),
       options: getImageModels(provider),
     }));
-  }, [enabledImageModelList, t, navigate]);
+  }, [enabledImageModelList, t, navigate, showProvider]);
 
   const labelRender: SelectProps['labelRender'] = (props) => {
     const modelInfo = enabledImageModelList

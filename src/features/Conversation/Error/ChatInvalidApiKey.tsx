@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import urlJoin from 'url-join';
 
 import { useProviderName } from '@/hooks/useProviderName';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { type GlobalLLMProviderKey } from '@/types/user/settings/modelProvider';
 
 import { useConversationStore } from '../store';
@@ -21,21 +22,24 @@ const ChatInvalidAPIKey = memo<ChatInvalidAPIKeyProps>(({ id, provider }) => {
   const navigate = useNavigate();
   const [deleteMessage] = useConversationStore((s) => [s.deleteMessage]);
   const providerName = useProviderName(provider as GlobalLLMProviderKey);
+  const { showProvider } = useServerConfigStore(featureFlagsSelectors);
 
   return (
     <BaseErrorForm
       avatar={<ProviderIcon provider={provider} shape={'square'} size={40} />}
       title={t(`unlock.apiKey.title`, { name: providerName, ns: 'error' })}
       action={
-        <Button
-          type={'primary'}
-          onClick={() => {
-            navigate(urlJoin('/settings/provider', provider || 'all'));
-            deleteMessage(id);
-          }}
-        >
-          {t('unlock.goToSettings', { ns: 'error' })}
-        </Button>
+        showProvider && (
+          <Button
+            type={'primary'}
+            onClick={() => {
+              navigate(urlJoin('/settings/provider', provider || 'all'));
+              deleteMessage(id);
+            }}
+          >
+            {t('unlock.goToSettings', { ns: 'error' })}
+          </Button>
+        )
       }
       desc={
         provider === ModelProvider.Bedrock
