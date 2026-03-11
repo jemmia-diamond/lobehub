@@ -1,5 +1,6 @@
 import { ENABLE_BUSINESS_FEATURES } from '@lobechat/business-const';
 
+import { serverFeatureFlags } from '@/config/featureFlags';
 import { klavisEnv } from '@/config/klavis';
 import { isDesktop } from '@/const/version';
 import { appEnv, getAppConfig } from '@/envs/app';
@@ -22,11 +23,34 @@ import { getPublicMemoryExtractionConfig } from './parseMemoryExtractionConfig';
  * Get Better-Auth SSO providers list
  * Parses AUTH_SSO_PROVIDERS and returns enabled providers
  */
-const getBetterAuthSSOProviders = () => {
-  return parseSSOProviders(authEnv.AUTH_SSO_PROVIDERS);
+const getBetterAuthSSOProviders = (userId?: string) => {
+  const providers = parseSSOProviders(authEnv.AUTH_SSO_PROVIDERS);
+  const flags = serverFeatureFlags(userId);
+
+  return providers.filter((provider) => {
+    switch (provider) {
+      case 'lark': {
+        return flags.enableAuthSsoLark;
+      }
+      case 'google': {
+        return flags.enableAuthSsoGoogle;
+      }
+      case 'github': {
+        return flags.enableAuthSsoGithub;
+      }
+      default: {
+        return true;
+      }
+    }
+  });
 };
 
-export const getServerGlobalConfig = async () => {
+export const getServerGlobalConfig = async (userId?: string) => {
+  const flags = serverFeatureFlags(userId);
+  console.info('[DEBUG] Feature Flags State:', flags);
+  console.info('[DEBUG] enableAuthEmailPassword:', flags.enableAuthEmailPassword);
+  console.info('[DEBUG] AUTH_DISABLE_EMAIL_PASSWORD env:', authEnv.AUTH_DISABLE_EMAIL_PASSWORD);
+
   const { DEFAULT_AGENT_CONFIG } = getAppConfig();
 
   const config: GlobalServerConfig = {
@@ -74,7 +98,8 @@ export const getServerGlobalConfig = async () => {
     defaultAgent: {
       config: parseAgentConfig(DEFAULT_AGENT_CONFIG),
     },
-    disableEmailPassword: authEnv.AUTH_DISABLE_EMAIL_PASSWORD,
+    disableEmailPassword:
+      authEnv.AUTH_DISABLE_EMAIL_PASSWORD || !serverFeatureFlags(userId).enableAuthEmailPassword,
     enableBusinessFeatures: ENABLE_BUSINESS_FEATURES,
     enableEmailVerification: authEnv.AUTH_EMAIL_VERIFICATION,
     enableKlavis: !!klavisEnv.KLAVIS_API_KEY,
@@ -91,7 +116,7 @@ export const getServerGlobalConfig = async () => {
     memory: {
       userMemory: cleanObject(getPublicMemoryExtractionConfig()),
     },
-    oAuthSSOProviders: getBetterAuthSSOProviders(),
+    oAuthSSOProviders: getBetterAuthSSOProviders(userId),
     systemAgent: parseSystemAgent(appEnv.SYSTEM_AGENT),
     telemetry: {
       langfuse: langfuseEnv.ENABLE_LANGFUSE,

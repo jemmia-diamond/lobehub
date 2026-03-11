@@ -1,5 +1,4 @@
-import type { SelectProps } from '@lobehub/ui';
-import { ActionIcon, Flexbox, Icon, Select } from '@lobehub/ui';
+import { ActionIcon, Flexbox, Icon, Select, type SelectProps } from '@lobehub/ui';
 import { createStaticStyles, cssVar } from 'antd-style';
 import { LucideArrowRight, LucideBolt } from 'lucide-react';
 import { memo, useMemo } from 'react';
@@ -9,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { ProviderItemRender } from '@/components/ModelSelect';
 import { useAiInfraStore } from '@/store/aiInfra';
 import { aiProviderSelectors } from '@/store/aiInfra/slices/aiProvider/selectors';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useVideoStore } from '@/store/video';
 import { videoGenerationConfigSelectors } from '@/store/video/selectors';
 import type { EnabledProviderWithModels } from '@/types/index';
@@ -34,6 +34,7 @@ interface ModelOption {
 const ModelSelect = memo(() => {
   const { t } = useTranslation('components');
   const navigate = useNavigate();
+  const { showProvider } = useServerConfigStore(featureFlagsSelectors);
 
   const [currentModel, currentProvider] = useVideoStore((s) => [
     videoGenerationConfigSelectors.model(s),
@@ -58,11 +59,11 @@ const ModelSelect = memo(() => {
             label: (
               <Flexbox horizontal gap={8} style={{ color: cssVar.colorTextTertiary }}>
                 {t('ModelSwitchPanel.emptyModel')}
-                <Icon icon={LucideArrowRight} />
+                {showProvider && <Icon icon={LucideArrowRight} />}
               </Flexbox>
             ),
             onClick: () => {
-              navigate(`/settings/provider/${provider.id}`);
+              if (showProvider) navigate(`/settings/provider/${provider.id}`);
             },
             value: `${provider.id}/empty`,
           },
@@ -79,11 +80,11 @@ const ModelSelect = memo(() => {
           label: (
             <Flexbox horizontal gap={8} style={{ color: cssVar.colorTextTertiary }}>
               {t('ModelSwitchPanel.emptyProvider')}
-              <Icon icon={LucideArrowRight} />
+              {showProvider && <Icon icon={LucideArrowRight} />}
             </Flexbox>
           ),
           onClick: () => {
-            navigate('/settings/provider/all');
+            if (showProvider) navigate('/settings/provider/all');
           },
           value: 'no-provider',
         },
@@ -104,20 +105,22 @@ const ModelSelect = memo(() => {
             provider={provider.id}
             source={provider.source}
           />
-          <ActionIcon
-            icon={LucideBolt}
-            size={'small'}
-            title={t('ModelSwitchPanel.goToSettings')}
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/settings/provider/${provider.id}`);
-            }}
-          />
+          {showProvider && (
+            <ActionIcon
+              icon={LucideBolt}
+              size={'small'}
+              title={t('ModelSwitchPanel.goToSettings')}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/settings/provider/${provider.id}`);
+              }}
+            />
+          )}
         </Flexbox>
       ),
       options: getVideoModels(provider),
     }));
-  }, [enabledVideoModelList, t, navigate]);
+  }, [enabledVideoModelList, t, navigate, showProvider]);
 
   const labelRender: SelectProps['labelRender'] = (props) => {
     const modelInfo = enabledVideoModelList

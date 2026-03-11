@@ -5,6 +5,8 @@ import { type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
+
 import { styles } from '../styles';
 
 interface FooterProps {
@@ -14,6 +16,9 @@ interface FooterProps {
 export const Footer: FC<FooterProps> = ({ onClose }) => {
   const { t } = useTranslation('components');
   const navigate = useNavigate();
+  const { showProvider } = useServerConfigStore(featureFlagsSelectors);
+
+  if (!showProvider) return null;
 
   return (
     <Flexbox className={styles.footer} padding={4}>

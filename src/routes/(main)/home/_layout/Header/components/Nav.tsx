@@ -12,11 +12,7 @@ import NavItem from '@/features/NavPanel/components/NavItem';
 import { useActiveTabKey } from '@/hooks/useActiveTabKey';
 import { useGlobalStore } from '@/store/global';
 import { SidebarTabKey } from '@/store/global/initialState';
-import {
-  featureFlagsSelectors,
-  serverConfigSelectors,
-  useServerConfigStore,
-} from '@/store/serverConfig';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { isModifierClick } from '@/utils/navigation';
 
 interface Item {
@@ -34,8 +30,8 @@ const Nav = memo(() => {
   const navigate = useNavigate();
   const { t } = useTranslation('common');
   const toggleCommandMenu = useGlobalStore((s) => s.toggleCommandMenu);
-  const { showMarket, showAiImage } = useServerConfigStore(featureFlagsSelectors);
-  const enableBusinessFeatures = useServerConfigStore(serverConfigSelectors.enableBusinessFeatures);
+  const { showMarket, showAiImage, enablePages, enableVideo } =
+    useServerConfigStore(featureFlagsSelectors);
 
   const items: Item[] = useMemo(
     () => [
@@ -54,13 +50,14 @@ const Nav = memo(() => {
         url: '/',
       },
       {
+        hidden: !enablePages,
         icon: getRouteById('page')!.icon,
         key: SidebarTabKey.Pages,
         title: t('tab.pages'),
         url: '/page',
       },
       {
-        hidden: !enableBusinessFeatures,
+        hidden: !enableVideo,
         icon: getRouteById('video')!.icon,
         key: SidebarTabKey.Video,
         title: t('tab.video'),
@@ -81,7 +78,7 @@ const Nav = memo(() => {
         url: '/community',
       },
     ],
-    [t],
+    [t, toggleCommandMenu, showAiImage, showMarket, enablePages, enableVideo],
   );
 
   const newBadge = (
