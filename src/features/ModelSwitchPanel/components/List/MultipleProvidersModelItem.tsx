@@ -23,6 +23,7 @@ import { useNavigate } from 'react-router-dom';
 import urlJoin from 'url-join';
 
 import { ModelItemRender, ProviderItemRender } from '@/components/ModelSelect';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 import { styles } from '../../styles';
 import { type ModelWithProviders } from '../../types';
@@ -54,6 +55,7 @@ export const MultipleProvidersModelItem = memo<MultipleProvidersModelItemProps>(
     const { t } = useTranslation('components');
     const navigate = useNavigate();
     const [submenuOpen, setSubmenuOpen] = useState(false);
+    const { showProvider } = useServerConfigStore(featureFlagsSelectors);
 
     const activeProvider = data.providers.find((p) => menuKey(p.id, data.model.id) === activeKey);
     const isActive = !!activeProvider;
@@ -142,22 +144,24 @@ export const MultipleProvidersModelItem = memo<MultipleProvidersModelItemProps>(
                         </Flexbox>
                       </DropdownMenuItemLabel>
                       <DropdownMenuItemExtra>
-                        <ActionIcon
-                          className={'settings-icon'}
-                          icon={LucideBolt}
-                          size={'small'}
-                          title={t('ModelSwitchPanel.goToSettings')}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            const url = urlJoin('/settings/provider', p.id || 'all');
-                            if (e.ctrlKey || e.metaKey) {
-                              window.open(url, '_blank');
-                            } else {
-                              navigate(url);
-                            }
-                          }}
-                        />
+                        {showProvider && (
+                          <ActionIcon
+                            className={'settings-icon'}
+                            icon={LucideBolt}
+                            size={'small'}
+                            title={t('ModelSwitchPanel.goToSettings')}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const url = urlJoin('/settings/provider', p.id || 'all');
+                              if (e.ctrlKey || e.metaKey) {
+                                window.open(url, '_blank');
+                              } else {
+                                navigate(url);
+                              }
+                            }}
+                          />
+                        )}
                       </DropdownMenuItemExtra>
                     </DropdownMenuItem>
                   );

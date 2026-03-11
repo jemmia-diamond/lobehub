@@ -3,6 +3,8 @@ import { ChevronRight } from 'lucide-react';
 import { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
+
 import { useCommandMenuContext } from './CommandMenuContext';
 import { CommandItem } from './components';
 import { useCommandMenu } from './useCommandMenu';
@@ -15,6 +17,7 @@ const ContextCommands = memo(() => {
   const { t: tCommon } = useTranslation('common');
   const { handleNavigate } = useCommandMenu();
   const { menuContext, pathname } = useCommandMenuContext();
+  const { showProvider } = useServerConfigStore(featureFlagsSelectors);
 
   // Extract subPath from pathname
   const subPath = useMemo(() => {
@@ -22,13 +25,22 @@ const ContextCommands = memo(() => {
     return pathParts && pathParts.length > 1 ? pathParts[1] : undefined;
   }, [pathname]);
 
-  const commands = getContextCommands(menuContext, subPath);
+  const commands = useMemo(() => {
+    const items = getContextCommands(menuContext, subPath);
+    if (showProvider) return items;
+
+    return items.filter((cmd) => cmd.subPath !== 'provider');
+  }, [menuContext, subPath, showProvider]);
 
   // Get settings commands to show globally (when not in settings context)
   const globalSettingsCommands = useMemo(() => {
     if (menuContext === 'settings') return [];
-    return CONTEXT_COMMANDS.settings;
-  }, [menuContext]);
+
+    const items = CONTEXT_COMMANDS.settings;
+    if (showProvider) return items;
+
+    return items.filter((cmd) => cmd.subPath !== 'provider');
+  }, [menuContext, showProvider]);
 
   const hasCommands = commands.length > 0 || globalSettingsCommands.length > 0;
 

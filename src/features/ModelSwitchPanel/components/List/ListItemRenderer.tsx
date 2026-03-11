@@ -18,6 +18,7 @@ import { useNavigate } from 'react-router-dom';
 import urlJoin from 'url-join';
 
 import { ModelItemRender, ProviderItemRender } from '@/components/ModelSelect';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 import { styles } from '../../styles';
 import { type ListItem } from '../../types';
@@ -53,6 +54,7 @@ export const ListItemRenderer = memo<ListItemRendererProps>(
     const { t } = useTranslation('components');
     const navigate = useNavigate();
     const [detailOpen, setDetailOpen] = useState(false);
+    const { showProvider } = useServerConfigStore(featureFlagsSelectors);
 
     useEffect(() => {
       setDetailOpen(false);
@@ -62,17 +64,17 @@ export const ListItemRenderer = memo<ListItemRendererProps>(
       case 'no-provider': {
         return (
           <Block
-            clickable
             horizontal
             className={styles.menuItem}
+            clickable={showProvider}
             gap={8}
             key="no-provider"
             style={{ color: cssVar.colorTextTertiary }}
             variant={'borderless'}
-            onClick={() => navigate('/settings/provider/all')}
+            onClick={() => showProvider && navigate('/settings/provider/all')}
           >
             {t('ModelSwitchPanel.emptyProvider')}
-            <Icon icon={LucideArrowRight} />
+            {showProvider && <Icon icon={LucideArrowRight} />}
           </Block>
         );
       }
@@ -93,22 +95,24 @@ export const ListItemRenderer = memo<ListItemRendererProps>(
               provider={item.provider.id}
               source={item.provider.source}
             />
-            <ActionIcon
-              className="settings-icon"
-              icon={LucideBolt}
-              size={'small'}
-              title={t('ModelSwitchPanel.goToSettings')}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const url = urlJoin('/settings/provider', item.provider.id || 'all');
-                if (e.ctrlKey || e.metaKey) {
-                  window.open(url, '_blank');
-                } else {
-                  navigate(url);
-                }
-              }}
-            />
+            {showProvider && (
+              <ActionIcon
+                className="settings-icon"
+                icon={LucideBolt}
+                size={'small'}
+                title={t('ModelSwitchPanel.goToSettings')}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const url = urlJoin('/settings/provider', item.provider.id || 'all');
+                  if (e.ctrlKey || e.metaKey) {
+                    window.open(url, '_blank');
+                  } else {
+                    navigate(url);
+                  }
+                }}
+              />
+            )}
           </Flexbox>
         );
       }
@@ -121,10 +125,10 @@ export const ListItemRenderer = memo<ListItemRendererProps>(
             gap={8}
             key={`empty-${item.provider.id}`}
             style={{ color: cssVar.colorTextTertiary }}
-            onClick={() => navigate(`/settings/provider/${item.provider.id}`)}
+            onClick={() => showProvider && navigate(`/settings/provider/${item.provider.id}`)}
           >
             {t('ModelSwitchPanel.emptyModel')}
-            <Icon icon={LucideArrowRight} />
+            {showProvider && <Icon icon={LucideArrowRight} />}
           </Flexbox>
         );
       }

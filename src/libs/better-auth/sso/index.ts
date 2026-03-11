@@ -1,6 +1,7 @@
 import { type GenericOAuthConfig } from 'better-auth/plugins';
 import { type SocialProviders } from 'better-auth/social-providers';
 
+import { getServerFeatureFlagsValue } from '@/config/featureFlags';
 import { appEnv } from '@/envs/app';
 import { authEnv } from '@/envs/auth';
 import { BUILTIN_BETTER_AUTH_PROVIDERS } from '@/libs/better-auth/constants';
@@ -18,6 +19,7 @@ import GenericOIDC from './providers/generic-oidc';
 import Github from './providers/github';
 import Google from './providers/google';
 import Keycloak from './providers/keycloak';
+import Lark from './providers/lark';
 import Logto from './providers/logto';
 import Microsoft from './providers/microsoft';
 import Okta from './providers/okta';
@@ -41,6 +43,7 @@ const providerDefinitions = [
   Okta,
   Zitadel,
   Feishu,
+  Lark,
   Wechat,
 ] as const;
 
@@ -62,7 +65,25 @@ for (const definition of providerDefinitions) {
 }
 
 export const initBetterAuthSSOProviders = () => {
-  const enabledProviders = parseSSOProviders(authEnv.AUTH_SSO_PROVIDERS);
+  const providers = parseSSOProviders(authEnv.AUTH_SSO_PROVIDERS);
+  const flags = getServerFeatureFlagsValue();
+
+  const enabledProviders = providers.filter((provider) => {
+    switch (provider) {
+      case 'lark': {
+        return flags.auth_sso_lark;
+      }
+      case 'google': {
+        return flags.auth_sso_google;
+      }
+      case 'github': {
+        return flags.auth_sso_github;
+      }
+      default: {
+        return true;
+      }
+    }
+  });
 
   const socialProviders: SocialProviders = {};
   const genericOAuthProviders: GenericOAuthConfig[] = [];
@@ -107,7 +128,7 @@ export const initBetterAuthSSOProviders = () => {
     if (config) {
       // the generic oidc callback url is /api/auth/oauth2/callback/{providerId}
       // different from builtin providers' /api/auth/callback/{providerId}
-      config.redirectURI = `${appEnv.APP_URL}/api/auth/callback/${definition.id}`;
+      config.redirectURI = `${appEnv.APP_URL}/api/auth/oauth2/callback/${definition.id}`;
       genericOAuthProviders.push(config);
     }
   }

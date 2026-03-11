@@ -57,6 +57,8 @@ declare global {
       AUTH_KEYCLOAK_ISSUER?: string;
 
       AUTH_KEYCLOAK_SECRET?: string;
+      AUTH_LARK_APP_ID?: string;
+      AUTH_LARK_APP_SECRET?: string;
       AUTH_LOGTO_ID?: string;
 
       AUTH_LOGTO_ISSUER?: string;
@@ -174,6 +176,9 @@ export const getAuthConfig = () => {
       AUTH_LOGTO_SECRET: z.string().optional(),
       AUTH_LOGTO_ISSUER: z.string().optional(),
 
+      AUTH_LARK_APP_ID: z.string().optional(),
+      AUTH_LARK_APP_SECRET: z.string().optional(),
+
       AUTH_OKTA_ID: z.string().optional(),
       AUTH_OKTA_SECRET: z.string().optional(),
       AUTH_OKTA_ISSUER: z.string().optional(),
@@ -266,6 +271,9 @@ export const getAuthConfig = () => {
       AUTH_LOGTO_ID: process.env.AUTH_LOGTO_ID,
       AUTH_LOGTO_SECRET: process.env.AUTH_LOGTO_SECRET,
       AUTH_LOGTO_ISSUER: process.env.AUTH_LOGTO_ISSUER,
+
+      AUTH_LARK_APP_ID: process.env.AUTH_LARK_APP_ID,
+      AUTH_LARK_APP_SECRET: process.env.AUTH_LARK_APP_SECRET,
 
       AUTH_OKTA_ID: process.env.AUTH_OKTA_ID,
       AUTH_OKTA_SECRET: process.env.AUTH_OKTA_SECRET,

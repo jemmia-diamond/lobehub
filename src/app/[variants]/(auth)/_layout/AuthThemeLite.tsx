@@ -3,10 +3,9 @@
 import 'antd/dist/reset.css';
 
 import { ConfigProvider, ThemeProvider } from '@lobehub/ui';
-import { App } from 'antd';
 import * as motion from 'motion/react-m';
 import Link from 'next/link';
-import { type PropsWithChildren } from 'react';
+import { type PropsWithChildren, useEffect, useState } from 'react';
 import { memo } from 'react';
 
 import AntdStaticMethods from '@/components/AntdStaticMethods';
@@ -19,7 +18,13 @@ interface AuthThemeLiteProps extends PropsWithChildren {
 
 const AuthThemeLite = memo<AuthThemeLiteProps>(({ children, globalCDN }) => {
   const isDark = useIsDark();
-  const currentAppearance = isDark ? 'dark' : 'light';
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const currentAppearance = mounted ? (isDark ? 'dark' : 'light') : 'light';
 
   return (
     <ThemeProvider
@@ -32,20 +37,18 @@ const AuthThemeLite = memo<AuthThemeLiteProps>(({ children, globalCDN }) => {
         cssVar: { key: 'lobe-vars' },
       }}
     >
-      <App style={{ height: '100%' }}>
-        <AntdStaticMethods />
-        <ConfigProvider
-          motion={motion}
-          config={{
-            aAs: Link,
-            imgAs: Image,
-            imgUnoptimized: true,
-            proxy: globalCDN ? 'unpkg' : undefined,
-          }}
-        >
-          {children}
-        </ConfigProvider>
-      </App>
+      <AntdStaticMethods />
+      <ConfigProvider
+        motion={motion}
+        config={{
+          aAs: Link,
+          imgAs: Image,
+          imgUnoptimized: true,
+          proxy: globalCDN ? 'unpkg' : undefined,
+        }}
+      >
+        {children}
+      </ConfigProvider>
     </ThemeProvider>
   );
 });
