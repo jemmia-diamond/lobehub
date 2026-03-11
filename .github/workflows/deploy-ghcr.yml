@@ -54,8 +54,10 @@ jobs:
             SHA=${{ github.sha }}
 
       - name: Deploy to Dokploy (Optional)
-        if: env.DOKPLOY_WEBHOOK_URL != ''
+        if: github.ref == 'refs/heads/canary'
         env:
           DOKPLOY_WEBHOOK_URL: ${{ secrets.DOKPLOY_WEBHOOK_URL }}
         run: |
-          curl -X POST ${{ secrets.DOKPLOY_WEBHOOK_URL }}
+          curl -X POST "${{ secrets.DOKPLOY_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{"branch": "canary"}'
