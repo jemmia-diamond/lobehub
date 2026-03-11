@@ -124,7 +124,7 @@ const googleChatModels: AIChatModelCard[] = [
     description:
       "Gemini 3.1 Flash Image (Nano Banana 2) is Google's fastest native image generation model with thinking support, conversational image generation and editing.",
     displayName: 'Nano Banana 2',
-    enabled: true,
+    enabled: false,
     id: 'gemini-3.1-flash-image-preview',
     maxOutput: 32_768,
     pricing: {
@@ -282,7 +282,7 @@ const googleChatModels: AIChatModelCard[] = [
     description:
       'Gemini 3 Pro Image (Nano Banana Pro) is Google’s image generation model and also supports multimodal chat.',
     displayName: 'Nano Banana Pro',
-    enabled: true,
+    enabled: false,
     id: 'gemini-3-pro-image-preview',
     maxOutput: 32_768,
     pricing: {

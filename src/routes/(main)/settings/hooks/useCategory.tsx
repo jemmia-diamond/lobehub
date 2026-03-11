@@ -3,7 +3,6 @@ import { Avatar } from '@lobehub/ui';
 import {
   Blocks,
   Brain,
-  BrainCircuit,
   ChartColumnBigIcon,
   Coins,
   CreditCard,
@@ -64,7 +63,7 @@ export const useCategory = () => {
   const { t: tAuth } = useTranslation('auth');
   const { t: tSubscription } = useTranslation('subscription');
   const mobile = useServerConfigStore((s) => s.isMobile);
-  const { enableSTT, hideDocs, showAiImage, showApiKeyManage } =
+  const { enableSTT, hideDocs, showAiImage, showApiKeyManage, showProvider, enableSystemSettings } =
     useServerConfigStore(featureFlagsSelectors);
   const [avatar, username] = useUserStore((s) => [
     userProfileSelectors.userAvatar(s),
@@ -89,7 +88,7 @@ export const useCategory = () => {
       {
         icon: avatarUrl ? <Avatar avatar={avatarUrl} shape={'square'} size={26} /> : UserCircle,
         key: SettingsTabs.Profile,
-        label: username ? username : tAuth('tab.profile'),
+        label: username || tAuth('tab.profile'),
       },
       {
         icon: ChartColumnBigIcon,
@@ -172,7 +171,7 @@ export const useCategory = () => {
 
     // AI configuration group - AI-related settings
     const aiConfigItems: CategoryItem[] = [
-      {
+      showProvider && {
         icon: Brain,
         key: SettingsTabs.Provider,
         label: t('tab.provider'),
@@ -186,11 +185,6 @@ export const useCategory = () => {
         icon: Blocks,
         key: SettingsTabs.Skill,
         label: t('tab.skill'),
-      },
-      {
-        icon: BrainCircuit,
-        key: SettingsTabs.Memory,
-        label: t('tab.memory'),
       },
       showAiImage && {
         icon: ImageIcon,
@@ -212,27 +206,30 @@ export const useCategory = () => {
 
     // System group - system-related settings
     const systemItems: CategoryItem[] = [
-      isDesktop && {
-        icon: EthernetPort,
-        key: SettingsTabs.Proxy,
-        label: t('tab.proxy'),
-      },
-      isDesktop && {
-        icon: TerminalSquare,
-        key: SettingsTabs.SystemTools,
-        label: t('tab.systemTools'),
-      },
-      isDesktop && {
-        icon: FlaskConical,
-        key: SettingsTabs.Beta,
-        label: t('tab.beta'),
-      },
-      {
+      enableSystemSettings &&
+        isDesktop && {
+          icon: EthernetPort,
+          key: SettingsTabs.Proxy,
+          label: t('tab.proxy'),
+        },
+      enableSystemSettings &&
+        isDesktop && {
+          icon: TerminalSquare,
+          key: SettingsTabs.SystemTools,
+          label: t('tab.systemTools'),
+        },
+      enableSystemSettings &&
+        isDesktop && {
+          icon: FlaskConical,
+          key: SettingsTabs.Beta,
+          label: t('tab.beta'),
+        },
+      enableSystemSettings && {
         icon: Database,
         key: SettingsTabs.Storage,
         label: t('tab.storage'),
       },
-      {
+      enableSystemSettings && {
         icon: EllipsisIcon,
         key: SettingsTabs.Advanced,
         label: t('tab.advanced'),
@@ -254,12 +251,15 @@ export const useCategory = () => {
   }, [
     t,
     tAuth,
+    tSubscription,
     enableSTT,
     enableBusinessFeatures,
     hideDocs,
     mobile,
     showAiImage,
     showApiKeyManage,
+    showProvider,
+    enableSystemSettings,
     avatarUrl,
     username,
   ]);

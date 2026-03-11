@@ -1,0 +1,177 @@
+import { authEnv } from '@/envs/auth';
+
+import { type GenericProviderDefinition } from '../types';
+
+const LARK_AUTHORIZATION_URL = 'https://open.larksuite.com/open-apis/authen/v1/authorize';
+const LARK_TOKEN_URL = 'https://open.larksuite.com/open-apis/authen/v2/oauth/token';
+const LARK_USERINFO_URL = 'https://open.larksuite.com/open-apis/authen/v1/user_info';
+
+type LarkUserProfile = {
+  avatar_big?: string;
+  avatar_middle?: string;
+  avatar_thumb?: string;
+  avatar_url?: string;
+  email?: string;
+  en_name?: string;
+  enterprise_email?: string;
+  name?: string;
+  open_id?: string;
+  tenant_key?: string;
+  union_id?: string;
+};
+
+type LarkUserInfoResponse = {
+  code?: number;
+  data?: LarkUserProfile;
+  msg?: string;
+};
+
+type LarkTokenPayload = {
+  access_token?: string;
+  expires_in?: number;
+  refresh_token?: string;
+  scope?: string;
+  tokenType?: string;
+  token_type?: string;
+};
+
+type LarkTokenResponse = {
+  code?: number;
+  data?: LarkTokenPayload;
+  message?: string;
+  msg?: string;
+} & LarkTokenPayload;
+
+const isLarkProfile = (value: unknown): value is LarkUserProfile => {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.union_id === 'string' ||
+    typeof candidate.open_id === 'string' ||
+    typeof candidate.avatar_url === 'string' ||
+    typeof candidate.name === 'string'
+  );
+};
+
+const parseScopes = (scope: string | undefined) =>
+  scope ? scope.split(/[\s,]+/).filter(Boolean) : [];
+
+const provider: GenericProviderDefinition<{
+  AUTH_LARK_APP_ID: string;
+  AUTH_LARK_APP_SECRET: string;
+}> = {
+  build: (env) => {
+    const clientId = env.AUTH_LARK_APP_ID;
+    const clientSecret = env.AUTH_LARK_APP_SECRET;
+
+    return {
+      authorizationUrl: LARK_AUTHORIZATION_URL,
+      authorizationUrlParams: {
+        app_id: clientId,
+        response_type: 'code',
+        scope: 'contact:user.base:readonly contact:user.email:readonly',
+      },
+      clientId,
+      clientSecret,
+      /**
+       * Exchange code directly with Lark (no proxy needed).
+       */
+      getToken: async ({ code, redirectURI }) => {
+        const tokenResponse = await fetch(LARK_TOKEN_URL, {
+          body: JSON.stringify({
+            client_id: clientId,
+            client_secret: clientSecret,
+            code,
+            grant_type: 'authorization_code',
+            redirect_uri: redirectURI,
+          }),
+          cache: 'no-store',
+          headers: {
+            'content-type': 'application/json; charset=utf-8',
+          },
+          method: 'POST',
+        });
+
+        const parsed = (await tokenResponse.json()) as LarkTokenResponse;
+        const payload = parsed.data ?? parsed;
+
+        const hasErrorCode = typeof parsed.code === 'number' && parsed.code !== 0;
+        const tokenMissing = !payload.access_token;
+
+        if (!tokenResponse.ok || hasErrorCode || tokenMissing) {
+          throw new Error(parsed.msg ?? parsed.message ?? 'Failed to fetch Lark OAuth token');
+        }
+
+        return {
+          accessToken: payload.access_token,
+          accessTokenExpiresAt: payload.expires_in
+            ? new Date(Date.now() + payload.expires_in * 1000)
+            : undefined,
+          expiresIn: payload.expires_in,
+          raw: parsed,
+          refreshToken: payload.refresh_token,
+          scopes: parseScopes(payload.scope),
+          tokenType: payload.token_type ?? payload.tokenType ?? 'Bearer',
+        };
+      },
+      getUserInfo: async (tokens) => {
+        if (!tokens.accessToken) return null;
+
+        const response = await fetch(LARK_USERINFO_URL, {
+          cache: 'no-store',
+          headers: {
+            Authorization: `Bearer ${tokens.accessToken}`,
+          },
+        });
+
+        if (!response.ok) return null;
+
+        const payload = (await response.json()) as unknown;
+        const profileResponse = payload as LarkUserInfoResponse;
+
+        if (profileResponse.code && profileResponse.code !== 0) return null;
+
+        const profile: LarkUserProfile | undefined =
+          profileResponse.data ?? (isLarkProfile(payload) ? payload : undefined);
+
+        if (!profile) return null;
+
+        const unionId = profile.union_id ?? profile.open_id;
+        if (!unionId) return null;
+
+        const email = profile.email || profile.enterprise_email || `${unionId}@lark.sso`;
+
+        return {
+          ...profile,
+          email,
+          emailVerified: false,
+          id: unionId,
+          image:
+            profile.avatar_url ??
+            profile.avatar_thumb ??
+            profile.avatar_middle ??
+            profile.avatar_big,
+          name: profile.name ?? profile.en_name ?? unionId,
+        };
+      },
+      pkce: false,
+      providerId: 'lark',
+      responseMode: 'query',
+      scopes: ['contact:user.base:readonly', 'contact:user.email:readonly'],
+      tokenUrl: LARK_TOKEN_URL,
+    };
+  },
+
+  checkEnvs: () => {
+    return !!(authEnv.AUTH_LARK_APP_ID && authEnv.AUTH_LARK_APP_SECRET)
+      ? {
+          AUTH_LARK_APP_ID: authEnv.AUTH_LARK_APP_ID,
+          AUTH_LARK_APP_SECRET: authEnv.AUTH_LARK_APP_SECRET,
+        }
+      : false;
+  },
+  id: 'lark',
+  type: 'generic',
+};
+
+export default provider;
