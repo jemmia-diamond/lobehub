@@ -92,7 +92,7 @@ export const initBetterAuthSSOProviders = () => {
     const definition = providerRegistry.get(rawProvider);
 
     if (!definition) {
-      throw new Error(`[Better-Auth] Unknown SSO provider testtt: ${rawProvider}`);
+      throw new Error(`[Better-Auth] Unknown SSO provider: ${rawProvider}`);
     }
 
     /**
