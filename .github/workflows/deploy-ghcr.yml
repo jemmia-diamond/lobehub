@@ -71,10 +71,10 @@ jobs:
           COMMIT_MESSAGE=$(git log -1 --pretty=%B)
 
           PAYLOAD=$(jq -n \
-            --arg ref "refs/heads/canary" \
+            --arg branch "canary" \
             --arg id "${{ github.sha }}" \
             --arg message "$COMMIT_MESSAGE" \
-            '{ref: $ref, head_commit: {id: $id, message: $message}}')
+            '{branch: $branch, hash: $id, message: $message}')
 
           curl -X POST "${{ secrets.DOKPLOY_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
