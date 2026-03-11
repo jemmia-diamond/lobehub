@@ -41,7 +41,7 @@ export const FeatureFlagsSchema = z.object({
   // please contact us for more information: hello@lobehub.com
   commercial_hide_github: FeatureFlagValue.optional(),
   commercial_hide_docs: FeatureFlagValue.optional(),
- 
+
   // authentication
   auth_sso_lark: FeatureFlagValue.optional(),
   auth_sso_google: FeatureFlagValue.optional(),
@@ -101,7 +101,7 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   // please contact us for more information: hello@lobehub.com
   commercial_hide_github: false,
   commercial_hide_docs: false,
- 
+
   auth_sso_lark: true,
   auth_sso_google: false,
   auth_sso_github: false,
@@ -138,7 +138,7 @@ export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string
 
     hideGitHub: evaluateFeatureFlag(config.commercial_hide_github, userId),
     hideDocs: evaluateFeatureFlag(config.commercial_hide_docs, userId),
- 
+
     enableAuthSsoLark: evaluateFeatureFlag(config.auth_sso_lark, userId),
     enableAuthSsoGoogle: evaluateFeatureFlag(config.auth_sso_google, userId),
     enableAuthSsoGithub: evaluateFeatureFlag(config.auth_sso_github, userId),
