@@ -69,7 +69,7 @@ jobs:
           DOKPLOY_WEBHOOK_URL: ${{ secrets.DOKPLOY_WEBHOOK_URL }}
         run: |
           echo "Waiting 10 seconds for GHCR to index the new image layers..."
-          sleep 10
+          sleep 30
 
           echo "Triggering Dokploy deployment with force pull..."
           COMMIT_MESSAGE=$(git log -1 --pretty=%B)
