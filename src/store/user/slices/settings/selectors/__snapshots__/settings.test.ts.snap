@@ -51,35 +51,35 @@ exports[`settingsSelectors > currentSettings > should merge DEFAULT_SETTINGS and
 exports[`settingsSelectors > currentSystemAgent > should merge DEFAULT_SYSTEM_AGENT_CONFIG and s.settings.systemAgent correctly 1`] = `
 {
   "agentMeta": {
-    "model": "claude-sonnet-4-6",
-    "provider": "anthropic",
+    "model": "gemini-3-flash-preview",
+    "provider": "google",
   },
   "enableAutoReply": true,
   "generationTopic": {
-    "model": "gpt-5-mini",
-    "provider": "openai",
+    "model": "gemini-1.5-flash-latest",
+    "provider": "google",
   },
   "historyCompress": {
-    "model": "claude-sonnet-4-6",
-    "provider": "anthropic",
+    "model": "gemini-3-flash-preview",
+    "provider": "google",
   },
   "queryRewrite": {
     "enabled": true,
-    "model": "gpt-5-mini",
-    "provider": "openai",
+    "model": "gemini-1.5-flash-latest",
+    "provider": "google",
   },
   "replyMessage": "Custom auto reply",
   "thread": {
-    "model": "claude-sonnet-4-6",
-    "provider": "anthropic",
+    "model": "gemini-3-flash-preview",
+    "provider": "google",
   },
   "topic": {
-    "model": "gpt-5-mini",
-    "provider": "openai",
+    "model": "gemini-1.5-flash-latest",
+    "provider": "google",
   },
   "translation": {
-    "model": "gpt-5-mini",
-    "provider": "openai",
+    "model": "gemini-1.5-flash-latest",
+    "provider": "google",
   },
 }
 `;
@@ -109,8 +109,8 @@ exports[`settingsSelectors > defaultAgent > should merge DEFAULT_AGENT and s.set
       "historyCount": 20,
       "reasoningBudgetToken": 1024,
       "searchFCModel": {
-        "model": "claude-sonnet-4-6",
-        "provider": "anthropic",
+        "model": "gemini-3-flash-preview",
+        "provider": "google",
       },
       "searchMode": "auto",
     },
@@ -123,7 +123,7 @@ exports[`settingsSelectors > defaultAgent > should merge DEFAULT_AGENT and s.set
       "top_p": 1,
     },
     "plugins": [],
-    "provider": "anthropic",
+    "provider": "google",
     "systemRole": "user",
     "tts": {
       "showAllLocaleVoice": false,
@@ -154,8 +154,8 @@ exports[`settingsSelectors > defaultAgentConfig > should merge DEFAULT_AGENT_CON
     "historyCount": 20,
     "reasoningBudgetToken": 1024,
     "searchFCModel": {
-      "model": "claude-sonnet-4-6",
-      "provider": "anthropic",
+      "model": "gemini-3-flash-preview",
+      "provider": "google",
     },
     "searchMode": "auto",
   },
@@ -168,7 +168,7 @@ exports[`settingsSelectors > defaultAgentConfig > should merge DEFAULT_AGENT_CON
     "top_p": 1,
   },
   "plugins": [],
-  "provider": "anthropic",
+  "provider": "google",
   "systemRole": "custom role",
   "tts": {
     "showAllLocaleVoice": false,
