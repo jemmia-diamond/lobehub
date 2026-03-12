@@ -1,7 +1,7 @@
 name: lobehub
 services:
   lobe:
-    image: lobehub/lobehub
+    image: ghcr.io/jemmia-diamond/lobehub:canary
     container_name: lobehub
     ports:
       - '${LOBE_PORT}:3210'
