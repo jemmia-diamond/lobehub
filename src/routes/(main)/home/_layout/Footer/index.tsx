@@ -210,7 +210,7 @@ const Footer = memo(() => {
         paddingBlock={4}
         style={{ cursor: 'default', fontSize: 11, opacity: 0.33, userSelect: 'none' }}
       >
-        Testttt
+        Test
       </Flexbox>
       <LabsModal open={isLabsModalOpen} onClose={handleCloseLabsModal} />
       <ChangelogModal
