@@ -70,9 +70,10 @@ jobs:
           echo "Waiting for image to be available on GHCR..."
           echo "Image Digest: ${{ steps.build.outputs.digest }}"
           
+          # Try to inspect manifest with retries (5 times, 2s apart)
           for i in {1..5}; do
             docker manifest inspect ghcr.io/${{ github.repository }}@${{ steps.build.outputs.digest }} > /dev/null 2>&1 && echo "✅ Image is live!" && break || \
-            (echo "⏳ Manifest not ready yet, retrying... ($i/5)" && sleep 3)
+            (echo "⏳ Manifest not ready yet, retrying... ($i/5)" && sleep 2)
           done
 
       - name: Deploy to Dokploy (Optional)
