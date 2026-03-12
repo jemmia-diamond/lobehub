@@ -204,6 +204,14 @@ const Footer = memo(() => {
         </Flexbox>
         <ThemeButton placement={'topCenter'} size={16} />
       </Flexbox>
+      <Flexbox
+        align={'center'}
+        justify={'center'}
+        paddingBlock={4}
+        style={{ cursor: 'default', fontSize: 11, opacity: 0.33, userSelect: 'none' }}
+      >
+        Test
+      </Flexbox>
       <LabsModal open={isLabsModalOpen} onClose={handleCloseLabsModal} />
       <ChangelogModal
         open={isChangelogModalOpen}
