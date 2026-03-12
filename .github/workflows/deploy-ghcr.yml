@@ -64,18 +64,19 @@ jobs:
             SHA=${{ github.sha }}
 
       - name: Deploy to Dokploy (Optional)
-        if: github.ref == 'refs/heads/canary'
+        if: github.ref == 'refs/heads/canary' && success()
         env:
           DOKPLOY_WEBHOOK_URL: ${{ secrets.DOKPLOY_WEBHOOK_URL }}
         run: |
           COMMIT_MESSAGE=$(git log -1 --pretty=%B)
 
           PAYLOAD=$(jq -n \
-            --arg branch "canary" \
+            --arg ref "refs/heads/canary" \
             --arg id "${{ github.sha }}" \
             --arg message "$COMMIT_MESSAGE" \
-            '{branch: $branch, hash: $id, message: $message}')
+            '{ref: $ref, head_commit: {id: $id, message: $message}}')
 
           curl -X POST "${{ secrets.DOKPLOY_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
-            -d "$PAYLOAD"
+            -H "X-GitHub-Event: push" \
+            -d "$PAYLOAD" || echo "Webhook failed, but continuing..."
