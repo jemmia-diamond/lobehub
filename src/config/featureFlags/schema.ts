@@ -83,8 +83,8 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   welcome_suggest: true,
   token_counter: true,
 
-  knowledge_base: false,
-  rag_eval: false,
+  knowledge_base: true,
+  rag_eval: true,
 
   cloud_promotion: false,
 
