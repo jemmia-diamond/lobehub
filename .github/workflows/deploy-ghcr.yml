@@ -87,7 +87,8 @@ jobs:
             --arg ref "refs/heads/canary" \
             --arg id "${{ github.sha }}" \
             --arg message "$COMMIT_MESSAGE" \
-            '{ref: $ref, head_commit: {id: $id, message: $message}}')
+            --arg digest "${{ steps.build.outputs.digest }}" \
+            '{ref: $ref, head_commit: {id: $id, message: $message, digest: $digest}}')
 
           curl -X POST "${{ secrets.DOKPLOY_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
