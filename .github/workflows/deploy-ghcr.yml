@@ -51,6 +51,7 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/canary' }}
 
       - name: Build and push Docker image
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -63,14 +64,22 @@ jobs:
           build-args: |
             SHA=${{ github.sha }}
 
+      - name: Verify image pullable
+        if: github.ref == 'refs/heads/canary' && success()
+        run: |
+          echo "Waiting for image to be available on GHCR..."
+          echo "Image Digest: ${{ steps.build.outputs.digest }}"
+          
+          for i in {1..5}; do
+            docker manifest inspect ghcr.io/${{ github.repository }}@${{ steps.build.outputs.digest }} > /dev/null 2>&1 && echo "✅ Image is live!" && break || \
+            (echo "⏳ Manifest not ready yet, retrying... ($i/5)" && sleep 3)
+          done
+
       - name: Deploy to Dokploy (Optional)
         if: github.ref == 'refs/heads/canary' && success()
         env:
           DOKPLOY_WEBHOOK_URL: ${{ secrets.DOKPLOY_WEBHOOK_URL }}
         run: |
-          echo "Waiting 10 seconds for GHCR to index the new image layers..."
-          sleep 30
-
           echo "Triggering Dokploy deployment with force pull..."
           COMMIT_MESSAGE=$(git log -1 --pretty=%B)
 
