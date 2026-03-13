@@ -1,7 +1,9 @@
 import {
+  ActionIcon,
   DropdownMenuGroup,
   DropdownMenuGroupLabel,
   DropdownMenuItem,
+  DropdownMenuItemExtra,
   DropdownMenuItemIcon,
   DropdownMenuItemLabel,
   DropdownMenuPopup,
@@ -14,9 +16,11 @@ import {
   Tag,
 } from '@lobehub/ui';
 import { cx } from 'antd-style';
-import { Check } from 'lucide-react';
+import { Check, LucideBolt } from 'lucide-react';
 import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import urlJoin from 'url-join';
 
 import { ModelItemRender, ProviderItemRender } from '@/components/ModelSelect';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
@@ -35,7 +39,6 @@ interface MultipleProvidersModelItemProps {
   onModelChange: (modelId: string, providerId: string) => void;
   onRestrictedModelClick?: () => void;
   proLabel?: string;
-  showInfoTag?: boolean;
 }
 
 export const MultipleProvidersModelItem = memo<MultipleProvidersModelItemProps>(
@@ -48,9 +51,9 @@ export const MultipleProvidersModelItem = memo<MultipleProvidersModelItemProps>(
     onClose,
     onRestrictedModelClick,
     proLabel,
-    showInfoTag,
   }) => {
     const { t } = useTranslation('components');
+    const navigate = useNavigate();
     const [submenuOpen, setSubmenuOpen] = useState(false);
     const { showProvider } = useServerConfigStore(featureFlagsSelectors);
 
@@ -85,18 +88,16 @@ export const MultipleProvidersModelItem = memo<MultipleProvidersModelItemProps>(
             {...data.model.abilities}
             newBadgeLabel={newLabel}
             proBadgeLabel={allRestricted ? proLabel : undefined}
-            showInfoTag={showInfoTag}
+            showInfoTag={true}
           />
         </DropdownMenuSubmenuTrigger>
         <DropdownMenuPortal>
           <DropdownMenuPositioner anchor={null} placement="right" sideOffset={12}>
             <DropdownMenuPopup className={cx(styles.detailPopup, styles.dropdownMenu)}>
-              {showInfoTag && (
-                <ModelDetailPanel
-                  model={data.model.id}
-                  provider={(activeProvider ?? data.providers[0]).id}
-                />
-              )}
+              <ModelDetailPanel
+                model={data.model.id}
+                provider={(activeProvider ?? data.providers[0]).id}
+              />
               <DropdownMenuGroup>
                 <DropdownMenuGroupLabel>
                   {t('ModelSwitchPanel.useModelFrom')}
