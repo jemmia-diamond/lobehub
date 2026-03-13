@@ -30,8 +30,7 @@ const Nav = memo(() => {
   const navigate = useNavigate();
   const { t } = useTranslation('common');
   const toggleCommandMenu = useGlobalStore((s) => s.toggleCommandMenu);
-  const { showMarket, showAiImage, enablePages, enableVideo } =
-    useServerConfigStore(featureFlagsSelectors);
+  const { showMarket } = useServerConfigStore(featureFlagsSelectors);
 
   const items: Item[] = useMemo(
     () => [
@@ -50,35 +49,14 @@ const Nav = memo(() => {
         url: '/',
       },
       {
-        hidden: !enablePages,
-        icon: getRouteById('page')!.icon,
-        key: SidebarTabKey.Pages,
-        title: t('tab.pages'),
-        url: '/page',
-      },
-      {
-        hidden: !enableVideo,
-        icon: getRouteById('video')!.icon,
-        key: SidebarTabKey.Video,
-        title: t('tab.video'),
-        url: '/video',
-      },
-      {
-        hidden: !showAiImage,
-        icon: getRouteById('image')!.icon,
-        key: SidebarTabKey.Image,
-        title: t('tab.aiImage'),
-        url: '/image',
-      },
-      {
         hidden: !showMarket,
         icon: getRouteById('community')!.icon,
         key: SidebarTabKey.Community,
-        title: t('tab.community'),
+        title: t('tab.marketplace'),
         url: '/community',
       },
     ],
-    [t, toggleCommandMenu, showAiImage, showMarket, enablePages, enableVideo],
+    [t, showMarket],
   );
 
   const newBadge = (

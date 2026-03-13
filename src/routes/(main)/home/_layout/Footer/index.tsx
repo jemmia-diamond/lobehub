@@ -13,6 +13,7 @@ import {
   FlaskConical,
   Github,
   Rocket,
+  Settings2,
 } from 'lucide-react';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -20,9 +21,7 @@ import { Link } from 'react-router-dom';
 
 import ChangelogModal from '@/components/ChangelogModal';
 import HighlightNotification from '@/components/HighlightNotification';
-import LabsModal from '@/components/LabsModal';
 import { DOCUMENTS_REFER_URL, GITHUB } from '@/const/url';
-import ThemeButton from '@/features/User/UserPanel/ThemeButton';
 import { useFeedbackModal } from '@/hooks/useFeedbackModal';
 import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors/systemStatus';
@@ -43,7 +42,6 @@ const Footer = memo(() => {
   const { analytics } = useAnalytics();
   const { hideGitHub, showHelpMenu } = useServerConfigStore(featureFlagsSelectors);
   const isDevMode = useUserStore((s) => userGeneralSettingsSelectors.config(s).isDevMode);
-  const [isLabsModalOpen, setIsLabsModalOpen] = useState(false);
   const [shouldLoadChangelog, setShouldLoadChangelog] = useState(false);
   const [isChangelogModalOpen, setIsChangelogModalOpen] = useState(false);
   const [isProductHuntCardOpen, setIsProductHuntCardOpen] = useState(false);
@@ -81,36 +79,28 @@ const Footer = memo(() => {
 
   const { open: openFeedbackModal } = useFeedbackModal();
 
-  const handleOpenLabsModal = useCallback(() => {
-    setIsLabsModalOpen(true);
-  }, []);
-
-  const handleCloseLabsModal = useCallback(() => {
-    setIsLabsModalOpen(false);
-  }, []);
-
-  const handleOpenChangelogModal = useCallback(() => {
+  const handleOpenChangelogModal = () => {
     setShouldLoadChangelog(true);
     setIsChangelogModalOpen(true);
-  }, []);
+  };
 
-  const handleCloseChangelogModal = useCallback(() => {
+  const handleCloseChangelogModal = () => {
     setIsChangelogModalOpen(false);
-  }, []);
+  };
 
-  const handleOpenFeedbackModal = useCallback(() => {
+  const handleOpenFeedbackModal = () => {
     openFeedbackModal();
-  }, [openFeedbackModal]);
+  };
 
-  const handleOpenProductHuntCard = useCallback(() => {
+  const handleOpenProductHuntCard = () => {
     setIsProductHuntCardOpen(true);
     trackProductHuntEvent('product_hunt_card_viewed', {
       spm: 'homepage.product_hunt.viewed',
       trigger: 'menu_click',
     });
-  }, [trackProductHuntEvent]);
+  };
 
-  const handleCloseProductHuntCard = useCallback(() => {
+  const handleCloseProductHuntCard = () => {
     setIsProductHuntCardOpen(false);
     if (!isNotificationRead) {
       const currentSlugs = useGlobalStore.getState().status.readNotificationSlugs || [];
@@ -121,16 +111,24 @@ const Footer = memo(() => {
     trackProductHuntEvent('product_hunt_card_closed', {
       spm: 'homepage.product_hunt.closed',
     });
-  }, [isNotificationRead, updateSystemStatus, trackProductHuntEvent]);
+  };
 
-  const handleProductHuntActionClick = useCallback(() => {
+  const handleProductHuntActionClick = () => {
     trackProductHuntEvent('product_hunt_action_clicked', {
       spm: 'homepage.product_hunt.action_clicked',
     });
-  }, [trackProductHuntEvent]);
+  };
 
   const helpMenuItems: MenuProps['items'] = useMemo(
     () => [
+      {
+        icon: <Icon icon={Settings2} />,
+        key: 'setting',
+        label: <Link to="/settings">{t('userPanel.setting')}</Link>,
+      },
+      {
+        type: 'divider' as const,
+      },
       {
         icon: <Icon icon={Book} />,
         key: 'docs',
@@ -164,12 +162,28 @@ const Footer = memo(() => {
         label: t('changelog'),
         onClick: handleOpenChangelogModal,
       },
-      {
-        icon: <Icon icon={FlaskConical} />,
-        key: 'labs',
-        label: t('labs'),
-        onClick: handleOpenLabsModal,
-      },
+      ...(!hideGitHub
+        ? [
+            {
+              icon: <Icon icon={Github} />,
+              key: 'github',
+              label: (
+                <a href={GITHUB} rel="noopener noreferrer" target="_blank">
+                  GitHub
+                </a>
+              ),
+            },
+          ]
+        : []),
+      ...(isDevMode
+        ? [
+            {
+              icon: <Icon icon={FlaskConical} />,
+              key: 'eval',
+              label: <Link to="/eval">Evaluation Lab</Link>,
+            },
+          ]
+        : []),
       ...(isWithinTimeWindow
         ? [
             {
@@ -183,37 +197,23 @@ const Footer = memo(() => {
     ],
     [
       t,
-      isWithinTimeWindow,
-      handleOpenLabsModal,
-      handleOpenChangelogModal,
       handleOpenFeedbackModal,
+      hideGitHub,
+      isDevMode,
+      isWithinTimeWindow,
       handleOpenProductHuntCard,
     ],
   );
 
   return (
     <>
-      <Flexbox horizontal align={'center'} gap={2} justify={'space-between'} padding={8}>
-        <Flexbox horizontal align={'center'} flex={1} gap={2}>
-          {showHelpMenu && (
-            <DropdownMenu items={helpMenuItems} placement="topLeft">
-              <ActionIcon aria-label={t('userPanel.help')} icon={CircleHelp} size={16} />
-            </DropdownMenu>
-          )}
-          {!hideGitHub && (
-            <a aria-label={'GitHub'} href={GITHUB} rel="noopener noreferrer" target={'_blank'}>
-              <ActionIcon icon={Github} size={16} title={'GitHub'} />
-            </a>
-          )}
-          {isDevMode && (
-            <Link to="/eval">
-              <ActionIcon icon={FlaskConical} size={16} title="Evaluation Lab" />
-            </Link>
-          )}
-        </Flexbox>
-        <ThemeButton placement={'topCenter'} size={16} />
+      <Flexbox horizontal align={'center'} gap={2} padding={8}>
+        {showHelpMenu && (
+          <DropdownMenu items={helpMenuItems} placement="topLeft">
+            <ActionIcon aria-label={t('userPanel.help')} icon={CircleHelp} size={16} />
+          </DropdownMenu>
+        )}
       </Flexbox>
-      <LabsModal open={isLabsModalOpen} onClose={handleCloseLabsModal} />
       <ChangelogModal
         open={isChangelogModalOpen}
         shouldLoad={shouldLoadChangelog}
