@@ -74,7 +74,7 @@ const Nav = memo(() => {
         hidden: !showMarket,
         icon: getRouteById('community')!.icon,
         key: SidebarTabKey.Community,
-        title: t('tab.community'),
+        title: t('tab.marketplace'),
         url: '/community',
       },
     ],

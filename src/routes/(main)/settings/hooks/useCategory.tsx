@@ -11,18 +11,13 @@ import {
   EthernetPort,
   FlaskConical,
   Gift,
-  Image as ImageIcon,
   Info,
   KeyboardIcon,
   KeyIcon,
   Map,
-  MessageSquareTextIcon,
-  Mic2,
   PaletteIcon,
-  PieChart,
   Sparkles,
   TerminalSquare,
-  UserCircle,
 } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -39,9 +34,8 @@ import { useUserStore } from '@/store/user';
 import { userProfileSelectors } from '@/store/user/slices/auth/selectors';
 
 export enum SettingsGroupKey {
-  Account = 'account',
-  AIConfig = 'ai-config',
-  Profile = 'profile',
+  Agent = 'agent',
+  General = 'general',
   Subscription = 'subscription',
   System = 'system',
 }
@@ -71,7 +65,6 @@ export const useCategory = () => {
   ]);
   const remoteServerUrl = useElectronStore(electronSyncSelectors.remoteServerUrl);
 
-  // Process avatar URL for desktop environment
   const avatarUrl = useMemo(() => {
     if (!avatar) return undefined;
     if (isDesktop && avatar.startsWith('/') && remoteServerUrl) {
@@ -83,17 +76,22 @@ export const useCategory = () => {
   const categoryGroups: CategoryGroup[] = useMemo(() => {
     const groups: CategoryGroup[] = [];
 
-    // Profile group - Profile-related settings
-    const profileItems: CategoryItem[] = [
+    // General group
+    const generalItems: CategoryItem[] = [
       {
-        icon: avatarUrl ? <Avatar avatar={avatarUrl} shape={'square'} size={26} /> : UserCircle,
+        icon: avatarUrl ? <Avatar avatar={avatarUrl} shape={'square'} size={26} /> : undefined,
         key: SettingsTabs.Profile,
         label: username || tAuth('tab.profile'),
       },
       {
-        icon: ChartColumnBigIcon,
-        key: SettingsTabs.Stats,
-        label: tAuth('tab.stats'),
+        icon: PaletteIcon,
+        key: SettingsTabs.Appearance,
+        label: t('tab.appearance'),
+      },
+      !mobile && {
+        icon: KeyboardIcon,
+        key: SettingsTabs.Hotkey,
+        label: t('tab.hotkey'),
       },
       showApiKeyManage && {
         icon: KeyIcon,
@@ -103,38 +101,19 @@ export const useCategory = () => {
     ].filter(Boolean) as CategoryItem[];
 
     groups.push({
-      items: profileItems,
-      key: SettingsGroupKey.Profile,
-      title: t('group.profile'),
+      items: generalItems,
+      key: SettingsGroupKey.General,
+      title: t('group.common'),
     });
 
+    // Subscription group
     if (enableBusinessFeatures) {
       const subscriptionItems: CategoryItem[] = [
-        {
-          icon: Map,
-          key: SettingsTabs.Plans,
-          label: tSubscription('tab.plans'),
-        },
-        {
-          icon: Coins,
-          key: SettingsTabs.Funds,
-          label: tSubscription('tab.funds'),
-        },
-        {
-          icon: PieChart,
-          key: SettingsTabs.Usage,
-          label: tSubscription('tab.usage'),
-        },
-        {
-          icon: CreditCard,
-          key: SettingsTabs.Billing,
-          label: tSubscription('tab.billing'),
-        },
-        {
-          icon: Gift,
-          key: SettingsTabs.Referral,
-          label: tSubscription('tab.referral'),
-        },
+        { icon: Map, key: SettingsTabs.Plans, label: tSubscription('tab.plans') },
+        { icon: Coins, key: SettingsTabs.Credits, label: tSubscription('tab.credits') },
+        { icon: CreditCard, key: SettingsTabs.Billing, label: tSubscription('tab.billing') },
+        { icon: Gift, key: SettingsTabs.Referral, label: tSubscription('tab.referral') },
+        { icon: ChartColumnBigIcon, key: SettingsTabs.Usage, label: t('tab.usage') },
       ];
 
       groups.push({
@@ -178,8 +157,8 @@ export const useCategory = () => {
       },
       {
         icon: Sparkles,
-        key: SettingsTabs.Agent,
-        label: t('tab.agent'),
+        key: SettingsTabs.ServiceModel,
+        label: t('tab.serviceModel'),
       },
       {
         icon: Blocks,
@@ -199,12 +178,12 @@ export const useCategory = () => {
     ].filter(Boolean) as CategoryItem[];
 
     groups.push({
-      items: aiConfigItems,
-      key: SettingsGroupKey.AIConfig,
+      items: agentItems,
+      key: SettingsGroupKey.Agent,
       title: t('group.aiConfig'),
     });
 
-    // System group - system-related settings
+    // System group
     const systemItems: CategoryItem[] = [
       enableSystemSettings &&
         isDesktop && {
@@ -256,7 +235,6 @@ export const useCategory = () => {
     enableBusinessFeatures,
     hideDocs,
     mobile,
-    showAiImage,
     showApiKeyManage,
     showProvider,
     enableSystemSettings,
