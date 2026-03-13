@@ -41,7 +41,7 @@ const PRODUCT_HUNT_NOTIFICATION = {
 const Footer = memo(() => {
   const { t } = useTranslation('common');
   const { analytics } = useAnalytics();
-  const { hideGitHub } = useServerConfigStore(featureFlagsSelectors);
+  const { hideGitHub, showHelpMenu } = useServerConfigStore(featureFlagsSelectors);
   const isDevMode = useUserStore((s) => userGeneralSettingsSelectors.config(s).isDevMode);
   const [isLabsModalOpen, setIsLabsModalOpen] = useState(false);
   const [shouldLoadChangelog, setShouldLoadChangelog] = useState(false);
@@ -81,36 +81,36 @@ const Footer = memo(() => {
 
   const { open: openFeedbackModal } = useFeedbackModal();
 
-  const handleOpenLabsModal = () => {
+  const handleOpenLabsModal = useCallback(() => {
     setIsLabsModalOpen(true);
-  };
+  }, []);
 
-  const handleCloseLabsModal = () => {
+  const handleCloseLabsModal = useCallback(() => {
     setIsLabsModalOpen(false);
-  };
+  }, []);
 
-  const handleOpenChangelogModal = () => {
+  const handleOpenChangelogModal = useCallback(() => {
     setShouldLoadChangelog(true);
     setIsChangelogModalOpen(true);
-  };
+  }, []);
 
-  const handleCloseChangelogModal = () => {
+  const handleCloseChangelogModal = useCallback(() => {
     setIsChangelogModalOpen(false);
-  };
+  }, []);
 
-  const handleOpenFeedbackModal = () => {
+  const handleOpenFeedbackModal = useCallback(() => {
     openFeedbackModal();
-  };
+  }, [openFeedbackModal]);
 
-  const handleOpenProductHuntCard = () => {
+  const handleOpenProductHuntCard = useCallback(() => {
     setIsProductHuntCardOpen(true);
     trackProductHuntEvent('product_hunt_card_viewed', {
       spm: 'homepage.product_hunt.viewed',
       trigger: 'menu_click',
     });
-  };
+  }, [trackProductHuntEvent]);
 
-  const handleCloseProductHuntCard = () => {
+  const handleCloseProductHuntCard = useCallback(() => {
     setIsProductHuntCardOpen(false);
     if (!isNotificationRead) {
       const currentSlugs = useGlobalStore.getState().status.readNotificationSlugs || [];
@@ -121,13 +121,13 @@ const Footer = memo(() => {
     trackProductHuntEvent('product_hunt_card_closed', {
       spm: 'homepage.product_hunt.closed',
     });
-  };
+  }, [isNotificationRead, updateSystemStatus, trackProductHuntEvent]);
 
-  const handleProductHuntActionClick = () => {
+  const handleProductHuntActionClick = useCallback(() => {
     trackProductHuntEvent('product_hunt_action_clicked', {
       spm: 'homepage.product_hunt.action_clicked',
     });
-  };
+  }, [trackProductHuntEvent]);
 
   const helpMenuItems: MenuProps['items'] = useMemo(
     () => [
@@ -181,16 +181,25 @@ const Footer = memo(() => {
           ]
         : []),
     ],
-    [t, isWithinTimeWindow],
+    [
+      t,
+      isWithinTimeWindow,
+      handleOpenLabsModal,
+      handleOpenChangelogModal,
+      handleOpenFeedbackModal,
+      handleOpenProductHuntCard,
+    ],
   );
 
   return (
     <>
       <Flexbox horizontal align={'center'} gap={2} justify={'space-between'} padding={8}>
         <Flexbox horizontal align={'center'} flex={1} gap={2}>
-          <DropdownMenu items={helpMenuItems} placement="topLeft">
-            <ActionIcon aria-label={t('userPanel.help')} icon={CircleHelp} size={16} />
-          </DropdownMenu>
+          {showHelpMenu && (
+            <DropdownMenu items={helpMenuItems} placement="topLeft">
+              <ActionIcon aria-label={t('userPanel.help')} icon={CircleHelp} size={16} />
+            </DropdownMenu>
+          )}
           {!hideGitHub && (
             <a aria-label={'GitHub'} href={GITHUB} rel="noopener noreferrer" target={'_blank'}>
               <ActionIcon icon={Github} size={16} title={'GitHub'} />
@@ -203,14 +212,6 @@ const Footer = memo(() => {
           )}
         </Flexbox>
         <ThemeButton placement={'topCenter'} size={16} />
-      </Flexbox>
-      <Flexbox
-        align={'center'}
-        justify={'center'}
-        paddingBlock={4}
-        style={{ cursor: 'default', fontSize: 11, opacity: 0.33, userSelect: 'none' }}
-      >
-        Testttt
       </Flexbox>
       <LabsModal open={isLabsModalOpen} onClose={handleCloseLabsModal} />
       <ChangelogModal

@@ -5,6 +5,7 @@ const FeatureFlagValue = z.union([z.boolean(), z.array(z.string())]);
 
 export const FeatureFlagsSchema = z.object({
   check_updates: FeatureFlagValue.optional(),
+  show_help_menu: FeatureFlagValue.optional(),
 
   // settings
   provider_settings: FeatureFlagValue.optional(),
@@ -80,6 +81,7 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   ai_image: false,
 
   check_updates: true,
+  show_help_menu: true,
   welcome_suggest: true,
   token_counter: true,
 
@@ -99,7 +101,7 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   // the flags below can only be used with commercial license
   // if you want to use it in the commercial usage
   // please contact us for more information: hello@lobehub.com
-  commercial_hide_github: false,
+  commercial_hide_github: true,
   commercial_hide_docs: false,
 
   auth_sso_lark: true,
@@ -120,6 +122,7 @@ export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string
 
     showAiImage: evaluateFeatureFlag(config.ai_image, userId),
     showChangelog: evaluateFeatureFlag(config.changelog, userId),
+    showHelpMenu: evaluateFeatureFlag(config.show_help_menu, userId),
 
     enableCheckUpdates: evaluateFeatureFlag(config.check_updates, userId),
     showWelcomeSuggest: evaluateFeatureFlag(config.welcome_suggest, userId),
