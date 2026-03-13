@@ -3,13 +3,13 @@ import { Avatar } from '@lobehub/ui';
 import {
   Blocks,
   Brain,
+  BrainCircuit,
   ChartColumnBigIcon,
   Coins,
   CreditCard,
   Database,
   EllipsisIcon,
   EthernetPort,
-  FlaskConical,
   Gift,
   Info,
   KeyboardIcon,
@@ -32,6 +32,7 @@ import {
 } from '@/store/serverConfig';
 import { useUserStore } from '@/store/user';
 import { userProfileSelectors } from '@/store/user/slices/auth/selectors';
+import { userGeneralSettingsSelectors } from '@/store/user/slices/settings/selectors';
 
 export enum SettingsGroupKey {
   Agent = 'agent',
@@ -57,13 +58,13 @@ export const useCategory = () => {
   const { t: tAuth } = useTranslation('auth');
   const { t: tSubscription } = useTranslation('subscription');
   const mobile = useServerConfigStore((s) => s.isMobile);
-  const { enableSTT, hideDocs, showAiImage, showApiKeyManage, showProvider, enableSystemSettings } =
-    useServerConfigStore(featureFlagsSelectors);
+  const { hideDocs, showApiKeyManage } = useServerConfigStore(featureFlagsSelectors);
   const [avatar, username] = useUserStore((s) => [
     userProfileSelectors.userAvatar(s),
     userProfileSelectors.nickName(s),
   ]);
   const remoteServerUrl = useElectronStore(electronSyncSelectors.remoteServerUrl);
+  const isDevMode = useUserStore((s) => userGeneralSettingsSelectors.config(s).isDevMode);
 
   const avatarUrl = useMemo(() => {
     if (!avatar) return undefined;
@@ -93,11 +94,6 @@ export const useCategory = () => {
         key: SettingsTabs.Hotkey,
         label: t('tab.hotkey'),
       },
-      showApiKeyManage && {
-        icon: KeyIcon,
-        key: SettingsTabs.APIKey,
-        label: tAuth('tab.apikey'),
-      },
     ].filter(Boolean) as CategoryItem[];
 
     groups.push({
@@ -123,34 +119,9 @@ export const useCategory = () => {
       });
     }
 
-    // Account group - personal settings
-    const commonItems: CategoryItem[] = [
+    // Agent group
+    const agentItems: CategoryItem[] = [
       {
-        icon: PaletteIcon,
-        key: SettingsTabs.Common,
-        label: t('tab.common'),
-      },
-      {
-        icon: MessageSquareTextIcon,
-        key: SettingsTabs.ChatAppearance,
-        label: t('tab.chatAppearance'),
-      },
-      !mobile && {
-        icon: KeyboardIcon,
-        key: SettingsTabs.Hotkey,
-        label: t('tab.hotkey'),
-      },
-    ].filter(Boolean) as CategoryItem[];
-
-    groups.push({
-      items: commonItems,
-      key: SettingsGroupKey.Account,
-      title: t('group.common'),
-    });
-
-    // AI configuration group - AI-related settings
-    const aiConfigItems: CategoryItem[] = [
-      showProvider && {
         icon: Brain,
         key: SettingsTabs.Provider,
         label: t('tab.provider'),
@@ -165,15 +136,15 @@ export const useCategory = () => {
         key: SettingsTabs.Skill,
         label: t('tab.skill'),
       },
-      showAiImage && {
-        icon: ImageIcon,
-        key: SettingsTabs.Image,
-        label: t('tab.image'),
+      {
+        icon: BrainCircuit,
+        key: SettingsTabs.Memory,
+        label: t('tab.memory'),
       },
-      enableSTT && {
-        icon: Mic2,
-        key: SettingsTabs.TTS,
-        label: t('tab.tts'),
+      showApiKeyManage && {
+        icon: KeyIcon,
+        key: SettingsTabs.APIKey,
+        label: tAuth('tab.apikey'),
       },
     ].filter(Boolean) as CategoryItem[];
 
@@ -185,30 +156,27 @@ export const useCategory = () => {
 
     // System group
     const systemItems: CategoryItem[] = [
-      enableSystemSettings &&
-        isDesktop && {
-          icon: EthernetPort,
-          key: SettingsTabs.Proxy,
-          label: t('tab.proxy'),
-        },
-      enableSystemSettings &&
-        isDesktop && {
-          icon: TerminalSquare,
-          key: SettingsTabs.SystemTools,
-          label: t('tab.systemTools'),
-        },
-      enableSystemSettings &&
-        isDesktop && {
-          icon: FlaskConical,
-          key: SettingsTabs.Beta,
-          label: t('tab.beta'),
-        },
-      enableSystemSettings && {
+      isDesktop && {
+        icon: EthernetPort,
+        key: SettingsTabs.Proxy,
+        label: t('tab.proxy'),
+      },
+      isDesktop && {
+        icon: TerminalSquare,
+        key: SettingsTabs.SystemTools,
+        label: t('tab.systemTools'),
+      },
+      {
         icon: Database,
         key: SettingsTabs.Storage,
         label: t('tab.storage'),
       },
-      enableSystemSettings && {
+      isDevMode && {
+        icon: KeyIcon,
+        key: SettingsTabs.APIKey,
+        label: tAuth('tab.apikey'),
+      },
+      {
         icon: EllipsisIcon,
         key: SettingsTabs.Advanced,
         label: t('tab.advanced'),
@@ -228,18 +196,16 @@ export const useCategory = () => {
 
     return groups;
   }, [
-    t,
-    tAuth,
-    tSubscription,
-    enableSTT,
-    enableBusinessFeatures,
-    hideDocs,
-    mobile,
-    showApiKeyManage,
-    showProvider,
-    enableSystemSettings,
     avatarUrl,
     username,
+    tAuth,
+    t,
+    mobile,
+    enableBusinessFeatures,
+    showApiKeyManage,
+    isDevMode,
+    hideDocs,
+    tSubscription,
   ]);
 
   return categoryGroups;
