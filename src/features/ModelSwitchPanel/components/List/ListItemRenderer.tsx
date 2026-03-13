@@ -12,7 +12,7 @@ import {
 } from '@lobehub/ui';
 import { cssVar, cx } from 'antd-style';
 import { LucideArrowRight, LucideBolt } from 'lucide-react';
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import urlJoin from 'url-join';
@@ -33,9 +33,10 @@ interface ListItemRendererProps {
   item: ListItem;
   newLabel: string;
   onClose: () => void;
-  onModelChange: (modelId: string, providerId: string) => Promise<void>;
+  onModelChange: (modelId: string, providerId: string) => void;
   onRestrictedModelClick?: () => void;
   proLabel?: string;
+  scrollCount?: number;
 }
 
 export const ListItemRenderer = memo<ListItemRendererProps>(
@@ -48,11 +49,16 @@ export const ListItemRenderer = memo<ListItemRendererProps>(
     onClose,
     onRestrictedModelClick,
     proLabel,
+    scrollCount,
   }) => {
     const { t } = useTranslation('components');
     const navigate = useNavigate();
     const [detailOpen, setDetailOpen] = useState(false);
     const { showProvider } = useServerConfigStore(featureFlagsSelectors);
+
+    useEffect(() => {
+      setDetailOpen(false);
+    }, [scrollCount]);
 
     switch (item.type) {
       case 'no-provider': {
@@ -138,15 +144,16 @@ export const ListItemRenderer = memo<ListItemRendererProps>(
               <DropdownMenuSubmenuTrigger
                 className={cx(menuSharedStyles.item, isActive && styles.menuItemActive)}
                 style={{ paddingBlock: 8, paddingInline: 8 }}
-                onClick={async () => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  setDetailOpen(false);
                   if (restricted) {
                     onRestrictedModelClick?.();
                     onClose();
                     return;
                   }
-                  setDetailOpen(false);
-                  onModelChange(item.model.id, item.provider.id);
                   onClose();
+                  onModelChange(item.model.id, item.provider.id);
                 }}
               >
                 <ModelItemRender
@@ -181,15 +188,16 @@ export const ListItemRenderer = memo<ListItemRendererProps>(
               <DropdownMenuSubmenuTrigger
                 className={cx(menuSharedStyles.item, isActive && styles.menuItemActive)}
                 style={{ paddingBlock: 8, paddingInline: 8 }}
-                onClick={async () => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  setDetailOpen(false);
                   if (restricted) {
                     onRestrictedModelClick?.();
                     onClose();
                     return;
                   }
-                  setDetailOpen(false);
-                  onModelChange(item.data.model.id, singleProvider.id);
                   onClose();
+                  onModelChange(item.data.model.id, singleProvider.id);
                 }}
               >
                 <SingleProviderModelItem
