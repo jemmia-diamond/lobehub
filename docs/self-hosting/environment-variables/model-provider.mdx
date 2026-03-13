@@ -121,6 +121,29 @@ If you need to use Azure OpenAI to provide model services, you can refer to the 
 - Default: `-`
 - Example: `-all,+gemini-1.5-flash-latest,+gemini-1.5-pro-latest`
 
+## Jemmia
+
+### `JEMMIA_MODEL_TOKEN`
+
+- Type: Required
+- Description: API token for Jemmia AI
+- Default: -
+- Example: `your-jemmia-token`
+
+### `JEMMIA_MODEL_PROXY_URL`
+
+- Type: Optional
+- Description: Proxy URL for Jemmia AI
+- Default: `https://aiproxy.jemmia.vn/v1`
+- Example: `https://aiproxy.jemmia.vn/v1`
+
+### `JEMMIA_MODEL_LIST`
+
+- Type: Optional
+- Description: Used to control the model list, use `+` to add a model, use `-` to hide a model, use `model_name=display_name` to customize the display name of a model, separated by commas. Definition syntax rules see [model-list][model-list]
+- Default: `-`
+- Example: `-all,+gemini-1.5-flash-latest,+gemini-2.0-pro-exp`
+
 ## Vertex AI
 
 ### `VERTEXAI_CREDENTIALS`

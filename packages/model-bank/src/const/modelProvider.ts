@@ -28,6 +28,7 @@ export enum ModelProvider {
   Hunyuan = 'hunyuan',
   InfiniAI = 'infiniai',
   InternLM = 'internlm',
+  Jemmia = 'jemmia',
   Jina = 'jina',
   LMStudio = 'lmstudio',
   LobeHub = 'lobehub',
