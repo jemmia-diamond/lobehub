@@ -3,7 +3,7 @@ name: Build and Push to GHCR
 on:
   push:
     branches:
-      - develop
+      - canary
     paths-ignore:
       - '**.md'
       - '**.mdx'
@@ -48,7 +48,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=sha,prefix=sha-,format=short
-            type=raw,value=canary,enable=${{ github.ref == 'refs/heads/develop' }}
+            type=raw,value=canary,enable=${{ github.ref == 'refs/heads/canary' }}
 
       - name: Build and push Docker image
         id: build
@@ -65,7 +65,7 @@ jobs:
             SHA=${{ github.sha }}
 
       - name: Verify image pullable
-        if: github.ref == 'refs/heads/develop' && success()
+        if: github.ref == 'refs/heads/canary' && success()
         run: |
           echo "Waiting for image to be available on GHCR..."
           echo "Image Digest: ${{ steps.build.outputs.digest }}"
@@ -76,7 +76,7 @@ jobs:
           done
 
       - name: Deploy to Dokploy (Webhook Trigger)
-        if: github.ref == 'refs/heads/develop' && success()
+        if: github.ref == 'refs/heads/canary' && success()
         env:
           DOKPLOY_WEBHOOK_URL: ${{ secrets.DOKPLOY_WEBHOOK_URL }}
         run: |
