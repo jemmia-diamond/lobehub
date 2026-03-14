@@ -48,7 +48,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/canary' }}
-            type=sha,prefix=sha-,format=short
+            type=sha,prefix=sha-,format=long
 
       - name: Build and push Docker image
         id: build
@@ -81,4 +81,5 @@ jobs:
 
           curl -X POST "$DOKPLOY_WEBHOOK_URL" \
             -H "Content-Type: application/json" \
+            -H "X-GitHub-Event: push" \
             -d "$PAYLOAD"
