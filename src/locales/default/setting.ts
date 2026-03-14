@@ -807,18 +807,16 @@ When I am ___, I need ___
   'tab.about': 'About',
   'tab.advanced': 'Advanced',
   'tab.addAgentSkill': 'Add Agent Skill',
-  'tab.beta': 'Beta',
-  'tab.beta.updateChannel.beta': 'Beta',
-  'tab.beta.updateChannel.canary': 'Canary',
-  'tab.beta.updateChannel.canaryDesc':
+  'tab.advanced.updateChannel.canary': 'Canary',
+  'tab.advanced.updateChannel.canaryDesc':
     'Triggered on every PR merge, multiple builds per day. Most unstable.',
-  'tab.beta.updateChannel.desc':
+  'tab.advanced.updateChannel.desc':
     'By default, get notifications for stable updates. Nightly and Canary channels receive pre-release builds that may be unstable for production work.',
-  'tab.beta.updateChannel.nightly': 'Nightly',
-  'tab.beta.updateChannel.nightlyDesc': 'Automated daily builds with the latest changes.',
-  'tab.beta.updateChannel.stable': 'Stable',
-  'tab.beta.updateChannel.stableDesc': 'Production-ready releases.',
-  'tab.beta.updateChannel.title': 'Update Channel',
+  'tab.advanced.updateChannel.nightly': 'Nightly',
+  'tab.advanced.updateChannel.nightlyDesc': 'Automated daily builds with the latest changes.',
+  'tab.advanced.updateChannel.stable': 'Stable',
+  'tab.advanced.updateChannel.stableDesc': 'Production-ready releases.',
+  'tab.advanced.updateChannel.title': 'Update Channel',
   'tab.addCustomMcp': 'Add Custom MCP Skill',
   'tab.addCustomMcp.desc': 'Manually configure a custom MCP server',
   'tab.addCustomSkill': 'Add',
@@ -1099,7 +1097,14 @@ When I am ___, I need ___
   'tools.plugins.management': 'Skill Management',
   'tools.plugins.noEnabled': 'No skills enabled',
   'tools.plugins.store': 'Add skill',
+  'tools.search': 'Search skills...',
+  'tools.skillActivateMode.auto.desc':
+    'AI can autonomously activate tools, run skills, and install new skills from the store',
+  'tools.skillActivateMode.auto.title': 'Auto',
+  'tools.skillActivateMode.manual.desc': 'Only user-selected tools and skills are available to AI',
+  'tools.skillActivateMode.manual.title': 'Manual',
+  'tools.skillActivateMode.title': 'Activate Mode',
   'tools.tabs.all': 'All',
   'tools.tabs.installed': 'Enabled',
-  'tools.title': 'Extension Tools',
+  'tools.title': 'Skills',
 };
