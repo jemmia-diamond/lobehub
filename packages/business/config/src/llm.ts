@@ -29,6 +29,9 @@ export const DEFAULT_LLM_CONFIG = genUserLLMConfig({
   google: {
     enabled: true,
   },
+  jemmia: {
+    enabled: true,
+  },
   lmstudio: {
     fetchOnClient: true,
   },
