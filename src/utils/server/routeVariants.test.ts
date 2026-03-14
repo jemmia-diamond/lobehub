@@ -97,7 +97,7 @@ describe('RouteVariants', () => {
     });
 
     it('should handle malformed serialized string', () => {
-      const serialized = 'en-US';
+      const serialized = 'vi-VN';
       const result = RouteVariants.deserializeVariants(serialized);
       expect(result).toEqual(DEFAULT_VARIANTS);
     });
