@@ -28,7 +28,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PAT_FOR_SYNC || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
       - name: Calculate Version
@@ -58,7 +58,7 @@ jobs:
           git tag "v${{ steps.version.outputs.version }}"
           git push origin "v${{ steps.version.outputs.version }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_FOR_SYNC || github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Replace Version Placeholder
         run: |
@@ -126,4 +126,4 @@ jobs:
           git push --delete origin "v${{ steps.version.outputs.version }}" || true
           git tag -d "v${{ steps.version.outputs.version }}" || true
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_FOR_SYNC || github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
