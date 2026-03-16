@@ -10,14 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      issues: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: canary
-          token: ${{ secrets.PAT_FOR_SYNC || github.token }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Dry-Run and Sync
         id: sync_step
@@ -43,22 +42,22 @@ jobs:
           git merge upstream/canary --no-edit
           git push origin canary
 
-      - name: Report failure
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { owner, repo } = context.repo;
-            await github.rest.issues.create({
-              owner,
-              repo,
-              title: '❌ Upstream Sync Conflict',
-              body: `The automated dry-run for \`lobehub/lobe-chat\` detected a merge conflict.
-              
-              Manual Resolution Required:
-              1. git checkout canary
-              2. git pull https://github.com/lobehub/lobe-chat.git canary
-              3. Resolve conflicts and push.
-              
-              View Run: ${process.env.GITHUB_SERVER_URL}/${owner}/${repo}/actions/runs/${process.env.GITHUB_RUN_ID}`
-            });
+#      - name: Report failure
+#        if: failure()
+#        uses: actions/github-script@v7
+#        with:
+#          script: |
+#            const { owner, repo } = context.repo;
+#            await github.rest.issues.create({
+#              owner,
+#              repo,
+#              title: '❌ Upstream Sync Conflict',
+#              body: `The automated dry-run for \`lobehub/lobe-chat\` detected a merge conflict.
+#              
+#              Manual Resolution Required:
+#              1. git checkout canary
+#              2. git pull https://github.com/lobehub/lobe-chat.git canary
+#              3. Resolve conflicts and push.
+#              
+#              View Run: ${process.env.GITHUB_SERVER_URL}/${owner}/${repo}/actions/runs/${process.env.GITHUB_RUN_ID}`
+#            });
