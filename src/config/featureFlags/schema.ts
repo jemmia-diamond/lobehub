@@ -13,6 +13,9 @@ export const FeatureFlagsSchema = z.object({
   openai_api_key: FeatureFlagValue.optional(),
   openai_proxy_url: FeatureFlagValue.optional(),
 
+  jemmia_api_key: FeatureFlagValue.optional(),
+  jemmia_proxy_url: FeatureFlagValue.optional(),
+
   // profile
   api_key_manage: FeatureFlagValue.optional(),
   edit_agent: FeatureFlagValue.optional(),
@@ -34,6 +37,7 @@ export const FeatureFlagsSchema = z.object({
 
   // The new custom MVP restriction flags
   enable_pages: FeatureFlagValue.optional(),
+  enable_resource: FeatureFlagValue.optional(),
   enable_video: FeatureFlagValue.optional(),
   enable_system_settings: FeatureFlagValue.optional(),
 
@@ -75,13 +79,16 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   openai_api_key: false,
   openai_proxy_url: false,
 
+  jemmia_api_key: false,
+  jemmia_proxy_url: false,
+
   api_key_manage: false,
   edit_agent: true,
 
   ai_image: false,
 
   check_updates: true,
-  show_help_menu: true,
+  show_help_menu: false,
   welcome_suggest: true,
   token_counter: true,
 
@@ -95,6 +102,7 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   changelog: false,
 
   enable_pages: false,
+  enable_resource: false,
   enable_video: false,
   enable_system_settings: false,
 
@@ -118,6 +126,9 @@ export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string
     showOpenAIApiKey: evaluateFeatureFlag(config.openai_api_key, userId),
     showOpenAIProxyUrl: evaluateFeatureFlag(config.openai_proxy_url, userId),
 
+    showJemmiaApiKey: evaluateFeatureFlag(config.jemmia_api_key, userId),
+    showJemmiaProxyUrl: evaluateFeatureFlag(config.jemmia_proxy_url, userId),
+
     showApiKeyManage: evaluateFeatureFlag(config.api_key_manage, userId),
 
     showAiImage: evaluateFeatureFlag(config.ai_image, userId),
@@ -136,6 +147,7 @@ export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string
     enableSTT: evaluateFeatureFlag(config.speech_to_text, userId),
 
     enablePages: evaluateFeatureFlag(config.enable_pages, userId),
+    enableResource: evaluateFeatureFlag(config.enable_resource, userId),
     enableVideo: evaluateFeatureFlag(config.enable_video, userId),
     enableSystemSettings: evaluateFeatureFlag(config.enable_system_settings, userId),
 

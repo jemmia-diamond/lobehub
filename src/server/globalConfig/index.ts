@@ -74,6 +74,9 @@ export const getServerGlobalConfig = async (userId?: string) => {
         enabledKey: 'ENABLED_GITEE_AI',
         modelListKey: 'GITEE_AI_MODEL_LIST',
       },
+      jemmia: {
+        enabledKey: 'ENABLED_JEMMIA',
+      },
       lmstudio: {
         fetchOnClient: isDesktop ? false : undefined,
       },

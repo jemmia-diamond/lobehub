@@ -173,6 +173,14 @@ const getParamsFromPayload = (provider: string, payload: ClientSecretPayload) =>
       return {};
     }
 
+    case ModelProvider.Jemmia: {
+      const { JEMMIA_MODEL_PROXY_URL, JEMMIA_MODEL_TOKEN } = llmConfig;
+      const baseURL = payload?.baseURL || JEMMIA_MODEL_PROXY_URL;
+      const apiKey = apiKeyManager.pick(payload?.apiKey || JEMMIA_MODEL_TOKEN);
+
+      return baseURL ? { apiKey, baseURL } : { apiKey };
+    }
+
     default: {
       let upperProvider = provider.toUpperCase();
 

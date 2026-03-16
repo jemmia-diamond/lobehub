@@ -11,11 +11,14 @@ import SettingsContextProvider from './ContextProvider';
 import { styles } from './style';
 
 const Layout: FC = () => {
-  const { showOpenAIApiKey, showOpenAIProxyUrl } = useServerConfigStore(featureFlagsSelectors);
+  const { showOpenAIApiKey, showOpenAIProxyUrl, showJemmiaApiKey, showJemmiaProxyUrl } =
+    useServerConfigStore(featureFlagsSelectors);
 
   return (
     <SettingsContextProvider
       value={{
+        showJemmiaApiKey,
+        showJemmiaProxyUrl,
         showOpenAIApiKey,
         showOpenAIProxyUrl,
       }}
