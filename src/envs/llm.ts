@@ -26,7 +26,6 @@ export const getLLMConfig = () => {
 
       ENABLED_GOOGLE: z.boolean(),
       GOOGLE_API_KEY: z.string().optional(),
-      GOOGLE_PROXY_URL: z.string().optional(),
 
       ENABLED_JEMMIA: z.boolean(),
       JEMMIA_MODEL_PROXY_URL: z.string().optional(),
@@ -253,7 +252,6 @@ export const getLLMConfig = () => {
 
       ENABLED_GOOGLE: process.env.ENABLED_GOOGLE !== '0',
       GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
-      GOOGLE_PROXY_URL: process.env.GOOGLE_PROXY_URL,
 
       ENABLED_JEMMIA: process.env.ENABLED_JEMMIA !== '0',
       JEMMIA_MODEL_PROXY_URL: process.env.JEMMIA_MODEL_PROXY_URL,
