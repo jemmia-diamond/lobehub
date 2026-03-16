@@ -20,47 +20,13 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       packages: write
       id-token: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
-
-      - name: Calculate Version
-        id: version
-        run: |
-          git fetch --tags
-          LATEST_TAG=$(git tag -l "v1.*" --sort=-v:refname | head -n 1)
-          
-          if [ -z "$LATEST_TAG" ]; then
-            NEW_VERSION="1.0.0"
-          else
-            VERSION_PART=${LATEST_TAG#v}
-            IFS='.' read -r major minor patch <<< "$VERSION_PART"
-            NEW_PATCH=$((patch + 1))
-            NEW_VERSION="$major.$minor.$NEW_PATCH"
-          fi
-          
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "🚀 Calculated Version: $NEW_VERSION"
-
-      - name: Tag Version
-        id: tagging
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git tag "v${{ steps.version.outputs.version }}"
-          echo "tag_created=true" >> $GITHUB_OUTPUT
-
-      - name: Replace Version Placeholder
-        run: |
-          sed -i "s/APP_VERSION_PLACEHOLDER/${{ steps.version.outputs.version }}/g" src/routes/\(main\)/home/_layout/Footer/index.tsx
 
       - name: Normalize Image Name
         run: echo "IMAGE_NAME=${IMAGE_NAME,,}" >> $GITHUB_ENV
@@ -100,7 +66,6 @@ jobs:
 
       - name: Deploy to Dokploy (Webhook Trigger)
         if: github.ref == 'refs/heads/canary' && success()
-        id: deploy
         env:
           DOKPLOY_WEBHOOK_URL: ${{ secrets.DOKPLOY_WEBHOOK_URL }}
         run: |
@@ -114,26 +79,7 @@ jobs:
             --arg tag "sha-${{ github.sha }}" \
             '{ref: $ref, head_commit: {id: $id, message: $message, digest: $digest, tag: $tag}}')
 
-          curl --fail -X POST "$DOKPLOY_WEBHOOK_URL" \
+          curl -X POST "$DOKPLOY_WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -H "X-GitHub-Event: push" \
             -d "$PAYLOAD"
-          
-          echo "deploy_success=true" >> $GITHUB_OUTPUT
-
-      - name: Wait for Deployment Stabilization
-        if: steps.deploy.outputs.deploy_success == 'true'
-        run: sleep 30
-
-      - name: Push Git Tag to Origin
-        if: steps.deploy.outputs.deploy_success == 'true'
-        id: push-tag
-        run: |
-          git push origin "v${{ steps.version.outputs.version }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_FOR_SYNC || secrets.GITHUB_TOKEN }}
-
-      - name: Rollback Local Tag on Failure
-        if: failure() && steps.tagging.outputs.tag_created == 'true' && steps.push-tag.outcome != 'success'
-        run: |
-          git tag -d "v${{ steps.version.outputs.version }}" || true
