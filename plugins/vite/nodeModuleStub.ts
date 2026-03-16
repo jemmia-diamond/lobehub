@@ -9,7 +9,7 @@ import type { Plugin } from 'vite';
  *   Node.js version check — dead code in browser since native fetch is available.
  */
 export function viteNodeModuleStub(): Plugin {
-  const stubbedModules = new Set(['node:stream', 'node-fetch']);
+  const stubbedModules = new Set(['node:stream', 'node-fetch', 'zlib-sync']);
   const VIRTUAL_PREFIX = '\0node-stub:';
 
   return {

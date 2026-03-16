@@ -47,6 +47,11 @@ const jemmiaChatModels: AIChatModelCard[] = [
         },
       ],
     },
+    settings: {
+      extendParams: ['thinkingBudget', 'urlContext'],
+      searchImpl: 'params',
+      searchProvider: 'google',
+    },
     type: 'chat',
   },
   {
@@ -70,6 +75,11 @@ const jemmiaChatModels: AIChatModelCard[] = [
         { name: 'textOutput', rate: 2.5, strategy: 'fixed', unit: 'millionTokens' },
       ],
     },
+    settings: {
+      extendParams: ['thinkingBudget', 'urlContext'],
+      searchImpl: 'params',
+      searchProvider: 'google',
+    },
     type: 'chat',
   },
   {
@@ -92,6 +102,11 @@ const jemmiaChatModels: AIChatModelCard[] = [
         { name: 'textInput', rate: 0.1, strategy: 'fixed', unit: 'millionTokens' },
         { name: 'textOutput', rate: 0.4, strategy: 'fixed', unit: 'millionTokens' },
       ],
+    },
+    settings: {
+      extendParams: ['thinkingBudget', 'urlContext'],
+      searchImpl: 'params',
+      searchProvider: 'google',
     },
     type: 'chat',
   },
@@ -148,6 +163,11 @@ const jemmiaChatModels: AIChatModelCard[] = [
       ],
     },
     releasedAt: '2026-02-19',
+    settings: {
+      extendParams: ['thinkingLevel3', 'urlContext'],
+      searchImpl: 'params',
+      searchProvider: 'google',
+    },
     type: 'chat',
   },
   {
@@ -173,6 +193,11 @@ const jemmiaChatModels: AIChatModelCard[] = [
       ],
     },
     releasedAt: '2026-03-04',
+    settings: {
+      extendParams: ['thinkingLevel5', 'urlContext'],
+      searchImpl: 'params',
+      searchProvider: 'google',
+    },
     type: 'chat',
   },
   {
@@ -203,6 +228,11 @@ const jemmiaChatModels: AIChatModelCard[] = [
       ],
     },
     releasedAt: '2025-12-17',
+    settings: {
+      extendParams: ['thinkingLevel', 'urlContext'],
+      searchImpl: 'params',
+      searchProvider: 'google',
+    },
     type: 'chat',
   },
   {
@@ -257,6 +287,11 @@ const jemmiaChatModels: AIChatModelCard[] = [
       ],
     },
     releasedAt: '2025-06-17',
+    settings: {
+      extendParams: ['thinkingBudget', 'urlContext'],
+      searchImpl: 'params',
+      searchProvider: 'google',
+    },
     type: 'chat',
   },
   {
@@ -281,6 +316,11 @@ const jemmiaChatModels: AIChatModelCard[] = [
       ],
     },
     releasedAt: '2025-06-17',
+    settings: {
+      extendParams: ['thinkingBudget', 'urlContext'],
+      searchImpl: 'params',
+      searchProvider: 'google',
+    },
     type: 'chat',
   },
   {
@@ -305,6 +345,11 @@ const jemmiaChatModels: AIChatModelCard[] = [
       ],
     },
     releasedAt: '2025-07-22',
+    settings: {
+      extendParams: ['thinkingBudget', 'urlContext'],
+      searchImpl: 'params',
+      searchProvider: 'google',
+    },
     type: 'chat',
   },
   {
@@ -327,6 +372,11 @@ const jemmiaChatModels: AIChatModelCard[] = [
       ],
     },
     releasedAt: '2025-02-05',
+    settings: {
+      extendParams: ['urlContext'],
+      searchImpl: 'params',
+      searchProvider: 'google',
+    },
     type: 'chat',
   },
   {

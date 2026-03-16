@@ -37,6 +37,7 @@ export const FeatureFlagsSchema = z.object({
 
   // The new custom MVP restriction flags
   enable_pages: FeatureFlagValue.optional(),
+  enable_resource: FeatureFlagValue.optional(),
   enable_video: FeatureFlagValue.optional(),
   enable_system_settings: FeatureFlagValue.optional(),
 
@@ -101,6 +102,7 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   changelog: false,
 
   enable_pages: false,
+  enable_resource: false,
   enable_video: false,
   enable_system_settings: false,
 
@@ -145,6 +147,7 @@ export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string
     enableSTT: evaluateFeatureFlag(config.speech_to_text, userId),
 
     enablePages: evaluateFeatureFlag(config.enable_pages, userId),
+    enableResource: evaluateFeatureFlag(config.enable_resource, userId),
     enableVideo: evaluateFeatureFlag(config.enable_video, userId),
     enableSystemSettings: evaluateFeatureFlag(config.enable_system_settings, userId),
 

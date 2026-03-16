@@ -7,6 +7,8 @@ import { getRouteById } from '@/config/routes';
 import NavItem from '@/features/NavPanel/components/NavItem';
 import { useActiveTabKey } from '@/hooks/useActiveTabKey';
 import { SidebarTabKey } from '@/store/global/initialState';
+import { featureFlagsSelectors } from '@/store/serverConfig/selectors';
+import { useServerConfigStore } from '@/store/serverConfig/store';
 import { isModifierClick } from '@/utils/navigation';
 
 interface Item {
@@ -18,6 +20,7 @@ interface Item {
 
 const BottomMenu = memo(() => {
   const tab = useActiveTabKey();
+  const { enablePages, enableResource } = useServerConfigStore(featureFlagsSelectors);
 
   const navigate = useNavigate();
   const { t } = useTranslation('common');
@@ -25,20 +28,20 @@ const BottomMenu = memo(() => {
   const items = useMemo(
     () =>
       [
-        {
+        enableResource && {
           icon: getRouteById('resource')!.icon,
           key: SidebarTabKey.Resource,
           title: t('tab.resource'),
           url: '/resource',
         },
-        {
+        enablePages && {
           icon: getRouteById('page')!.icon,
           key: SidebarTabKey.Pages,
           title: t('tab.pages'),
           url: '/page',
         },
       ].filter(Boolean) as Item[],
-    [t],
+    [t, enablePages, enableResource],
   );
 
   return (
