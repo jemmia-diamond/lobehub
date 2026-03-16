@@ -38,6 +38,7 @@ const PROVIDER_SEARCH_DEFAULTS: Record<
   default: { searchImpl: 'params' },
   google: { searchImpl: 'params', searchProvider: 'google' },
   hunyuan: { searchImpl: 'params' },
+  jemmia: { searchImpl: 'params', searchProvider: 'google' },
   jina: { searchImpl: 'internal' },
   minimax: { searchImpl: 'params' },
   // openai: defaults to params, but -search- models use internal as special case

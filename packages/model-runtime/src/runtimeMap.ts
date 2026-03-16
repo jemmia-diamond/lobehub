@@ -27,6 +27,7 @@ import { LobeHuggingFaceAI } from './providers/huggingface';
 import { LobeHunyuanAI } from './providers/hunyuan';
 import { LobeInfiniAI } from './providers/infiniai';
 import { LobeInternLMAI } from './providers/internlm';
+import { JemmiaAI } from './providers/jemmia';
 import { LobeJinaAI } from './providers/jina';
 import { LobeLMStudioAI } from './providers/lmstudio';
 import { LobeHubAI } from './providers/lobehub';
@@ -95,6 +96,7 @@ export const providerRuntimeMap = {
   github: LobeGithubAI,
   githubcopilot: LobeGithubCopilotAI,
   google: LobeGoogleAI,
+  jemmia: JemmiaAI,
   groq: LobeGroq,
   higress: LobeHigressAI,
   huggingface: LobeHuggingFaceAI,

@@ -79,6 +79,7 @@
     "./zenmux": "./src/aiModels/zenmux.ts",
     "./zeroone": "./src/aiModels/zeroone.ts",
     "./zhipu": "./src/aiModels/zhipu.ts",
+    "./jemmia": "./src/aiModels/jemmia.ts",
     "./types": "./src/types/index.ts"
   },
   "scripts": {

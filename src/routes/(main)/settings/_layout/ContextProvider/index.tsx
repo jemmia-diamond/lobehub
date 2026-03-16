@@ -4,6 +4,8 @@ import { type ReactNode } from 'react';
 import { createContext, use } from 'react';
 
 interface SettingsContextType {
+  showJemmiaApiKey?: boolean;
+  showJemmiaProxyUrl?: boolean;
   showOpenAIApiKey?: boolean;
   showOpenAIProxyUrl?: boolean;
 }

@@ -31,6 +31,7 @@ import HuggingFaceProvider from './huggingface';
 import HunyuanProvider from './hunyuan';
 import InfiniAIProvider from './infiniai';
 import InternLMProvider from './internlm';
+import JemmiaProvider from './jemmia';
 import JinaProvider from './jina';
 import LMStudioProvider from './lmstudio';
 import LobeHubProvider from './lobehub';
@@ -135,6 +136,7 @@ export const LOBE_DEFAULT_MODEL_LIST: ChatModelCard[] = [
 export const DEFAULT_MODEL_PROVIDER_LIST = [
   ...(ENABLE_BUSINESS_FEATURES ? [LobeHubProvider] : []),
   AnthropicProvider,
+  JemmiaProvider,
   GoogleProvider,
   OpenAIProvider,
   DeepSeekProvider,
@@ -248,6 +250,7 @@ export { default as HuggingFaceProviderCard } from './huggingface';
 export { default as HunyuanProviderCard } from './hunyuan';
 export { default as InfiniAIProviderCard } from './infiniai';
 export { default as InternLMProviderCard } from './internlm';
+export { default as JemmiaProviderCard } from './jemmia';
 export { default as JinaProviderCard } from './jina';
 export { default as LMStudioProviderCard } from './lmstudio';
 export { default as LobeHubProviderCard } from './lobehub';
