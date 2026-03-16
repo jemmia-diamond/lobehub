@@ -32,7 +32,7 @@ const PROVIDER_KEY: GlobalLLMProviderKey = 'jemmia';
 
 const useProviderCard = (): ProviderItem => {
   const { t } = useTranslation('modelProvider');
-  const { styles } = useStyles();
+  const styles = useStyles;
   const { showJemmiaProxyUrl, showJemmiaApiKey } = useSettingsContext();
 
   const isLoading = useAiInfraStore(aiProviderSelectors.isAiProviderConfigLoading(PROVIDER_KEY));

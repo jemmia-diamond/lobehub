@@ -28,13 +28,15 @@ export const convertOpenAIUsage = (
   const outputAudioTokens = usage.completion_tokens_details?.audio_tokens || 0;
   const outputImageTokens = (usage.completion_tokens_details as any)?.image_tokens || 0;
 
-  // XAI's completion_tokens does not include reasoning_tokens, requires special handling
+  // XAI/Jemmia's completion_tokens does not include reasoning_tokens, requires special handling
   const outputTextTokens =
-    payload?.provider === 'xai'
+    payload?.provider === 'xai' || payload?.provider === 'jemmia'
       ? totalOutputTokens - outputAudioTokens
       : totalOutputTokens - outputReasoning - outputAudioTokens - outputImageTokens;
   const totalOutputTokensNormalized =
-    payload?.provider === 'xai' ? totalOutputTokens + outputReasoning : totalOutputTokens;
+    payload?.provider === 'xai' || payload?.provider === 'jemmia'
+      ? totalOutputTokens + outputReasoning
+      : totalOutputTokens;
 
   const totalTokens = inputCitationTokens + usage.total_tokens;
 
@@ -89,7 +91,11 @@ export const convertOpenAIResponseUsage = (
   const inputTextTokens = totalInputTokens;
 
   // For ResponseUsage, outputTextTokens is totalOutputTokens minus reasoning, as no audio output tokens are specified.
-  const outputTextTokens = totalOutputTokens - outputReasoningTokens;
+  // Special handling for Jemmia as it reports output_tokens excluding reasoning
+  const outputTextTokens =
+    payload?.provider === 'jemmia' ? totalOutputTokens : totalOutputTokens - outputReasoningTokens;
+  const totalOutputTokensNormalized =
+    payload?.provider === 'jemmia' ? totalOutputTokens + outputReasoningTokens : totalOutputTokens;
   const outputImageTokens = (usage.output_tokens_details as any)?.image_tokens || 0;
 
   // 3. Construct the comprehensive data object (matching ModelTokensUsage structure)
@@ -108,7 +114,7 @@ export const convertOpenAIResponseUsage = (
     outputTextTokens,
     rejectedPredictionTokens: undefined, // Not in ResponseUsage
     totalInputTokens,
-    totalOutputTokens,
+    totalOutputTokens: totalOutputTokensNormalized,
     totalTokens: overallTotalTokens,
   } satisfies ModelTokensUsage; // This helps ensure all keys of ModelTokensUsage are considered
 
