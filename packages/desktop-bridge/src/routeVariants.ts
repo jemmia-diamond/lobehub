@@ -1,6 +1,6 @@
 // Shared route variants utilities for desktop and web builds
 
-export const DEFAULT_LANG = 'vi-VN';
+export const DEFAULT_LANG = 'en-US';
 
 // Supported locales (keep aligned with web resources)
 export const locales = [

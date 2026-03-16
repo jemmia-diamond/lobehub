@@ -23,7 +23,8 @@ import { authSelectors } from '@/store/user/selectors';
 export const useCategory = (onOpenChangelogModal: () => void) => {
   const navigate = useNavigate();
   const { t } = useTranslation(['common', 'setting', 'auth']);
-  const { showCloudPromotion, hideDocs } = useServerConfigStore(featureFlagsSelectors);
+  const { showCloudPromotion, hideDocs, showGetDesktopApp } =
+    useServerConfigStore(featureFlagsSelectors);
   const [isLoginWithAuth] = useUserStore((s) => [authSelectors.isLoginWithAuth(s)]);
   const { isIOS, isAndroid } = usePlatform();
 
@@ -103,7 +104,7 @@ export const useCategory = (onOpenChangelogModal: () => void) => {
     /* ↓ cloud slot ↓ */
 
     /* ↑ cloud slot ↑ */
-    ...getDesktopApp,
+    ...(showGetDesktopApp ? getDesktopApp : []),
     ...(!hideDocs ? helps : []),
   ].filter(Boolean) as CellProps[];
 

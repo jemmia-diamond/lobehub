@@ -93,7 +93,7 @@ const jemmiaChatModels: AIChatModelCard[] = [
     contextWindowTokens: 1_048_576 + 65_536,
     description: 'Ultra-fast lightweight model',
     displayName: 'Jemmia Làm nhanh',
-    enabled: true,
+    enabled: false,
     id: 'gemini-flash-lite-latest',
     maxOutput: 65_536,
     pricing: {

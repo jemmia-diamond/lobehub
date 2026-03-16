@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useInitBuiltinAgent } from '@/hooks/useInitBuiltinAgent';
 import { type StarterMode } from '@/store/home';
 import { useHomeStore } from '@/store/home';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 const styles = createStaticStyles(({ css, cssVar }) => ({
   active: css`
@@ -52,6 +53,9 @@ const StarterList = memo(() => {
   useInitBuiltinAgent(BUILTIN_AGENT_SLUGS.groupAgentBuilder);
   useInitBuiltinAgent(BUILTIN_AGENT_SLUGS.pageAgent);
 
+  const { enableImageGeneration, enableVideoGeneration } =
+    useServerConfigStore(featureFlagsSelectors);
+
   const [inputActiveMode, setInputActiveMode, navigate] = useHomeStore((s) => [
     s.inputActiveMode,
     s.setInputActiveMode,
@@ -59,41 +63,42 @@ const StarterList = memo(() => {
   ]);
 
   const items: StarterItem[] = useMemo(
-    () => [
-      {
-        icon: BotIcon,
-        key: 'agent',
-        titleKey: 'starter.createAgent',
-      },
-      {
-        icon: GroupBotSquareIcon,
-        key: 'group',
-        titleKey: 'starter.createGroup',
-      },
-      {
-        icon: PenLineIcon,
-        key: 'write',
-        titleKey: 'starter.write',
-      },
-      {
-        icon: ImageIcon,
-        key: 'image',
-        titleKey: 'starter.imageGeneration',
-      },
-      {
-        hot: true,
-        icon: VideoIcon,
-        key: 'video',
-        titleKey: 'starter.videoGeneration',
-      },
-      // {
-      //   disabled: true,
-      //   icon: MicroscopeIcon,
-      //   key: 'research',
-      //   titleKey: 'starter.deepResearch',
-      // },
-    ],
-    [],
+    () =>
+      [
+        {
+          icon: BotIcon,
+          key: 'agent',
+          titleKey: 'starter.createAgent',
+        },
+        {
+          icon: GroupBotSquareIcon,
+          key: 'group',
+          titleKey: 'starter.createGroup',
+        },
+        {
+          icon: PenLineIcon,
+          key: 'write',
+          titleKey: 'starter.write',
+        },
+        enableImageGeneration && {
+          icon: ImageIcon,
+          key: 'image',
+          titleKey: 'starter.imageGeneration',
+        },
+        enableVideoGeneration && {
+          hot: true,
+          icon: VideoIcon,
+          key: 'video',
+          titleKey: 'starter.videoGeneration',
+        },
+        // {
+        //   disabled: true,
+        //   icon: MicroscopeIcon,
+        //   key: 'research',
+        //   titleKey: 'starter.deepResearch',
+        // },
+      ].filter(Boolean) as StarterItem[],
+    [enableImageGeneration, enableVideoGeneration],
   );
 
   const handleClick = useCallback(

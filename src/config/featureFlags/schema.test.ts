@@ -12,6 +12,11 @@ describe('FeatureFlagsSchema', () => {
       edit_agent: false,
       dalle: true,
       ai_image: true,
+      enable_image_generation: true,
+      enable_video_generation: false,
+      show_get_desktop_app: true,
+      show_language_settings: false,
+      show_memory: true,
     });
 
     expect(result.success).toBe(true);
@@ -114,6 +119,11 @@ describe('mapFeatureFlagsEnvToState', () => {
       cloud_promotion: true,
       commercial_hide_github: false,
       commercial_hide_docs: true,
+      enable_image_generation: true,
+      enable_video_generation: false,
+      show_get_desktop_app: true,
+      show_language_settings: false,
+      show_memory: true,
     };
 
     const mappedState = mapFeatureFlagsEnvToState(config);
@@ -135,6 +145,11 @@ describe('mapFeatureFlagsEnvToState', () => {
       showCloudPromotion: true,
       hideGitHub: false,
       hideDocs: true,
+      enableImageGeneration: true,
+      enableVideoGeneration: false,
+      showGetDesktopApp: true,
+      showLanguageSettings: false,
+      showMemory: true,
     });
   });
 

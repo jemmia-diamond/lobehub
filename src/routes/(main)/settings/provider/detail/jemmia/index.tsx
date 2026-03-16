@@ -1,7 +1,7 @@
 'use client';
 
 import { Markdown } from '@lobehub/ui';
-import { createStaticStyles } from 'antd-style';
+import { createStyles } from 'antd-style';
 import { JemmiaProviderCard } from 'model-bank/modelProviders';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -16,15 +16,15 @@ import { KeyVaultsConfigKey, LLMProviderApiTokenKey } from '../../const';
 import { type ProviderItem } from '../../type';
 import ProviderDetail from '../default';
 
-const useStyles = createStaticStyles(({ css, cssVar }) => ({
+const useStyles = createStyles(({ css, token }) => ({
   markdown: css`
     p {
-      color: ${cssVar.colorTextDescription} !important;
+      color: ${token.colorTextDescription} !important;
     }
   `,
   tip: css`
     font-size: 12px;
-    color: ${cssVar.colorTextDescription};
+    color: ${token.colorTextDescription};
   `,
 }));
 

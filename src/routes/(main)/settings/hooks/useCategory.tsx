@@ -58,7 +58,8 @@ export const useCategory = () => {
   const { t: tAuth } = useTranslation('auth');
   const { t: tSubscription } = useTranslation('subscription');
   const mobile = useServerConfigStore((s) => s.isMobile);
-  const { hideDocs, showApiKeyManage } = useServerConfigStore(featureFlagsSelectors);
+  const { hideDocs, showApiKeyManage, showMemory, showProvider } =
+    useServerConfigStore(featureFlagsSelectors);
   const [avatar, username] = useUserStore((s) => [
     userProfileSelectors.userAvatar(s),
     userProfileSelectors.nickName(s),
@@ -126,7 +127,7 @@ export const useCategory = () => {
 
     // Agent group
     const agentItems: CategoryItem[] = [
-      {
+      showProvider && {
         icon: Brain,
         key: SettingsTabs.Provider,
         label: t('tab.provider'),
@@ -141,7 +142,7 @@ export const useCategory = () => {
         key: SettingsTabs.Skill,
         label: t('tab.skill'),
       },
-      {
+      showMemory && {
         icon: BrainCircuit,
         key: SettingsTabs.Memory,
         label: t('tab.memory'),
@@ -211,6 +212,8 @@ export const useCategory = () => {
     isDevMode,
     hideDocs,
     tSubscription,
+    showProvider,
+    showMemory,
   ]);
 
   return categoryGroups;

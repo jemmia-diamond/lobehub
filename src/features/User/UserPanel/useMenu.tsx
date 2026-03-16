@@ -1,7 +1,6 @@
 import { LOBE_CHAT_CLOUD, UTM_SOURCE } from '@lobechat/business-const';
 import { DOWNLOAD_URL, isDesktop } from '@lobechat/const';
 import { Flexbox, Hotkey, Icon, Tag } from '@lobehub/ui';
-import { type ItemType } from 'antd/es/menu/interface';
 import { BrainCircuit, Cloudy, Download, LogOut, Settings2 } from 'lucide-react';
 import { type PropsWithChildren } from 'react';
 import { memo, useMemo } from 'react';
@@ -46,7 +45,8 @@ const NewVersionBadge = memo(
 export const useMenu = () => {
   const hasNewVersion = useNewVersion();
   const { t } = useTranslation(['common', 'setting', 'auth']);
-  const { showCloudPromotion, hideDocs } = useServerConfigStore(featureFlagsSelectors);
+  const { showCloudPromotion, hideDocs, showMemory, showGetDesktopApp } =
+    useServerConfigStore(featureFlagsSelectors);
   const [isLogin, isLoginWithAuth] = useUserStore((s) => [
     authSelectors.isLogin(s),
     authSelectors.isLoginWithAuth(s),
@@ -60,7 +60,7 @@ export const useMenu = () => {
     return DOWNLOAD_URL.default;
   }, [isIOS, isAndroid]);
 
-  const settings: MenuProps['items'] = [
+  const settings = [
     {
       extra: isDesktop ? (
         <div>
@@ -75,12 +75,12 @@ export const useMenu = () => {
         </Link>
       ),
     },
-    {
+    showMemory && {
       icon: <Icon icon={BrainCircuit} />,
       key: 'memory',
       label: <Link to="/memory">{t('tab.memory')}</Link>,
     },
-  ];
+  ].filter(Boolean) as MenuProps['items'];
 
   const getDesktopApp: MenuProps['items'] = [
     {
@@ -108,16 +108,16 @@ export const useMenu = () => {
         </a>
       ),
     },
-  ].filter(Boolean) as ItemType[];
+  ].filter(Boolean) as any[];
 
   const mainItems = [
     {
       type: 'divider',
     },
 
-    ...(isLogin ? settings : []),
+    ...(isLogin ? settings || [] : []),
     ...businessMenuItems,
-    ...(!isDesktop ? [{ type: 'divider' as const }, ...getDesktopApp] : []),
+    ...(!isDesktop && showGetDesktopApp ? [{ type: 'divider' as const }, ...getDesktopApp] : []),
     ...(!hideDocs ? helps : []),
   ].filter(Boolean) as MenuProps['items'];
 
