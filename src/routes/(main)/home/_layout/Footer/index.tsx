@@ -214,6 +214,9 @@ const Footer = memo(() => {
           </DropdownMenu>
         )}
       </Flexbox>
+      <div style={{ color: 'var(--color-text-quaternary)', fontSize: 10, padding: '0 8px 8px' }}>
+        vAPP_VERSION_PLACEHOLDER
+      </div>
       <ChangelogModal
         open={isChangelogModalOpen}
         shouldLoad={shouldLoadChangelog}
