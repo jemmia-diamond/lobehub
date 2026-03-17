@@ -9,10 +9,13 @@ import { useUserStore } from '@/store/user';
 import { authSelectors } from '@/store/user/slices/auth/selectors';
 
 import InputArea from './InputArea';
+import RecentPage from './RecentPage';
+import RecentResource from './RecentResource';
+import RecentTopic from './RecentTopic';
 import WelcomeText from './WelcomeText';
 
 const Home = memo(() => {
-  const { i18n } = useTranslation();
+  useTranslation();
   const isLogin = useUserStore(authSelectors.isLogin);
   const inputActiveMode = useHomeStore((s) => s.inputActiveMode);
 
@@ -20,7 +23,7 @@ const Home = memo(() => {
   const hideOtherModules = inputActiveMode && ['agent', 'group', 'write'].includes(inputActiveMode);
 
   // eslint-disable-next-line @eslint-react/no-nested-component-definitions
-  const Welcome = useCallback(() => <WelcomeText />, [i18n.language]);
+  const Welcome = useCallback(() => <WelcomeText />, []);
 
   return (
     <Flexbox gap={40}>
@@ -28,15 +31,15 @@ const Home = memo(() => {
       <InputArea />
       {/* Use CSS visibility to hide instead of unmounting to prevent data re-fetching */}
       <Flexbox gap={40} style={{ display: hideOtherModules ? 'none' : undefined }}>
-        {/* {isLogin && (
+        {isLogin && (
           <>
             <RecentTopic />
             <RecentPage />
           </>
-        )} */}
+        )}
         {/* <CommunityAgents /> */}
         {/* <FeaturedPlugins /> */}
-        {/* {isLogin && <RecentResource />} */}
+        {isLogin && <RecentResource />}
       </Flexbox>
     </Flexbox>
   );

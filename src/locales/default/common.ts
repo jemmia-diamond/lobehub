@@ -428,6 +428,8 @@ export default {
   'oauth': 'SSO Login',
   'officialSite': 'Official Website',
   'ok': 'OK',
+  'newChat': 'New Chat',
+  'createAI': 'Create New AI',
   'or': 'or',
   'pageSizeItem': '{{count}} items',
   'password': 'Password',

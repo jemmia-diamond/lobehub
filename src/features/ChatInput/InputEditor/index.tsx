@@ -142,93 +142,95 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
   );
 
   return (
-    <Editor
-      autoFocus
-      pasteAsPlainText
-      className={className}
-      content={''}
-      editor={editor}
-      {...{ slashPlacement }}
-      {...richRenderProps}
-      placeholder={<Placeholder />}
-      type={'text'}
-      variant={'chat'}
-      mentionOption={
-        enableMention
-          ? {
-              fuseOptions: { keys: ['key', 'label', 'metadata.topicTitle'], threshold: 0.3 },
-              items: mergedMentionItems,
-              markdownWriter: (mention) => {
-                if (mention.metadata?.type === 'topic') {
-                  return `<refer_topic name="${mention.metadata.topicTitle}" id="${mention.metadata.topicId}" />`;
-                }
-                return `<mention name="${mention.label}" id="${mention.metadata.id}" />`;
-              },
-              onSelect: (editor, option) => {
-                if (option.metadata?.type === 'topic') {
-                  editor.dispatchCommand(INSERT_REFER_TOPIC_COMMAND, {
-                    topicId: option.metadata.topicId as string,
-                    topicTitle: String(option.metadata.topicTitle ?? option.label),
-                  });
-                } else {
-                  editor.dispatchCommand(INSERT_MENTION_COMMAND, {
-                    label: String(option.label),
-                    metadata: option.metadata,
-                  });
-                }
-              },
+    <div style={{ display: 'block' }}>
+      <Editor
+        autoFocus
+        pasteAsPlainText
+        className={className}
+        content={''}
+        editor={editor}
+        {...{ slashPlacement }}
+        {...richRenderProps}
+        placeholder={<Placeholder />}
+        type={'text'}
+        variant={'chat'}
+        mentionOption={
+          enableMention
+            ? {
+                fuseOptions: { keys: ['key', 'label', 'metadata.topicTitle'], threshold: 0.3 },
+                items: mergedMentionItems,
+                markdownWriter: (mention) => {
+                  if (mention.metadata?.type === 'topic') {
+                    return `<refer_topic name="${mention.metadata.topicTitle}" id="${mention.metadata.topicId}" />`;
+                  }
+                  return `<mention name="${mention.label}" id="${mention.metadata.id}" />`;
+                },
+                onSelect: (editor, option) => {
+                  if (option.metadata?.type === 'topic') {
+                    editor.dispatchCommand(INSERT_REFER_TOPIC_COMMAND, {
+                      topicId: option.metadata.topicId as string,
+                      topicTitle: String(option.metadata.topicTitle ?? option.label),
+                    });
+                  } else {
+                    editor.dispatchCommand(INSERT_MENTION_COMMAND, {
+                      label: String(option.label),
+                      metadata: option.metadata,
+                    });
+                  }
+                },
+              }
+            : undefined
+        }
+        slashOption={{
+          items: slashItems,
+        }}
+        style={{
+          minHeight: defaultRows > 1 ? defaultRows * 23 : undefined,
+        }}
+        onCompositionEnd={({ event }) => compositionProps.onCompositionEnd(event)}
+        onCompositionStart={({ event }) => compositionProps.onCompositionStart(event)}
+        onInit={(editor) => storeApi.setState({ editor })}
+        onBlur={() => {
+          disableScope(HotkeyEnum.AddUserMessage);
+        }}
+        onChange={() => {
+          updateMarkdownContent();
+        }}
+        onContextMenu={async ({ event: e, editor }) => {
+          if (isDesktop) {
+            e.preventDefault();
+            const { electronSystemService } = await import('@/services/electron/system');
+
+            const selectionText = editor.getSelectionDocument('markdown') as unknown as string;
+
+            await electronSystemService.showContextMenu('editor', {
+              selectionText: selectionText || undefined,
+            });
+          }
+        }}
+        onFocus={() => {
+          enableScope(HotkeyEnum.AddUserMessage);
+        }}
+        onPressEnter={({ event: e }) => {
+          if (e.shiftKey || isComposingRef.current) return;
+          // when user like alt + enter to add ai message
+          if (e.altKey && hotkey === combineKeys([KeyEnum.Alt, KeyEnum.Enter])) return true;
+          const commandKey = isCommandPressed(e);
+          // when user like cmd + enter to send message
+          if (useCmdEnterToSend) {
+            if (commandKey) {
+              send();
+              return true;
             }
-          : undefined
-      }
-      slashOption={{
-        items: slashItems,
-      }}
-      style={{
-        minHeight: defaultRows > 1 ? defaultRows * 23 : undefined,
-      }}
-      onCompositionEnd={({ event }) => compositionProps.onCompositionEnd(event)}
-      onCompositionStart={({ event }) => compositionProps.onCompositionStart(event)}
-      onInit={(editor) => storeApi.setState({ editor })}
-      onBlur={() => {
-        disableScope(HotkeyEnum.AddUserMessage);
-      }}
-      onChange={() => {
-        updateMarkdownContent();
-      }}
-      onContextMenu={async ({ event: e, editor }) => {
-        if (isDesktop) {
-          e.preventDefault();
-          const { electronSystemService } = await import('@/services/electron/system');
-
-          const selectionText = editor.getSelectionDocument('markdown') as unknown as string;
-
-          await electronSystemService.showContextMenu('editor', {
-            selectionText: selectionText || undefined,
-          });
-        }
-      }}
-      onFocus={() => {
-        enableScope(HotkeyEnum.AddUserMessage);
-      }}
-      onPressEnter={({ event: e }) => {
-        if (e.shiftKey || isComposingRef.current) return;
-        // when user like alt + enter to add ai message
-        if (e.altKey && hotkey === combineKeys([KeyEnum.Alt, KeyEnum.Enter])) return true;
-        const commandKey = isCommandPressed(e);
-        // when user like cmd + enter to send message
-        if (useCmdEnterToSend) {
-          if (commandKey) {
-            send();
-            return true;
+          } else {
+            if (!commandKey) {
+              send();
+              return true;
+            }
           }
-        } else {
-          if (!commandKey) {
-            send();
-            return true;
-          }
-        }
-      }}
-    />
+        }}
+      />
+    </div>
   );
 });
 
