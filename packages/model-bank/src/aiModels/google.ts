@@ -156,7 +156,7 @@ const googleChatModels: AIChatModelCard[] = [
     description:
       'Gemini 3.1 Pro Preview improves on Gemini 3 Pro with enhanced reasoning capabilities and adds medium thinking level support.',
     displayName: 'Chuyên gia',
-    enabled: true,
+    enabled: false,
     id: 'gemini-3.1-pro-preview',
     maxOutput: 65_536,
     pricing: {
@@ -217,7 +217,7 @@ const googleChatModels: AIChatModelCard[] = [
     description:
       "Gemini 3.1 Flash-Lite Preview is Google's most cost-efficient multimodal model, optimized for high-volume agentic tasks, translation, and data processing.",
     displayName: 'Làm nhanh',
-    enabled: true,
+    enabled: false,
     id: 'gemini-3.1-flash-lite-preview',
     maxOutput: 65_536,
     pricing: {
@@ -247,7 +247,7 @@ const googleChatModels: AIChatModelCard[] = [
     description:
       'Gemini 3 Flash is the smartest model built for speed, combining cutting-edge intelligence with excellent search grounding.',
     displayName: 'Nghĩ kỹ',
-    enabled: true,
+    enabled: false,
     id: 'gemini-3-flash-preview',
     maxOutput: 65_536,
     pricing: {
@@ -958,7 +958,7 @@ const googleImageModels: AIImageModelCard[] = [
   {
     displayName: 'Imagen 4',
     id: 'imagen-4.0-generate-001',
-    enabled: true,
+    enabled: false,
     type: 'image',
     description: 'Imagen fourth-generation text-to-image model family.',
     organization: 'Deepmind',
@@ -971,7 +971,7 @@ const googleImageModels: AIImageModelCard[] = [
   {
     displayName: 'Imagen 4 Ultra',
     id: 'imagen-4.0-ultra-generate-001',
-    enabled: true,
+    enabled: false,
     type: 'image',
     description: 'Imagen fourth-generation text-to-image Ultra variant.',
     organization: 'Deepmind',
@@ -984,7 +984,7 @@ const googleImageModels: AIImageModelCard[] = [
   {
     displayName: 'Imagen 4 Fast',
     id: 'imagen-4.0-fast-generate-001',
-    enabled: true,
+    enabled: false,
     type: 'image',
     description: 'Imagen fourth-generation text-to-image fast variant.',
     organization: 'Deepmind',
