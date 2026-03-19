@@ -1,7 +1,6 @@
 import { LOBE_CHAT_CLOUD, UTM_SOURCE } from '@lobechat/business-const';
 import { DOWNLOAD_URL, isDesktop } from '@lobechat/const';
 import { Flexbox, Hotkey, Icon, Tag } from '@lobehub/ui';
-import { type ItemType } from 'antd/es/menu/interface';
 import { BrainCircuit, Cloudy, Download, HardDriveDownload, LogOut, Settings2 } from 'lucide-react';
 import { type PropsWithChildren } from 'react';
 import { memo, useMemo } from 'react';
@@ -112,11 +111,7 @@ export const useMenu = () => {
           rel="noopener noreferrer"
           target="_blank"
         >
-          {t('
-             
-             
-             
-             .cloud', { name: LOBE_CHAT_CLOUD })}
+          {t('userPanel.cloud', { name: LOBE_CHAT_CLOUD })}
         </a>
       ),
     },
