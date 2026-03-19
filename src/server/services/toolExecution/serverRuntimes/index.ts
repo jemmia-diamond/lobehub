@@ -9,6 +9,7 @@
 import { type ToolExecutionContext } from '../types';
 import { calculatorRuntime } from './calculator';
 import { cloudSandboxRuntime } from './cloudSandbox';
+import { larkDocRuntime } from './larkDoc';
 import { localSystemRuntime } from './localSystem';
 import { memoryRuntime } from './memory';
 import { notebookRuntime } from './notebook';
@@ -47,6 +48,7 @@ registerRuntimes([
   localSystemRuntime,
   remoteDeviceRuntime,
   topicReferenceRuntime,
+  larkDocRuntime,
 ]);
 
 // ==================== Registry API ====================

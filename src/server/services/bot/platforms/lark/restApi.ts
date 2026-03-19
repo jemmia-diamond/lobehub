@@ -62,6 +62,27 @@ export class LarkRestApi {
   }
 
   // ------------------------------------------------------------------
+  // Docs
+  // ------------------------------------------------------------------
+
+  async getDocContent(documentId: string): Promise<string> {
+    log('getDocContent: documentId=%s', documentId);
+
+    // Using Lark Docs API to get raw content
+    const data = await this.call(
+      'GET',
+      `/open-apis/docx/v1/documents/${documentId}/raw_content`,
+      {},
+    );
+
+    if (!data.data || !data.data.content) {
+      throw new Error('No content found in the document');
+    }
+
+    return data.data.content;
+  }
+
+  // ------------------------------------------------------------------
   // Auth
   // ------------------------------------------------------------------
 

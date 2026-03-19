@@ -58,6 +58,19 @@ export const useSignIn = () => {
     if (emailParam) form.setFieldValue('email', emailParam);
   }, [searchParams, form]);
 
+  useEffect(() => {
+    // Auto login if opened inside Lark / Feishu app
+    const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : '';
+    if (userAgent.includes('lark') || userAgent.includes('feishu')) {
+      const larkProvider = oAuthSSOProviders.find(
+        (p) => p.toLowerCase() === 'lark' || p.toLowerCase() === 'feishu',
+      );
+      if (larkProvider && !socialLoading) {
+        handleSocialSignIn(larkProvider);
+      }
+    }
+  }, [oAuthSSOProviders, socialLoading]);
+
   const handleSendMagicLink = async (targetEmail?: string) => {
     try {
       const emailValue =
