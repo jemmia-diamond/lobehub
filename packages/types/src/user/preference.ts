@@ -8,6 +8,7 @@ import type { UserSettings } from './settings';
 
 export interface LobeUser {
   avatar?: string;
+  department?: string | null;
   email?: string | null;
   firstName?: string | null;
   fullName?: string | null;
@@ -83,6 +84,7 @@ export interface UserInitializationState {
   avatar?: string;
   canEnablePWAGuide?: boolean;
   canEnableTrace?: boolean;
+  department?: string | null;
   email?: string;
   firstName?: string;
   fullName?: string;

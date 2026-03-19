@@ -7,9 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useHomeStore } from '@/store/home';
 import { useUserStore } from '@/store/user';
 import { authSelectors } from '@/store/user/slices/auth/selectors';
-import { userGeneralSettingsSelectors } from '@/store/user/slices/settings/selectors';
 
-import CommunityAgents from './CommunityAgents';
 import InputArea from './InputArea';
 import RecentPage from './RecentPage';
 import RecentResource from './RecentResource';
@@ -19,7 +17,6 @@ import WelcomeText from './WelcomeText';
 const Home = memo(() => {
   useTranslation();
   const isLogin = useUserStore(authSelectors.isLogin);
-  const isDevMode = useUserStore((s) => userGeneralSettingsSelectors.config(s).isDevMode);
   const inputActiveMode = useHomeStore((s) => s.inputActiveMode);
 
   // Hide other modules when a starter mode is active

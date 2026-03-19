@@ -27,6 +27,10 @@ export class UserService {
     return lambdaClient.user.getUserSSOProviders.query();
   };
 
+  getUserDepartment = async (): Promise<string | null> => {
+    return lambdaClient.user.getUserDepartment.query();
+  };
+
   makeUserOnboarded = async () => {
     return lambdaClient.user.makeUserOnboarded.mutate();
   };

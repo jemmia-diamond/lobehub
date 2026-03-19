@@ -53,6 +53,113 @@ export const userRouter = router({
     return ctx.userModel.getUserSSOProviders();
   }),
 
+  getUserDepartment: userProcedure.query(async ({ ctx }) => {
+    try {
+      const larkAccount = await ctx.serverDB.query.account.findFirst({
+        where: (account, { and, eq }) =>
+          and(eq(account.userId, ctx.userId), eq(account.providerId, 'lark')),
+      });
+
+      if (!larkAccount || !larkAccount.accessToken || !larkAccount.accountId) {
+        return null;
+      }
+
+      let token = larkAccount.accessToken;
+
+      const { authEnv } = await import('@/envs/auth');
+      if (authEnv.AUTH_LARK_APP_ID && authEnv.AUTH_LARK_APP_SECRET) {
+        try {
+          const tokenRes = await fetch(
+            'https://open.larksuite.com/open-apis/auth/v3/tenant_access_token/internal',
+            {
+              body: JSON.stringify({
+                app_id: authEnv.AUTH_LARK_APP_ID,
+                app_secret: authEnv.AUTH_LARK_APP_SECRET,
+              }),
+              headers: { 'Content-Type': 'application/json' },
+              method: 'POST',
+            },
+          );
+          if (tokenRes.ok) {
+            const tokenData = await tokenRes.json();
+            if (tokenData.code === 0 && tokenData.tenant_access_token) {
+              token = tokenData.tenant_access_token;
+            }
+          }
+        } catch (err) {
+          console.error('[UserRouter] Failed to get tenant token:', err);
+        }
+      }
+
+      const response = await fetch(
+        `https://open.larksuite.com/open-apis/contact/v3/users/${larkAccount.accountId}?user_id_type=union_id`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const data = await response.json();
+
+      if (data.code !== 0 || !data.data?.user?.department_ids?.length) {
+        return null;
+      }
+
+      const deptId = data.data.user.department_ids[0] as string;
+
+      // Fetch department name using the department_id
+      try {
+        console.info(`[UserRouter] Fetching department name for ID: ${deptId}`);
+        const deptResponse = await fetch(
+          `https://open.larksuite.com/open-apis/contact/v3/departments/${deptId}?department_id_type=open_department_id`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        if (deptResponse.ok) {
+          const deptData = await deptResponse.json();
+          console.info(`[UserRouter] Department API Response:`, JSON.stringify(deptData));
+
+          if (deptData.code === 0 && deptData.data?.department?.name) {
+            const deptNameObj = deptData.data.department.name;
+            const deptNameStr =
+              typeof deptNameObj === 'string'
+                ? deptNameObj
+                : deptNameObj?.v || deptNameObj?.zh_cn || deptNameObj?.en_us || deptId;
+
+            console.info(`[UserRouter] Extracted Department Name:`, deptNameStr);
+            return deptNameStr as string;
+          } else {
+            console.warn(
+              `[UserRouter] Department API returned code ${deptData.code} or missing name`,
+            );
+          }
+        } else {
+          const errText = await deptResponse.text();
+          console.error(
+            `[UserRouter] Failed to fetch department name. Status: ${deptResponse.status}, Body: ${errText}`,
+          );
+        }
+      } catch (err) {
+        console.error('[UserRouter] Exception while fetching department name:', err);
+      }
+
+      // Fallback to ID if name fetch fails
+      return deptId;
+    } catch (e) {
+      console.error('[UserRouter] Failed to fetch user department from Lark', e);
+      return null;
+    }
+  }),
+
   getUserState: userProcedure.query(async ({ ctx }): Promise<UserInitializationState> => {
     try {
       after(async () => {
