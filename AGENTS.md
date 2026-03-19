@@ -45,9 +45,8 @@ lobehub/
 - New branches should be created from `canary`; PRs should target `canary`
 - Use rebase for git pull
 - Git commit messages should prefix with gitmoji
-- Git branch name format: `username/feat/feature-name`
+- Git branch name format: `feat/feature-name`
 - Use `.github/PULL_REQUEST_TEMPLATE.md` for PR descriptions
-- PR titles with `✨ feat/` or `🐛 fix` trigger releases
 
 ### Package Management
 
