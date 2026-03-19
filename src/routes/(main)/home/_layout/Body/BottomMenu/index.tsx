@@ -1,22 +1,14 @@
 import { Flexbox } from '@lobehub/ui';
-import { memo, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
+import { memo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { getRouteById } from '@/config/routes';
 import NavItem from '@/features/NavPanel/components/NavItem';
 import { useActiveTabKey } from '@/hooks/useActiveTabKey';
 import { SidebarTabKey } from '@/store/global/initialState';
 import { featureFlagsSelectors } from '@/store/serverConfig/selectors';
 import { useServerConfigStore } from '@/store/serverConfig/store';
+import { useNavLayout } from '@/hooks/useNavLayout';
 import { isModifierClick } from '@/utils/navigation';
-
-interface Item {
-  icon: any;
-  key: SidebarTabKey;
-  title: string;
-  url: string;
-}
 
 const BottomMenu = memo(() => {
   const tab = useActiveTabKey();
@@ -25,24 +17,7 @@ const BottomMenu = memo(() => {
   const navigate = useNavigate();
   const { t } = useTranslation('common');
 
-  const items = useMemo(
-    () =>
-      [
-        enableResource && {
-          icon: getRouteById('resource')!.icon,
-          key: SidebarTabKey.Resource,
-          title: t('tab.resource'),
-          url: '/resource',
-        },
-        enablePages && {
-          icon: getRouteById('page')!.icon,
-          key: SidebarTabKey.Pages,
-          title: t('tab.pages'),
-          url: '/page',
-        },
-      ].filter(Boolean) as Item[],
-    [t, enablePages, enableResource],
-  );
+  const { bottomMenuItems: items } = useNavLayout();
 
   return (
     <Flexbox
@@ -55,11 +30,11 @@ const BottomMenu = memo(() => {
       {items.map((item) => (
         <Link
           key={item.key}
-          to={item.url}
+          to={item.url!}
           onClick={(e) => {
             if (isModifierClick(e)) return;
             e.preventDefault();
-            navigate(item.url);
+            navigate(item.url!);
           }}
         >
           <NavItem active={tab === item.key} icon={item.icon} title={item.title} />
