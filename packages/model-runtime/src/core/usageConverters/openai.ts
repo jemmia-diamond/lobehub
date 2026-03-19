@@ -28,13 +28,15 @@ export const convertOpenAIUsage = (
   const outputAudioTokens = usage.completion_tokens_details?.audio_tokens || 0;
   const outputImageTokens = (usage.completion_tokens_details as any)?.image_tokens || 0;
 
-  // XAI's completion_tokens does not include reasoning_tokens, requires special handling
-  const outputTextTokens =
-    payload?.provider === 'xai'
-      ? totalOutputTokens - outputAudioTokens
-      : totalOutputTokens - outputReasoning - outputAudioTokens - outputImageTokens;
-  const totalOutputTokensNormalized =
-    payload?.provider === 'xai' ? totalOutputTokens + outputReasoning : totalOutputTokens;
+  const isSeparateReasoningProvider = payload?.provider === 'jemmia' || payload?.provider === 'xai';
+
+  const outputTextTokens = isSeparateReasoningProvider
+    ? totalOutputTokens - outputAudioTokens - outputImageTokens
+    : totalOutputTokens - outputReasoning - outputAudioTokens - outputImageTokens;
+
+  const totalOutputTokensNormalized = isSeparateReasoningProvider
+    ? totalOutputTokens + outputReasoning
+    : totalOutputTokens;
 
   const totalTokens = inputCitationTokens + usage.total_tokens;
 

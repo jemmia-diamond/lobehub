@@ -4,19 +4,12 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import NavItem from '@/features/NavPanel/components/NavItem';
 import { useActiveTabKey } from '@/hooks/useActiveTabKey';
-import { SidebarTabKey } from '@/store/global/initialState';
-import { featureFlagsSelectors } from '@/store/serverConfig/selectors';
-import { useServerConfigStore } from '@/store/serverConfig/store';
 import { useNavLayout } from '@/hooks/useNavLayout';
 import { isModifierClick } from '@/utils/navigation';
 
 const BottomMenu = memo(() => {
   const tab = useActiveTabKey();
-  const { enablePages, enableResource } = useServerConfigStore(featureFlagsSelectors);
-
   const navigate = useNavigate();
-  const { t } = useTranslation('common');
-
   const { bottomMenuItems: items } = useNavLayout();
 
   return (
@@ -27,19 +20,22 @@ const BottomMenu = memo(() => {
         overflow: 'hidden',
       }}
     >
-      {items.map((item) => (
-        <Link
-          key={item.key}
-          to={item.url!}
-          onClick={(e) => {
-            if (isModifierClick(e)) return;
-            e.preventDefault();
-            navigate(item.url!);
-          }}
-        >
-          <NavItem active={tab === item.key} icon={item.icon} title={item.title} />
-        </Link>
-      ))}
+      {items.map((item) => {
+        if (item.hidden) return null;
+        return (
+          <Link
+            key={item.key}
+            to={item.url!}
+            onClick={(e) => {
+              if (isModifierClick(e)) return;
+              e.preventDefault();
+              navigate(item.url!);
+            }}
+          >
+            <NavItem active={tab === item.key} icon={item.icon} title={item.title} />
+          </Link>
+        );
+      })}
     </Flexbox>
   );
 });

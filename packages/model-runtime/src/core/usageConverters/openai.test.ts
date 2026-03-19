@@ -294,6 +294,27 @@ describe('convertUsage', () => {
     });
   });
 
+  it('should handle Jemmia provider correctly where completion_tokens excludes reasoning_tokens', () => {
+    const jemmiaUsage: OpenAI.Completions.CompletionUsage = {
+      prompt_tokens: 6,
+      completion_tokens: 58,
+      completion_tokens_details: {
+        reasoning_tokens: 567,
+      },
+      total_tokens: 631,
+    };
+
+    const result = convertOpenAIUsage(jemmiaUsage, { provider: 'jemmia' });
+
+    expect(result).toMatchObject({
+      totalInputTokens: 6,
+      totalOutputTokens: 625, // 58 + 567
+      outputTextTokens: 58,
+      outputReasoningTokens: 567,
+      totalTokens: 631,
+    });
+  });
+
   it('should handle output image tokens correctly', () => {
     // Arrange
     const usageWithImage = {

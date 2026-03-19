@@ -22,6 +22,14 @@ declare global {
     __DEBUG_PROXY__: boolean | undefined;
     __editor?: IEditor;
     __SERVER_CONFIG__: SPAServerConfig | undefined;
+    h5sdk?: {
+      tt: {
+        login: (options: {
+          fail: (res: any) => void;
+          success: (res: { code: string }) => void;
+        }) => void;
+      };
+    };
     lobeEnv?: {
       darwinMajorVersion?: number;
       isMacTahoe?: boolean;

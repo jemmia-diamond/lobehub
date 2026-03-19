@@ -49,6 +49,7 @@ export interface NavItemProps extends Omit<BlockProps, 'children' | 'title'> {
   contextMenuItems?: GenericItemType[] | (() => GenericItemType[]);
   disabled?: boolean;
   extra?: ReactNode;
+  hidden?: boolean;
   /**
    * Optional href for cmd+click to open in new tab
    */
@@ -74,9 +75,12 @@ const NavItem = memo<NavItemProps>(
     disabled,
     loading,
     extra,
+    hidden,
     slots,
     ...rest
   }) => {
+    if (hidden) return null;
+
     const iconColor = active ? cssVar.colorText : cssVar.colorTextDescription;
     const textColor = active ? cssVar.colorText : cssVar.colorTextSecondary;
     const variant = active ? 'filled' : 'borderless';

@@ -6,6 +6,7 @@ import { GroupAgentBuilderManifest } from '@lobechat/builtin-tool-group-agent-bu
 import { GroupManagementManifest } from '@lobechat/builtin-tool-group-management';
 import { GTDManifest } from '@lobechat/builtin-tool-gtd';
 import { KnowledgeBaseManifest } from '@lobechat/builtin-tool-knowledge-base';
+import { LarkDocManifest } from '@lobechat/builtin-tool-lark-doc';
 import { LocalSystemManifest } from '@lobechat/builtin-tool-local-system';
 import { MemoryManifest } from '@lobechat/builtin-tool-memory';
 import { NotebookManifest } from '@lobechat/builtin-tool-notebook';
@@ -32,6 +33,7 @@ export const defaultToolIds = [
   MemoryManifest.identifier,
   LocalSystemManifest.identifier,
   CloudSandboxManifest.identifier,
+  LarkDocManifest.identifier,
   TopicReferenceManifest.identifier,
 ];
 
@@ -39,7 +41,11 @@ export const defaultToolIds = [
  * Tool IDs that are always enabled regardless of user selection.
  * These are core system tools that the agent needs to function properly.
  */
-export const alwaysOnToolIds = [LobeToolsManifest.identifier, SkillsManifest.identifier];
+export const alwaysOnToolIds = [
+  LobeToolsManifest.identifier,
+  SkillsManifest.identifier,
+  LarkDocManifest.identifier,
+];
 
 export const builtinTools: LobeBuiltinTool[] = [
   {
@@ -74,6 +80,11 @@ export const builtinTools: LobeBuiltinTool[] = [
     hidden: true,
     identifier: MemoryManifest.identifier,
     manifest: MemoryManifest,
+    type: 'builtin',
+  },
+  {
+    identifier: LarkDocManifest.identifier,
+    manifest: LarkDocManifest,
     type: 'builtin',
   },
   {

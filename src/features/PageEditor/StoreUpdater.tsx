@@ -52,12 +52,12 @@ const StoreUpdater = memo<StoreUpdaterProps>(
     // Initialize meta (title/emoji) with dirty tracking
     useEffect(() => {
       initMeta(title, emoji);
-    }, [pageId, title, emoji]);
+    }, [pageId, title, emoji, initMeta]);
 
     // Connect editor to page agent runtime
     useEffect(() => {
       if (editor) {
-        pageAgentRuntime.setEditor(editor);
+        pageAgentRuntime.setEditor(editor as any);
       }
       return () => {
         pageAgentRuntime.setEditor(null);

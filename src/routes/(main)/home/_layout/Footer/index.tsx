@@ -28,6 +28,7 @@ import { useFeedbackModal } from '@/hooks/useFeedbackModal';
 import { useNavLayout } from '@/hooks/useNavLayout';
 import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors/systemStatus';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useUserStore } from '@/store/user';
 import { userGeneralSettingsSelectors } from '@/store/user/slices/settings/selectors';
 
@@ -207,15 +208,11 @@ const Footer = memo(() => {
     [
       t,
       handleOpenFeedbackModal,
-      hideGitHub,
       isDevMode,
       footer.showSettingsEntry,
       footer.layout,
       footer.hideGitHub,
       footer.showEvalEntry,
-      isDevMode,
-      t,
-      handleOpenFeedbackModal,
       isWithinTimeWindow,
       handleOpenProductHuntCard,
     ],
@@ -245,9 +242,9 @@ const Footer = memo(() => {
       ) : (
         <Flexbox horizontal align={'center'} gap={2} padding={8}>
           {showHelpMenu && (
-           <DropdownMenu items={helpMenuItems} placement="topLeft">
-            <ActionIcon aria-label={t('userPanel.help')} icon={CircleHelp} size={16} />
-           </DropdownMenu>
+            <DropdownMenu items={helpMenuItems} placement="topLeft">
+              <ActionIcon aria-label={t('userPanel.help')} icon={CircleHelp} size={16} />
+            </DropdownMenu>
           )}
           {isDevMode && !isSettingsPage && (
             <Link to="/settings">

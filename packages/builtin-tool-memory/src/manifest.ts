@@ -737,8 +737,7 @@ export const MemoryManifest: BuiltinToolManifest = {
                 type: ['string', 'null'],
               },
               memoryType: {
-                description: 'Memory type, use null for omitting the field',
-                enum: [...MEMORY_TYPES, null],
+                description: `Memory type, possible values: ${MEMORY_TYPES.join(' | ')}. Use null for omitting the field`,
                 type: ['string', 'null'],
               },
               summary: {
