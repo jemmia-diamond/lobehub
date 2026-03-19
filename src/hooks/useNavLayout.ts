@@ -35,7 +35,7 @@ export interface NavLayout {
 export const useNavLayout = (): NavLayout => {
   const { t } = useTranslation('common');
   const toggleCommandMenu = useGlobalStore((s) => s.toggleCommandMenu);
-  const { showMarket, hideGitHub } = useServerConfigStore(featureFlagsSelectors);
+  const { showMarket, hideGitHub, enableResource } = useServerConfigStore(featureFlagsSelectors);
 
   const topNavItems = useMemo(
     () =>
@@ -73,13 +73,14 @@ export const useNavLayout = (): NavLayout => {
     () =>
       [
         {
+          hidden: !enableResource,
           icon: getRouteById('resource')!.icon,
           key: SidebarTabKey.Resource,
           title: t('tab.resource'),
           url: '/resource',
         },
       ] as NavItem[],
-    [t],
+    [t, enableResource],
   );
 
   const footer = useMemo(
