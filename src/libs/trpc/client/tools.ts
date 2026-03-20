@@ -3,10 +3,12 @@ import { observable } from '@trpc/server/observable';
 import superjson from 'superjson';
 
 import { withElectronProtocolIfElectron } from '@/const/protocol';
+import { isDesktop } from '@/const/version';
 import { type ToolsRouter } from '@/server/routers/tools';
 
-// 401 error debouncing for market auth
+// 401 error debouncing for market auth and global auth
 let lastMarket401Time = 0;
+let last401Time = 0;
 const MIN_401_INTERVAL = 5000; // 5 seconds
 
 // Error handling link for tools client
@@ -29,17 +31,34 @@ const errorHandlingLink: TRPCLink<ToolsRouter> = () => {
           // Check if this is a market API call with 401 error
           // UNAUTHORIZED tRPC code maps to HTTP 401
           const is401 = status === 401 || code === 'UNAUTHORIZED';
-          if (is401 && op.path.startsWith('market.')) {
-            const now = Date.now();
-            if (now - lastMarket401Time > MIN_401_INTERVAL) {
-              lastMarket401Time = now;
-              console.info('[toolsClient] Emitting market-unauthorized event for path:', op.path);
-              // Emit event for MarketAuthProvider to handle
-              const { marketAuthEvents } = await import('@/layout/AuthProvider/MarketAuth/events');
-              marketAuthEvents.emit('market-unauthorized', {
-                path: op.path,
-                timestamp: now,
-              });
+          if (is401) {
+            // Market API 401: emit event for MarketAuthProvider to handle
+            if (op.path.startsWith('market.')) {
+              const now = Date.now();
+              if (now - lastMarket401Time > MIN_401_INTERVAL) {
+                lastMarket401Time = now;
+                console.info('[toolsClient] Emitting market-unauthorized event for path:', op.path);
+                const { marketAuthEvents } =
+                  await import('@/layout/AuthProvider/MarketAuth/events');
+                marketAuthEvents.emit('market-unauthorized', {
+                  path: op.path,
+                  timestamp: now,
+                });
+              }
+            } else if (!isDesktop) {
+              // Non-market 401: treat as Lobe session or Lark auth expired
+              const now = Date.now();
+              if (now - last401Time > MIN_401_INTERVAL) {
+                last401Time = now;
+                const { getUserStoreState } = await import('@/store/user/store');
+                const { isSignedIn, logout } = getUserStoreState();
+                if (isSignedIn) {
+                  await logout();
+                }
+                const { loginRequired } =
+                  await import('@/components/Error/loginRequiredNotification');
+                loginRequired.redirect();
+              }
             }
           }
 

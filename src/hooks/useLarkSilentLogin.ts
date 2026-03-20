@@ -11,29 +11,45 @@ export const useLarkSilentLogin = () => {
   useEffect(() => {
     if (session || isPending || checkingRef.current) return;
 
-    const isLarkClient = typeof window !== 'undefined' && !!window.h5sdk;
+    if (typeof window === 'undefined') return;
+
+    const attempted = window.localStorage.getItem('lark_silent_login_done') === '1';
+    if (attempted) return;
+
+    const isLarkClient = !!window.h5sdk;
 
     if (!isLarkClient) return;
 
-    const silentLogin = async () => {
+    const executeLogin = async () => {
       try {
         checkingRef.current = true;
         console.info('[Lark Silent Login] Detected Lark Client, attempting silent login...');
 
-        const code = await new Promise<string>((resolve, reject) => {
-          window.h5sdk!.tt.login({
-            success(res) {
+        const code = await new Promise<string | null>((resolve) => {
+          if (typeof window.h5sdk?.tt?.login !== 'function') {
+            console.warn(
+              '[Lark Silent Login] window.h5sdk.tt.login is not available, skipping silent login',
+            );
+            resolve(null);
+            return;
+          }
+
+          window.h5sdk.tt.login({
+            success(res: any) {
               console.info('[Lark Silent Login] Got auth code:', res.code);
               resolve(res.code);
             },
-            fail(err) {
+            fail(err: any) {
               console.error('[Lark Silent Login] tt.login failed:', err);
-              reject(err);
+              resolve(null);
             },
           });
         });
 
-        if (!code) return;
+        if (!code) {
+          window.localStorage.setItem('lark_silent_login_done', '1');
+          return;
+        }
 
         const res = await fetch('/api/auth/lark-silent', {
           method: 'POST',
@@ -42,15 +58,28 @@ export const useLarkSilentLogin = () => {
         });
 
         if (res.ok) {
+          window.localStorage.setItem('lark_silent_login_done', '1');
           console.info('[Lark Silent Login] Login successful, reloading...');
           window.location.reload();
         } else {
+          window.localStorage.setItem('lark_silent_login_done', '1');
           console.error('[Lark Silent Login] Server rejected login:', await res.text());
         }
       } catch (error) {
         console.error('[Lark Silent Login] Error:', error);
       } finally {
         checkingRef.current = false;
+      }
+    };
+
+    const silentLogin = () => {
+      const h5 = (window as any).h5sdk;
+      if (h5 && typeof h5.ready === 'function') {
+        h5.ready(() => {
+          executeLogin();
+        });
+      } else {
+        executeLogin();
       }
     };
 

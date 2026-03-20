@@ -2,7 +2,7 @@ import { useResponsive } from 'antd-style';
 import { useMemo } from 'react';
 
 export const useIsMobile = (): boolean => {
-  const { mobile } = useResponsive();
+  const { mobile, tablet } = useResponsive();
 
-  return useMemo(() => !!mobile, [mobile]);
+  return useMemo(() => !!mobile || !!tablet, [mobile, tablet]);
 };

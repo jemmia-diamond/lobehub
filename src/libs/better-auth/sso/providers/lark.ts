@@ -70,7 +70,7 @@ const provider: GenericProviderDefinition<{
         app_id: clientId,
         response_type: 'code',
         scope:
-          'contact:user.base:readonly contact:user.email:readonly contact:user.department:readonly docx:document:readonly drive:drive:readonly',
+          'contact:user.base:readonly contact:user.email:readonly contact:user.department:readonly docx:document:readonly drive:drive:readonly offline_access',
       },
       clientId,
       clientSecret,
@@ -164,6 +164,7 @@ const provider: GenericProviderDefinition<{
         'contact:user.department:readonly',
         'docx:document:readonly',
         'drive:drive:readonly',
+        'offline_access',
       ],
       tokenUrl: LARK_TOKEN_URL,
     };
