@@ -41,7 +41,6 @@ const InputArea = () => {
     });
   }, [inputActiveMode]);
 
-  // Get agent's model info for vision support check
   const model = useAgentStore((s) => agentByIdSelectors.getAgentModelById(inboxAgentId)(s));
   const provider = useAgentStore((s) =>
     agentByIdSelectors.getAgentModelProviderById(inboxAgentId)(s),
@@ -120,7 +119,6 @@ const InputArea = () => {
         </DragUploadZone>
       </Flexbox>
 
-      {/* Keep StarterList mounted to prevent useInitBuiltinAgent hooks from re-running */}
       <div style={{ display: hideStarterList ? 'none' : undefined }}>
         <StarterList />
       </div>
