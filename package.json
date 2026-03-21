@@ -210,6 +210,7 @@
     "@lobechat/builtin-tool-gtd": "workspace:*",
     "@lobechat/builtin-tool-knowledge-base": "workspace:*",
     "@lobechat/builtin-tool-lark-doc": "workspace:*",
+    "@lobechat/builtin-tool-lark-message": "workspace:*",
     "@lobechat/builtin-tool-local-system": "workspace:*",
     "@lobechat/builtin-tool-memory": "workspace:*",
     "@lobechat/builtin-tool-notebook": "workspace:*",

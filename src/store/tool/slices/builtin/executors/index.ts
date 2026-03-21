@@ -18,6 +18,7 @@ import { topicReferenceExecutor } from '@lobechat/builtin-tool-topic-reference/e
 
 import type { BuiltinToolContext, BuiltinToolResult, IBuiltinToolExecutor } from '../types';
 import { larkDocExecutor } from './lobe-lark-doc';
+import { larkMessageExecutor } from './lobe-lark-message';
 import { notebookExecutor } from './lobe-notebook';
 import { pageAgentExecutor } from './lobe-page-agent';
 import { skillStoreExecutor } from './lobe-skill-store';
@@ -136,6 +137,7 @@ registerExecutors([
   gtdExecutor,
   knowledgeBaseExecutor,
   larkDocExecutor,
+  larkMessageExecutor,
   localSystemExecutor,
   memoryExecutor,
   notebookExecutor,
