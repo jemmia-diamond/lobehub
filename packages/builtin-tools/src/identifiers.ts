@@ -7,6 +7,7 @@ import { GroupManagementManifest } from '@lobechat/builtin-tool-group-management
 import { GTDManifest } from '@lobechat/builtin-tool-gtd';
 import { KnowledgeBaseManifest } from '@lobechat/builtin-tool-knowledge-base';
 import { LarkDocManifest } from '@lobechat/builtin-tool-lark-doc';
+import { LarkMessageManifest } from '@lobechat/builtin-tool-lark-message';
 import { LocalSystemManifest } from '@lobechat/builtin-tool-local-system';
 import { MemoryManifest } from '@lobechat/builtin-tool-memory';
 import { NotebookManifest } from '@lobechat/builtin-tool-notebook';
@@ -33,6 +34,7 @@ export const builtinToolIdentifiers: string[] = [
   MemoryManifest.identifier,
   NotebookManifest.identifier,
   LarkDocManifest.identifier,
+  LarkMessageManifest.identifier,
   TopicReferenceManifest.identifier,
   LobeToolsManifest.identifier,
   SkillStoreManifest.identifier,
