@@ -5,6 +5,7 @@ import { memo } from 'react';
 
 import MainInterfaceTracker from '@/components/Analytics/MainInterfaceTracker';
 
+import ChatHeader from './features/ChatHeader';
 import Conversation from './features/Conversation';
 import PageTitle from './features/PageTitle';
 import Portal from './features/Portal';
@@ -14,6 +15,7 @@ const ChatPage = memo(() => {
   return (
     <>
       <PageTitle />
+      <ChatHeader />
       <Flexbox
         horizontal
         height={'100%'}

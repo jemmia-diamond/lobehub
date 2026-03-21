@@ -58,6 +58,10 @@ export const FeatureFlagsSchema = z.object({
   auth_sso_google: FeatureFlagValue.optional(),
   auth_sso_github: FeatureFlagValue.optional(),
   auth_email_password: FeatureFlagValue.optional(),
+
+  home_recent_page: FeatureFlagValue.optional(),
+  home_recent_topic: FeatureFlagValue.optional(),
+  home_suggestion: FeatureFlagValue.optional(),
 });
 
 export type IFeatureFlags = z.infer<typeof FeatureFlagsSchema>;
@@ -128,6 +132,10 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   auth_sso_google: false,
   auth_sso_github: false,
   auth_email_password: false,
+
+  home_recent_page: false,
+  home_recent_topic: false,
+  home_suggestion: false,
 };
 
 export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string) => {
@@ -176,6 +184,10 @@ export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string
     enableAuthSsoGoogle: evaluateFeatureFlag(config.auth_sso_google, userId),
     enableAuthSsoGithub: evaluateFeatureFlag(config.auth_sso_github, userId),
     enableAuthEmailPassword: evaluateFeatureFlag(config.auth_email_password, userId),
+
+    showHomeRecentTopic: evaluateFeatureFlag(config.home_recent_topic, userId),
+    showHomeRecentPage: evaluateFeatureFlag(config.home_recent_page, userId),
+    showHomeSuggestion: evaluateFeatureFlag(config.home_suggestion, userId),
   };
 };
 

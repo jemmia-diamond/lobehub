@@ -8,9 +8,11 @@ import { useEnabledChatModels } from '@/hooks/useEnabledChatModels';
 import { useAgentStore } from '@/store/agent';
 import { agentByIdSelectors, builtinAgentSelectors } from '@/store/agent/selectors';
 import { useHomeStore } from '@/store/home';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useUserStore } from '@/store/user';
 import { authSelectors } from '@/store/user/slices/auth/selectors';
 
+import HomeHeader from './HomeHeader';
 import InputArea from './InputArea';
 import ModeSelection from './ModeSelection';
 import RecentPage from './RecentPage';
@@ -31,6 +33,7 @@ const Home = memo(() => {
     agentByIdSelectors.getAgentModelProviderById(inboxAgentId)(s),
   ]);
   const updateAgentConfigById = useAgentStore((s) => s.updateAgentConfigById);
+  const { showHomeRecentTopic, showHomeRecentPage } = useServerConfigStore(featureFlagsSelectors);
 
   const jemmia = useMemo(() => {
     if (!enabledModels || enabledModels.length === 0) return {};
@@ -81,13 +84,14 @@ const Home = memo(() => {
 
   return (
     <Flexbox gap={40}>
+      <HomeHeader />
       <ModeSelection activeMode={thinkingMode} onChangeMode={handleModeChange} />
       <InputArea />
       <Flexbox gap={40} style={{ display: hideOtherModules ? 'none' : undefined }}>
         {isLogin && (
           <>
-            <RecentTopic />
-            <RecentPage />
+            {showHomeRecentTopic && <RecentTopic />}
+            {showHomeRecentPage && <RecentPage />}
           </>
         )}
         {isLogin && <RecentResource />}
