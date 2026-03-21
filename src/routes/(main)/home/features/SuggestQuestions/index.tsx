@@ -3,9 +3,10 @@
 import { ActionIcon, Flexbox, Text } from '@lobehub/ui';
 import { cssVar } from 'antd-style';
 import { Lightbulb, RefreshCw } from 'lucide-react';
-import { memo, Suspense } from 'react';
+import { memo, Suspense, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { userService } from '@/services/user';
 import { type StarterMode } from '@/store/home';
 
 import GroupBlock from '../components/GroupBlock';
@@ -19,7 +20,20 @@ interface SuggestQuestionsProps {
 
 const SuggestQuestions = memo<SuggestQuestionsProps>(({ mode }) => {
   const { t } = useTranslation('common');
-  const { questions, refresh } = useRandomQuestions(mode);
+  const [department, setDepartment] = useState<string | null>(null);
+
+  useEffect(() => {
+    userService
+      .getUserDepartment()
+      .then((dept) => {
+        if (dept) setDepartment(dept);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch user department:', err);
+      });
+  }, []);
+
+  const { questions, refresh } = useRandomQuestions(mode, department);
 
   if (mode && !['agent', 'group', 'write'].includes(mode)) {
     return null;

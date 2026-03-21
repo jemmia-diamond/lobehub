@@ -135,6 +135,7 @@ export interface OperationCreationParams {
     groupId?: string | null;
     threadId?: string | null;
     topicId?: string | null;
+    trigger?: string;
   };
   autoStart?: boolean;
   /**
@@ -156,6 +157,8 @@ export interface OperationCreationParams {
   maxSteps?: number;
   modelRuntimeConfig?: any;
   operationId: string;
+  /** Skill metas for <available_skills> prompt injection */
+  skillMetas?: Array<{ description: string; identifier: string; name: string }>;
   /**
    * Step lifecycle callbacks
    * Used to inject custom logic at different stages of step execution

@@ -61,6 +61,9 @@ export class UserAuthActionImpl {
 
   logout = async (): Promise<void> => {
     const { signOut } = await import('@/libs/better-auth/auth-client');
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('lark_silent_login_done');
+    }
     await signOut({
       fetchOptions: {
         onSuccess: () => {
