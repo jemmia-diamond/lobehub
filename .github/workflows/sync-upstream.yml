@@ -1,4 +1,4 @@
-name: Sync Fork with Upstream
+name: Sync Develop with Upstream Canary
 
 on:
   schedule:
@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: canary
+          ref: develop
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Dry-Run and Sync
@@ -23,24 +23,24 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          
+
           git remote add upstream https://github.com/lobehub/lobe-chat.git
           git fetch upstream canary
-          
+
           if [ "$(git rev-parse HEAD)" == "$(git rev-parse upstream/canary)" ]; then
             echo "Already in sync. Exiting."
             exit 0
           fi
 
           MERGE_REPORT=$(git merge-tree HEAD upstream/canary)
-          
+
           if echo "$MERGE_REPORT" | grep -q "<<<<<<<"; then
             echo "::error::Dry-run failed! Merge conflicts detected."
             exit 1
           fi
 
           git merge upstream/canary --no-edit
-          git push origin canary
+          git push origin develop
 
 #      - name: Report failure
 #        if: failure()
@@ -53,11 +53,11 @@ jobs:
 #              repo,
 #              title: '❌ Upstream Sync Conflict',
 #              body: `The automated dry-run for \`lobehub/lobe-chat\` detected a merge conflict.
-#              
+#
 #              Manual Resolution Required:
 #              1. git checkout canary
 #              2. git pull https://github.com/lobehub/lobe-chat.git canary
 #              3. Resolve conflicts and push.
-#              
+#
 #              View Run: ${process.env.GITHUB_SERVER_URL}/${owner}/${repo}/actions/runs/${process.env.GITHUB_RUN_ID}`
 #            });

@@ -17,6 +17,7 @@ import { memoryExecutor } from '@lobechat/builtin-tool-memory/executor';
 import { topicReferenceExecutor } from '@lobechat/builtin-tool-topic-reference/executor';
 
 import type { BuiltinToolContext, BuiltinToolResult, IBuiltinToolExecutor } from '../types';
+import { agentDocumentsExecutor } from './lobe-agent-documents';
 import { larkDocExecutor } from './lobe-lark-doc';
 import { larkMessageExecutor } from './lobe-lark-message';
 import { notebookExecutor } from './lobe-notebook';
@@ -129,6 +130,7 @@ const registerExecutors = (executors: IBuiltinToolExecutor[]): void => {
 // Register all executor instances
 registerExecutors([
   agentBuilderExecutor,
+  agentDocumentsExecutor,
   agentManagementExecutor,
   calculatorExecutor,
   cloudSandboxExecutor,

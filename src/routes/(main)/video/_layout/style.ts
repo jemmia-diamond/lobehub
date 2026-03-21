@@ -1,13 +1,10 @@
 import { createStaticStyles } from 'antd-style';
 
-export const styles = createStaticStyles(({ css, cssVar }) => ({
+export const styles = createStaticStyles(({ css }) => ({
   contentContainer: css`
-    position: relative;
-    overflow: hidden;
+    min-height: 100%;
   `,
   mainContainer: css`
-    position: relative;
-    overflow: hidden;
-    background: ${cssVar.colorBgContainer};
+    overflow-y: auto;
   `,
 }));

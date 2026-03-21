@@ -1,4 +1,5 @@
 import { AgentBuilderManifest } from '@lobechat/builtin-tool-agent-builder';
+import { AgentDocumentsManifest } from '@lobechat/builtin-tool-agent-documents';
 import { AgentManagementManifest } from '@lobechat/builtin-tool-agent-management';
 import { CalculatorManifest } from '@lobechat/builtin-tool-calculator';
 import { CloudSandboxManifest } from '@lobechat/builtin-tool-cloud-sandbox';
@@ -20,6 +21,7 @@ import { WebBrowsingManifest } from '@lobechat/builtin-tool-web-browsing';
 
 export const builtinToolIdentifiers: string[] = [
   AgentBuilderManifest.identifier,
+  AgentDocumentsManifest.identifier,
   AgentManagementManifest.identifier,
   CalculatorManifest.identifier,
   LocalSystemManifest.identifier,
