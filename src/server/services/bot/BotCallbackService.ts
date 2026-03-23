@@ -6,83 +6,11 @@ import { type LobeChatDatabase } from '@/database/type';
 import { KeyVaultsGateKeeper } from '@/server/modules/KeyVaultsEncrypt';
 import { SystemAgentService } from '@/server/services/systemAgent';
 
-import { DiscordRestApi } from './discordRestApi';
-import { LarkRestApi } from './larkRestApi';
+import type { BotProviderConfig, PlatformClient, PlatformMessenger, UsageStats } from './platforms';
+import { platformRegistry } from './platforms';
 import { renderError, renderFinalReply, renderStepProgress, splitMessage } from './replyTemplate';
-import { TelegramRestApi } from './telegramRestApi';
 
 const log = debug('lobe-server:bot:callback');
-
-// --------------- Platform helpers ---------------
-
-function extractDiscordChannelId(platformThreadId: string): string {
-  const parts = platformThreadId.split(':');
-  return parts[3] || parts[2];
-}
-
-function extractTelegramChatId(platformThreadId: string): string {
-  return platformThreadId.split(':')[1];
-}
-
-function extractLarkChatId(platformThreadId: string): string {
-  return platformThreadId.split(':')[1];
-}
-
-function parseTelegramMessageId(compositeId: string): number {
-  const colonIdx = compositeId.lastIndexOf(':');
-  return colonIdx !== -1 ? Number(compositeId.slice(colonIdx + 1)) : Number(compositeId);
-}
-
-const TELEGRAM_CHAR_LIMIT = 4000;
-const LARK_CHAR_LIMIT = 4000;
-
-// --------------- Platform-agnostic messenger ---------------
-
-interface PlatformMessenger {
-  createMessage: (content: string) => Promise<void>;
-  editMessage: (messageId: string, content: string) => Promise<void>;
-  removeReaction: (messageId: string, emoji: string) => Promise<void>;
-  triggerTyping: () => Promise<void>;
-  updateThreadName?: (name: string) => Promise<void>;
-}
-
-function createDiscordMessenger(
-  discord: DiscordRestApi,
-  channelId: string,
-  platformThreadId: string,
-): PlatformMessenger {
-  return {
-    createMessage: (content) => discord.createMessage(channelId, content).then(() => {}),
-    editMessage: (messageId, content) => discord.editMessage(channelId, messageId, content),
-    removeReaction: (messageId, emoji) => discord.removeOwnReaction(channelId, messageId, emoji),
-    triggerTyping: () => discord.triggerTyping(channelId),
-    updateThreadName: (name) => {
-      const threadId = platformThreadId.split(':')[3];
-      return threadId ? discord.updateChannelName(threadId, name) : Promise.resolve();
-    },
-  };
-}
-
-function createTelegramMessenger(telegram: TelegramRestApi, chatId: string): PlatformMessenger {
-  return {
-    createMessage: (content) => telegram.sendMessage(chatId, content).then(() => {}),
-    editMessage: (messageId, content) =>
-      telegram.editMessageText(chatId, parseTelegramMessageId(messageId), content),
-    removeReaction: (messageId) =>
-      telegram.removeMessageReaction(chatId, parseTelegramMessageId(messageId)),
-    triggerTyping: () => telegram.sendChatAction(chatId, 'typing'),
-  };
-}
-
-function createLarkMessenger(lark: LarkRestApi, chatId: string): PlatformMessenger {
-  return {
-    createMessage: (content) => lark.sendMessage(chatId, content).then(() => {}),
-    editMessage: (messageId, content) => lark.editMessage(messageId, content),
-    // Lark has no reaction/typing API for bots
-    removeReaction: () => Promise.resolve(),
-    triggerTyping: () => Promise.resolve(),
-  };
-}
 
 // --------------- Callback body types ---------------
 
@@ -100,7 +28,6 @@ export interface BotCallbackBody {
   llmCalls?: number;
   platformThreadId: string;
   progressMessageId: string;
-  reactionChannelId?: string;
   reason?: string;
   reasoning?: string;
   shouldContinue?: boolean;
@@ -135,17 +62,23 @@ export class BotCallbackService {
     const { type, applicationId, platformThreadId, progressMessageId } = body;
     const platform = platformThreadId.split(':')[0];
 
-    const { botToken, messenger, charLimit } = await this.createMessenger(
+    const { client, messenger, charLimit } = await this.createMessenger(
       platform,
       applicationId,
       platformThreadId,
     );
 
+    const entry = platformRegistry.getPlatform(platform);
+    const canEdit = entry?.supportsMessageEdit !== false;
+
     if (type === 'step') {
-      await this.handleStep(body, messenger, progressMessageId, platform);
+      // Skip step progress updates for platforms that can't edit messages
+      if (canEdit) {
+        await this.handleStep(body, messenger, progressMessageId, client);
+      }
     } else if (type === 'completion') {
-      await this.handleCompletion(body, messenger, progressMessageId, platform, charLimit);
-      await this.removeEyesReaction(body, messenger, botToken, platform, platformThreadId);
+      await this.handleCompletion(body, messenger, progressMessageId, client, charLimit, canEdit);
+      await this.removeEyesReaction(body, messenger);
       this.summarizeTopicTitle(body, messenger);
     }
   }
@@ -154,7 +87,7 @@ export class BotCallbackService {
     platform: string,
     applicationId: string,
     platformThreadId: string,
-  ): Promise<{ botToken: string; charLimit?: number; messenger: PlatformMessenger }> {
+  ): Promise<{ charLimit?: number; messenger: PlatformMessenger; client: PlatformClient }> {
     const row = await AgentBotProviderModel.findByPlatformAndAppId(
       this.db,
       platform,
@@ -173,59 +106,41 @@ export class BotCallbackService {
       credentials = JSON.parse(row.credentials);
     }
 
-    const isLark = platform === 'lark' || platform === 'feishu';
-
-    if (isLark ? !credentials.appId || !credentials.appSecret : !credentials.botToken) {
-      throw new Error(`Bot credentials incomplete for ${platform} appId=${applicationId}`);
+    const entry = platformRegistry.getPlatform(platform);
+    if (!entry) {
+      throw new Error(`Unsupported platform: ${platform}`);
     }
 
-    switch (platform) {
-      case 'telegram': {
-        const telegram = new TelegramRestApi(credentials.botToken);
-        const chatId = extractTelegramChatId(platformThreadId);
-        return {
-          botToken: credentials.botToken,
-          charLimit: TELEGRAM_CHAR_LIMIT,
-          messenger: createTelegramMessenger(telegram, chatId),
-        };
-      }
-      case 'lark':
-      case 'feishu': {
-        const lark = new LarkRestApi(credentials.appId, credentials.appSecret, platform);
-        const chatId = extractLarkChatId(platformThreadId);
-        return {
-          botToken: credentials.appId,
-          charLimit: LARK_CHAR_LIMIT,
-          messenger: createLarkMessenger(lark, chatId),
-        };
-      }
-      case 'discord':
-      default: {
-        const discord = new DiscordRestApi(credentials.botToken);
-        const channelId = extractDiscordChannelId(platformThreadId);
-        return {
-          botToken: credentials.botToken,
-          messenger: createDiscordMessenger(discord, channelId, platformThreadId),
-        };
-      }
-    }
+    const settings = (row as any).settings as Record<string, unknown> | undefined;
+    const charLimit = (settings?.charLimit as number) || undefined;
+
+    const config: BotProviderConfig = {
+      applicationId,
+      credentials,
+      platform,
+      settings: settings || {},
+    };
+
+    const client = entry.clientFactory.createClient(config, {});
+    const messenger = client.getMessenger(platformThreadId);
+
+    return { charLimit, messenger, client };
   }
 
   private async handleStep(
     body: BotCallbackBody,
     messenger: PlatformMessenger,
     progressMessageId: string,
-    platform: string,
+    client: PlatformClient,
   ): Promise<void> {
     if (!body.shouldContinue) return;
 
-    const progressText = renderStepProgress({
+    const msgBody = renderStepProgress({
       content: body.content,
       elapsedMs: body.elapsedMs,
       executionTimeMs: body.executionTimeMs ?? 0,
       lastContent: body.lastLLMContent,
       lastToolsCalling: body.lastToolsCalling,
-      platform,
       reasoning: body.reasoning,
       stepType: body.stepType ?? ('call_llm' as const),
       thinking: body.thinking ?? false,
@@ -238,6 +153,14 @@ export class BotCallbackService {
       totalTokens: body.totalTokens ?? 0,
       totalToolCalls: body.totalToolCalls,
     });
+
+    const stats: UsageStats = {
+      elapsedMs: body.elapsedMs,
+      totalCost: body.totalCost ?? 0,
+      totalTokens: body.totalTokens ?? 0,
+    };
+
+    const progressText = client.formatReply?.(msgBody, stats) ?? msgBody;
 
     const isLlmFinalResponse =
       body.stepType === 'call_llm' && !body.toolsCalling?.length && body.content;
@@ -256,17 +179,22 @@ export class BotCallbackService {
     body: BotCallbackBody,
     messenger: PlatformMessenger,
     progressMessageId: string,
-    platform: string,
+    client: PlatformClient,
     charLimit?: number,
+    canEdit = true,
   ): Promise<void> {
     const { reason, lastAssistantContent, errorMessage } = body;
 
     if (reason === 'error') {
       const errorText = renderError(errorMessage || 'Agent execution failed');
       try {
-        await messenger.editMessage(progressMessageId, errorText);
+        if (canEdit) {
+          await messenger.editMessage(progressMessageId, errorText);
+        } else {
+          await messenger.createMessage(errorText);
+        }
       } catch (error) {
-        log('handleCompletion: failed to edit error message: %O', error);
+        log('handleCompletion: failed to send error message: %O', error);
       }
       return;
     }
@@ -276,46 +204,45 @@ export class BotCallbackService {
       return;
     }
 
-    const finalText = renderFinalReply(lastAssistantContent, {
+    const msgBody = renderFinalReply(lastAssistantContent);
+
+    const stats: UsageStats = {
       elapsedMs: body.duration,
       llmCalls: body.llmCalls ?? 0,
-      platform,
       toolCalls: body.toolCalls ?? 0,
       totalCost: body.cost ?? 0,
       totalTokens: body.totalTokens ?? 0,
-    });
+    };
 
+    const finalText = client.formatReply?.(msgBody, stats) ?? msgBody;
     const chunks = splitMessage(finalText, charLimit);
 
     try {
-      await messenger.editMessage(progressMessageId, chunks[0]);
-      for (let i = 1; i < chunks.length; i++) {
-        await messenger.createMessage(chunks[i]);
+      if (canEdit) {
+        await messenger.editMessage(progressMessageId, chunks[0]);
+        for (let i = 1; i < chunks.length; i++) {
+          await messenger.createMessage(chunks[i]);
+        }
+      } else {
+        // Platform doesn't support edit — send all chunks as new messages
+        for (const chunk of chunks) {
+          await messenger.createMessage(chunk);
+        }
       }
     } catch (error) {
-      log('handleCompletion: failed to edit/post final message: %O', error);
+      log('handleCompletion: failed to send final message: %O', error);
     }
   }
 
   private async removeEyesReaction(
     body: BotCallbackBody,
     messenger: PlatformMessenger,
-    botToken: string,
-    platform: string,
-    platformThreadId: string,
   ): Promise<void> {
-    const { userMessageId, reactionChannelId } = body;
+    const { userMessageId } = body;
     if (!userMessageId) return;
 
     try {
-      if (platform === 'discord') {
-        // Use reactionChannelId (parent channel for mentions, thread for follow-ups)
-        const discord = new DiscordRestApi(botToken);
-        const targetChannelId = reactionChannelId || extractDiscordChannelId(platformThreadId);
-        await discord.removeOwnReaction(targetChannelId, userMessageId, '👀');
-      } else {
-        await messenger.removeReaction(userMessageId, '👀');
-      }
+      await messenger.removeReaction(userMessageId, '👀');
     } catch (error) {
       log('removeEyesReaction: failed: %O', error);
     }

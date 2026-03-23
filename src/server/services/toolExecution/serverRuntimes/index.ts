@@ -7,8 +7,11 @@
  * - Per-request runtimes (e.g., CloudSandbox - needs topicId, userId)
  */
 import { type ToolExecutionContext } from '../types';
+import { agentDocumentsRuntime } from './agentDocuments';
 import { calculatorRuntime } from './calculator';
 import { cloudSandboxRuntime } from './cloudSandbox';
+import { larkDocRuntime } from './larkDoc';
+import { larkMessageRuntime } from './larkMessage';
 import { localSystemRuntime } from './localSystem';
 import { memoryRuntime } from './memory';
 import { notebookRuntime } from './notebook';
@@ -16,6 +19,7 @@ import { remoteDeviceRuntime } from './remoteDevice';
 import { skillsRuntime } from './skills';
 import { skillStoreRuntime } from './skillStore';
 import { toolsActivatorRuntime } from './tools';
+import { topicReferenceRuntime } from './topicReference';
 import { type ServerRuntimeFactory, type ServerRuntimeRegistration } from './types';
 import { webBrowsingRuntime } from './webBrowsing';
 
@@ -38,6 +42,7 @@ registerRuntimes([
   webBrowsingRuntime,
   cloudSandboxRuntime,
   calculatorRuntime,
+  agentDocumentsRuntime,
   notebookRuntime,
   skillStoreRuntime,
   skillsRuntime,
@@ -45,6 +50,9 @@ registerRuntimes([
   toolsActivatorRuntime,
   localSystemRuntime,
   remoteDeviceRuntime,
+  topicReferenceRuntime,
+  larkDocRuntime,
+  larkMessageRuntime,
 ]);
 
 // ==================== Registry API ====================

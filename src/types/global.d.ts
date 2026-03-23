@@ -22,6 +22,14 @@ declare global {
     __DEBUG_PROXY__: boolean | undefined;
     __editor?: IEditor;
     __SERVER_CONFIG__: SPAServerConfig | undefined;
+    h5sdk?: {
+      tt: {
+        login: (options: {
+          fail: (res: any) => void;
+          success: (res: { code: string }) => void;
+        }) => void;
+      };
+    };
     lobeEnv?: {
       darwinMajorVersion?: number;
       isMacTahoe?: boolean;
@@ -40,4 +48,7 @@ declare global {
 
   /** Vite define: current bundle is Electron desktop variant */
   const __ELECTRON__: boolean | undefined;
+
+  /** Vite define: desktop app version injected by electron-vite renderer build */
+  const __MAIN_VERSION__: string;
 }

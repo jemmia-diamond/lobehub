@@ -51,9 +51,9 @@ When deploying LobeHub, a rich set of environment variables related to model ser
 
 Related discussions:
 
-- [Why is the return value blank after installing Docker, configuring environment variables?](https://github.com/lobehub/lobe-chat/discussions/623)
-- [Reasons for errors when using third-party interfaces](https://github.com/lobehub/lobe-chat/discussions/734)
-- [No response in chat after filling in the proxy server address](https://github.com/lobehub/lobe-chat/discussions/1065)
+- [Why is the return value blank after installing Docker, configuring environment variables?](https://github.com/lobehub/lobehub/discussions/623)
+- [Reasons for errors when using third-party interfaces](https://github.com/lobehub/lobehub/discussions/734)
+- [No response in chat after filling in the proxy server address](https://github.com/lobehub/lobehub/discussions/1065)
 
 ### `OPENAI_MODEL_LIST`
 
@@ -64,7 +64,7 @@ Related discussions:
 
 The above example adds `qwen-7b-chat` and `glm-6b` to the model list, removes `gpt-3.5-turbo` from the list, and displays the name of `gpt-4-0125-preview` as `gpt-4-turbo`. If you want to disable all models first and then enable specific models, you can use `-all,+gpt-3.5-turbo`, which means only `gpt-3.5-turbo` will be enabled.
 
-You can find all current model names in [modelProviders](https://github.com/lobehub/lobe-chat/tree/main/src/config/modelProviders).
+You can find all current model names in [modelProviders](https://github.com/lobehub/lobehub/tree/main/src/config/modelProviders).
 
 ## Azure OpenAI
 
@@ -120,6 +120,29 @@ If you need to use Azure OpenAI to provide model services, you can refer to the 
 - Description: Used to control the model list, use `+` to add a model, use `-` to hide a model, use `model_name=display_name` to customize the display name of a model, separated by commas. Definition syntax rules see [model-list][model-list]
 - Default: `-`
 - Example: `-all,+gemini-1.5-flash-latest,+gemini-1.5-pro-latest`
+
+## Jemmia
+
+### `JEMMIA_MODEL_TOKEN`
+
+- Type: Required
+- Description: API token for Jemmia AI
+- Default: -
+- Example: `your-jemmia-token`
+
+### `JEMMIA_MODEL_PROXY_URL`
+
+- Type: Optional
+- Description: Proxy URL for Jemmia AI
+- Default: `https://aiproxy.jemmia.vn/v1`
+- Example: `https://aiproxy.jemmia.vn/v1`
+
+### `JEMMIA_MODEL_LIST`
+
+- Type: Optional
+- Description: Used to control the model list, use `+` to add a model, use `-` to hide a model, use `model_name=display_name` to customize the display name of a model, separated by commas. Definition syntax rules see [model-list][model-list]
+- Default: `-`
+- Example: `-all,+gemini-1.5-flash-latest,+gemini-2.0-pro-exp`
 
 ## Vertex AI
 

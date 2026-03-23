@@ -1,7 +1,7 @@
 import { ENABLE_BUSINESS_FEATURES } from '@lobechat/business-const';
 import { Form } from 'antd';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { type CheckUserResponseData } from '@/app/(backend)/api/auth/check-user/route';
@@ -42,6 +42,7 @@ export const useSignIn = () => {
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
   const [isSocialOnly, setIsSocialOnly] = useState(false);
+  const autoLarkLoginRef = useRef(false);
   const [lastAuthProvider] = useState(() => {
     try {
       return localStorage.getItem(LAST_AUTH_PROVIDER_KEY);
@@ -57,6 +58,23 @@ export const useSignIn = () => {
     const emailParam = searchParams.get('email');
     if (emailParam) form.setFieldValue('email', emailParam);
   }, [searchParams, form]);
+
+  useEffect(() => {
+    if (autoLarkLoginRef.current) return;
+
+    const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : '';
+    if (!userAgent.includes('lark') && !userAgent.includes('feishu')) return;
+
+    const larkProvider = oAuthSSOProviders.find(
+      (p) => p.toLowerCase() === 'lark' || p.toLowerCase() === 'feishu',
+    );
+    if (!larkProvider) return;
+
+    autoLarkLoginRef.current = true;
+    if (!socialLoading) {
+      handleSocialSignIn(larkProvider);
+    }
+  }, [oAuthSSOProviders, socialLoading]);
 
   const handleSendMagicLink = async (targetEmail?: string) => {
     try {

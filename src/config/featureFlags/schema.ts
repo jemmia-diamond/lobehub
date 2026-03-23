@@ -5,12 +5,19 @@ const FeatureFlagValue = z.union([z.boolean(), z.array(z.string())]);
 
 export const FeatureFlagsSchema = z.object({
   check_updates: FeatureFlagValue.optional(),
+  show_help_menu: FeatureFlagValue.optional(),
 
   // settings
   provider_settings: FeatureFlagValue.optional(),
+  show_get_desktop_app: FeatureFlagValue.optional(),
+  show_language_settings: FeatureFlagValue.optional(),
+  show_memory: FeatureFlagValue.optional(),
 
   openai_api_key: FeatureFlagValue.optional(),
   openai_proxy_url: FeatureFlagValue.optional(),
+
+  jemmia_api_key: FeatureFlagValue.optional(),
+  jemmia_proxy_url: FeatureFlagValue.optional(),
 
   // profile
   api_key_manage: FeatureFlagValue.optional(),
@@ -33,8 +40,12 @@ export const FeatureFlagsSchema = z.object({
 
   // The new custom MVP restriction flags
   enable_pages: FeatureFlagValue.optional(),
+  enable_resource: FeatureFlagValue.optional(),
   enable_video: FeatureFlagValue.optional(),
   enable_system_settings: FeatureFlagValue.optional(),
+
+  enable_image_generation: FeatureFlagValue.optional(),
+  enable_video_generation: FeatureFlagValue.optional(),
 
   // the flags below can only be used with commercial license
   // if you want to use it in the commercial usage
@@ -70,9 +81,15 @@ export const evaluateFeatureFlag = (
 
 export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   provider_settings: false,
+  show_get_desktop_app: false,
+  show_language_settings: true,
+  show_memory: false,
 
   openai_api_key: false,
   openai_proxy_url: false,
+
+  jemmia_api_key: false,
+  jemmia_proxy_url: false,
 
   api_key_manage: false,
   edit_agent: true,
@@ -80,6 +97,7 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   ai_image: false,
 
   check_updates: true,
+  show_help_menu: false,
   welcome_suggest: true,
   token_counter: true,
 
@@ -93,13 +111,17 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   changelog: false,
 
   enable_pages: false,
+  enable_resource: false,
   enable_video: false,
   enable_system_settings: false,
+
+  enable_image_generation: false,
+  enable_video_generation: false,
 
   // the flags below can only be used with commercial license
   // if you want to use it in the commercial usage
   // please contact us for more information: hello@lobehub.com
-  commercial_hide_github: false,
+  commercial_hide_github: true,
   commercial_hide_docs: false,
 
   auth_sso_lark: true,
@@ -112,14 +134,21 @@ export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string
   return {
     isAgentEditable: evaluateFeatureFlag(config.edit_agent, userId),
     showProvider: evaluateFeatureFlag(config.provider_settings, userId),
+    showGetDesktopApp: evaluateFeatureFlag(config.show_get_desktop_app, userId),
+    showLanguageSettings: evaluateFeatureFlag(config.show_language_settings, userId),
+    showMemory: evaluateFeatureFlag(config.show_memory, userId),
 
     showOpenAIApiKey: evaluateFeatureFlag(config.openai_api_key, userId),
     showOpenAIProxyUrl: evaluateFeatureFlag(config.openai_proxy_url, userId),
+
+    showJemmiaApiKey: evaluateFeatureFlag(config.jemmia_api_key, userId),
+    showJemmiaProxyUrl: evaluateFeatureFlag(config.jemmia_proxy_url, userId),
 
     showApiKeyManage: evaluateFeatureFlag(config.api_key_manage, userId),
 
     showAiImage: evaluateFeatureFlag(config.ai_image, userId),
     showChangelog: evaluateFeatureFlag(config.changelog, userId),
+    showHelpMenu: evaluateFeatureFlag(config.show_help_menu, userId),
 
     enableCheckUpdates: evaluateFeatureFlag(config.check_updates, userId),
     showWelcomeSuggest: evaluateFeatureFlag(config.welcome_suggest, userId),
@@ -133,8 +162,12 @@ export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string
     enableSTT: evaluateFeatureFlag(config.speech_to_text, userId),
 
     enablePages: evaluateFeatureFlag(config.enable_pages, userId),
+    enableResource: evaluateFeatureFlag(config.enable_resource, userId),
     enableVideo: evaluateFeatureFlag(config.enable_video, userId),
     enableSystemSettings: evaluateFeatureFlag(config.enable_system_settings, userId),
+
+    enableImageGeneration: evaluateFeatureFlag(config.enable_image_generation, userId),
+    enableVideoGeneration: evaluateFeatureFlag(config.enable_video_generation, userId),
 
     hideGitHub: evaluateFeatureFlag(config.commercial_hide_github, userId),
     hideDocs: evaluateFeatureFlag(config.commercial_hide_docs, userId),

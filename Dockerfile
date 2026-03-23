@@ -144,7 +144,7 @@ ENV NODE_ENV="production" \
     SSL_CERT_FILE="/etc/ssl/certs/ca-certificates.crt"
 
 # Make the middleware rewrite through local as default
-# refs: https://github.com/lobehub/lobe-chat/issues/5876
+# refs: https://github.com/lobehub/lobehub/issues/5876
 ENV MIDDLEWARE_REWRITE_THROUGH_LOCAL="1"
 
 # set hostname to localhost
@@ -243,6 +243,8 @@ ENV \
     GITHUB_TOKEN="" GITHUB_MODEL_LIST="" \
     # Google
     GOOGLE_API_KEY="" GOOGLE_MODEL_LIST="" GOOGLE_PROXY_URL="" \
+    # Jemmia
+    JEMMIA_MODEL_TOKEN="" JEMMIA_MODEL_PROXY_URL="" \
     # Vertex AI
     VERTEXAI_CREDENTIALS="" VERTEXAI_PROJECT="" VERTEXAI_LOCATION="" VERTEXAI_MODEL_LIST="" \
     # Groq

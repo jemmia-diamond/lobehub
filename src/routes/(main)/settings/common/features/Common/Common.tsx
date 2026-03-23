@@ -2,7 +2,7 @@
 
 import { type FormGroupItemType } from '@lobehub/ui';
 import { Flexbox, Form, Icon, ImageSelect, Skeleton } from '@lobehub/ui';
-import { Select, Switch } from '@lobehub/ui/base-ui';
+import { Select } from '@lobehub/ui/base-ui';
 import { Segmented } from 'antd';
 import isEqual from 'fast-deep-equal';
 import { Ban, Gauge, Loader2Icon, Monitor, Moon, Mouse, Sun, Waves } from 'lucide-react';
@@ -16,6 +16,7 @@ import { isDesktop } from '@/const/version';
 import { localeOptions } from '@/locales/resources';
 import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useUserStore } from '@/store/user';
 import { settingsSelectors } from '@/store/user/selectors';
 import { type LocaleMode } from '@/types/locale';
@@ -28,6 +29,7 @@ const Common = memo(() => {
   const language = useGlobalStore(systemStatusSelectors.language);
   const [setSettings, isUserStateInit] = useUserStore((s) => [s.setSettings, s.isUserStateInit]);
   const [switchLocale, isStatusInit] = useGlobalStore((s) => [s.switchLocale, s.isStatusInit]);
+  const { showLanguageSettings } = useServerConfigStore(featureFlagsSelectors);
   const [loading, setLoading] = useState(false);
 
   // Use the theme value from next-themes, default to 'system'
@@ -75,7 +77,7 @@ const Common = memo(() => {
         label: t('settingCommon.themeMode.title'),
         minWidth: undefined,
       },
-      {
+      showLanguageSettings && {
         children: (
           <Flexbox horizontal justify={'flex-end'}>
             <Select
@@ -143,7 +145,7 @@ const Common = memo(() => {
         name: 'contextMenuMode',
       },
 
-      {
+      showLanguageSettings && {
         children: (
           <Flexbox horizontal justify={'flex-end'}>
             <Select
@@ -163,15 +165,7 @@ const Common = memo(() => {
         desc: t('settingCommon.responseLanguage.desc'),
         label: t('settingCommon.responseLanguage.title'),
       },
-      {
-        children: <Switch />,
-        desc: t('settingCommon.liteMode.desc'),
-        label: t('settingCommon.liteMode.title'),
-        minWidth: undefined,
-        name: 'isLiteMode',
-        valuePropName: 'checked',
-      },
-    ],
+    ].filter(Boolean) as any[],
     extra: loading && <Icon spin icon={Loader2Icon} size={16} style={{ opacity: 0.5 }} />,
     title: t('settingCommon.title'),
   };

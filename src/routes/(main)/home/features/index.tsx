@@ -8,7 +8,6 @@ import { useHomeStore } from '@/store/home';
 import { useUserStore } from '@/store/user';
 import { authSelectors } from '@/store/user/slices/auth/selectors';
 
-import CommunityAgents from './CommunityAgents';
 import InputArea from './InputArea';
 import RecentPage from './RecentPage';
 import RecentResource from './RecentResource';
@@ -16,7 +15,7 @@ import RecentTopic from './RecentTopic';
 import WelcomeText from './WelcomeText';
 
 const Home = memo(() => {
-  const { i18n } = useTranslation();
+  useTranslation();
   const isLogin = useUserStore(authSelectors.isLogin);
   const inputActiveMode = useHomeStore((s) => s.inputActiveMode);
 
@@ -24,7 +23,7 @@ const Home = memo(() => {
   const hideOtherModules = inputActiveMode && ['agent', 'group', 'write'].includes(inputActiveMode);
 
   // eslint-disable-next-line @eslint-react/no-nested-component-definitions
-  const Welcome = useCallback(() => <WelcomeText />, [i18n.language]);
+  const Welcome = useCallback(() => <WelcomeText />, []);
 
   return (
     <Flexbox gap={40}>
@@ -38,8 +37,8 @@ const Home = memo(() => {
             <RecentPage />
           </>
         )}
-        <CommunityAgents />
-        {/*<FeaturedPlugins />*/}
+        {/* <CommunityAgents /> */}
+        {/* <FeaturedPlugins /> */}
         {isLogin && <RecentResource />}
       </Flexbox>
     </Flexbox>

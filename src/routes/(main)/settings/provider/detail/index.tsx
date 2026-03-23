@@ -41,6 +41,10 @@ const Azure = dynamic(() => import('./azure'), {
   loading: () => <Loading debugId="Provider > Azure" />,
   ssr: false,
 });
+const Jemmia = dynamic(() => import('./jemmia'), {
+  loading: () => <Loading debugId="Provider > Jemmia" />,
+  ssr: false,
+});
 const ProviderGrid = dynamic(() => import('../(list)/ProviderGrid'), {
   loading: () => <Loading debugId="Provider > Grid" />,
   ssr: false,
@@ -79,6 +83,9 @@ const ProviderDetailPage = (props: ProviderDetailPageProps) => {
     }
     case 'github': {
       return <GitHub />;
+    }
+    case 'jemmia': {
+      return <Jemmia />;
     }
     case 'ollama': {
       return <Ollama />;

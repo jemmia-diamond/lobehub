@@ -1,6 +1,8 @@
 import { Flexbox } from '@lobehub/ui';
 import { type FC } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
+
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 import RegisterHotkeys from './RegisterHotkeys';
 import Sidebar from './Sidebar';
@@ -8,6 +10,10 @@ import { styles } from './style';
 import TopicSidebar from './TopicSidebar';
 
 const Layout: FC = () => {
+  const { enableImageGeneration } = useServerConfigStore(featureFlagsSelectors);
+
+  if (!enableImageGeneration) return <Navigate replace to="/" />;
+
   return (
     <>
       <Sidebar />

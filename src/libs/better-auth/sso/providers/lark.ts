@@ -69,7 +69,8 @@ const provider: GenericProviderDefinition<{
       authorizationUrlParams: {
         app_id: clientId,
         response_type: 'code',
-        scope: 'contact:user.base:readonly contact:user.email:readonly',
+        scope:
+          'contact:user.base:readonly contact:user.email:readonly contact:user.department:readonly docx:document:readonly drive:drive:readonly offline_access',
       },
       clientId,
       clientSecret,
@@ -157,7 +158,14 @@ const provider: GenericProviderDefinition<{
       pkce: false,
       providerId: 'lark',
       responseMode: 'query',
-      scopes: ['contact:user.base:readonly', 'contact:user.email:readonly'],
+      scopes: [
+        'contact:user.base:readonly',
+        'contact:user.email:readonly',
+        'contact:user.department:readonly',
+        'docx:document:readonly',
+        'drive:drive:readonly',
+        'offline_access',
+      ],
       tokenUrl: LARK_TOKEN_URL,
     };
   },

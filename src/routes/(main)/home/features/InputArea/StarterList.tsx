@@ -1,16 +1,16 @@
 import { BUILTIN_AGENT_SLUGS } from '@lobechat/builtin-agents';
-import { NanoBanana } from '@lobehub/icons';
 import { type ButtonProps } from '@lobehub/ui';
 import { Button, Center, Tooltip } from '@lobehub/ui';
 import { GroupBotSquareIcon } from '@lobehub/ui/icons';
 import { createStaticStyles, cssVar, cx } from 'antd-style';
-import { BotIcon, PenLineIcon } from 'lucide-react';
+import { BotIcon, ImageIcon, PenLineIcon, VideoIcon } from 'lucide-react';
 import { memo, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useInitBuiltinAgent } from '@/hooks/useInitBuiltinAgent';
 import { type StarterMode } from '@/store/home';
 import { useHomeStore } from '@/store/home';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 const styles = createStaticStyles(({ css, cssVar }) => ({
   active: css`
@@ -34,9 +34,9 @@ type StarterTitleKey =
   | 'starter.createAgent'
   | 'starter.createGroup'
   | 'starter.write'
-  | 'starter.seedance'
-  | 'starter.deepResearch'
-  | 'starter.nanoBanana2';
+  | 'starter.imageGeneration'
+  | 'starter.videoGeneration'
+  | 'starter.deepResearch';
 
 interface StarterItem {
   disabled?: boolean;
@@ -53,6 +53,9 @@ const StarterList = memo(() => {
   useInitBuiltinAgent(BUILTIN_AGENT_SLUGS.groupAgentBuilder);
   useInitBuiltinAgent(BUILTIN_AGENT_SLUGS.pageAgent);
 
+  const { enableImageGeneration, enableVideoGeneration } =
+    useServerConfigStore(featureFlagsSelectors);
+
   const [inputActiveMode, setInputActiveMode, navigate] = useHomeStore((s) => [
     s.inputActiveMode,
     s.setInputActiveMode,
@@ -60,41 +63,42 @@ const StarterList = memo(() => {
   ]);
 
   const items: StarterItem[] = useMemo(
-    () => [
-      {
-        icon: BotIcon,
-        key: 'agent',
-        titleKey: 'starter.createAgent',
-      },
-      {
-        icon: GroupBotSquareIcon,
-        key: 'group',
-        titleKey: 'starter.createGroup',
-      },
-      {
-        icon: PenLineIcon,
-        key: 'write',
-        titleKey: 'starter.write',
-      },
-      {
-        icon: NanoBanana.Color,
-        key: 'image',
-        titleKey: 'starter.nanoBanana2',
-      },
-      // {
-      //   hot: true,
-      //   icon: VideoIcon,
-      //   key: 'video',
-      //   titleKey: 'starter.seedance',
-      // },
-      // {
-      //   disabled: true,
-      //   icon: MicroscopeIcon,
-      //   key: 'research',
-      //   titleKey: 'starter.deepResearch',
-      // },
-    ],
-    [],
+    () =>
+      [
+        {
+          icon: BotIcon,
+          key: 'agent',
+          titleKey: 'starter.createAgent',
+        },
+        {
+          icon: GroupBotSquareIcon,
+          key: 'group',
+          titleKey: 'starter.createGroup',
+        },
+        {
+          icon: PenLineIcon,
+          key: 'write',
+          titleKey: 'starter.write',
+        },
+        enableImageGeneration && {
+          icon: ImageIcon,
+          key: 'image',
+          titleKey: 'starter.imageGeneration',
+        },
+        enableVideoGeneration && {
+          hot: true,
+          icon: VideoIcon,
+          key: 'video',
+          titleKey: 'starter.videoGeneration',
+        },
+        // {
+        //   disabled: true,
+        //   icon: MicroscopeIcon,
+        //   key: 'research',
+        //   titleKey: 'starter.deepResearch',
+        // },
+      ].filter(Boolean) as StarterItem[],
+    [enableImageGeneration, enableVideoGeneration],
   );
 
   const handleClick = useCallback(

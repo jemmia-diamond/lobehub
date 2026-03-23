@@ -5,6 +5,7 @@ import { Activity, useEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { useIsDark } from '@/hooks/useIsDark';
+import { userService } from '@/services/user';
 import { useHomeStore } from '@/store/home';
 
 import HomeAgentIdSync from './HomeAgentIdSync';
@@ -33,6 +34,13 @@ const Layout: FC<LayoutProps> = ({ children }) => {
   useEffect(() => {
     if (isHomeRoute) setHasActivated(true);
   }, [isHomeRoute]);
+
+  useEffect(() => {
+    if (!hasActivated) return;
+    void userService.getUserState().catch((err) => {
+      console.error('Auth heartbeat (getUserState) failed:', err);
+    });
+  }, [hasActivated]);
 
   // CSS 变量用于动态背景色（colorBgContainerSecondary 不在 cssVar 中）
   const cssVariables = useMemo<Record<string, string>>(

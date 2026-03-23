@@ -1,6 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { filterBuiltinSkills, shouldEnableBuiltinSkill } from './skillFilters';
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.resetModules();
+});
 
 describe('skillFilters', () => {
   it('should disable agent-browser on web environment', () => {
@@ -8,15 +13,20 @@ describe('skillFilters', () => {
   });
 
   it('should enable agent-browser on desktop (non-Windows) environment', () => {
-    expect(
-      shouldEnableBuiltinSkill('lobe-agent-browser', { isDesktop: true, isWindows: false }),
-    ).toBe(true);
+    expect(shouldEnableBuiltinSkill('lobe-agent-browser', { isDesktop: true })).toBe(true);
   });
 
-  it('should disable agent-browser on desktop Windows', () => {
-    expect(
-      shouldEnableBuiltinSkill('lobe-agent-browser', { isDesktop: true, isWindows: true }),
-    ).toBe(false);
+  it('should enable agent-browser on desktop Windows', () => {
+    expect(shouldEnableBuiltinSkill('lobe-agent-browser', { isDesktop: true })).toBe(true);
+  });
+
+  it('should not be affected by Windows platform detection when desktop is enabled', async () => {
+    vi.stubGlobal('process', { ...process, platform: 'win32' });
+    vi.resetModules();
+
+    const { shouldEnableBuiltinSkill } = await import('./skillFilters');
+
+    expect(shouldEnableBuiltinSkill('lobe-agent-browser', { isDesktop: true })).toBe(true);
   });
 
   it('should keep non-desktop-only skills enabled', () => {

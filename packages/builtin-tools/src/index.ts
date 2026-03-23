@@ -1,4 +1,5 @@
 import { AgentBuilderManifest } from '@lobechat/builtin-tool-agent-builder';
+import { AgentDocumentsManifest } from '@lobechat/builtin-tool-agent-documents';
 import { AgentManagementManifest } from '@lobechat/builtin-tool-agent-management';
 import { CalculatorManifest } from '@lobechat/builtin-tool-calculator';
 import { CloudSandboxManifest } from '@lobechat/builtin-tool-cloud-sandbox';
@@ -6,6 +7,8 @@ import { GroupAgentBuilderManifest } from '@lobechat/builtin-tool-group-agent-bu
 import { GroupManagementManifest } from '@lobechat/builtin-tool-group-management';
 import { GTDManifest } from '@lobechat/builtin-tool-gtd';
 import { KnowledgeBaseManifest } from '@lobechat/builtin-tool-knowledge-base';
+import { LarkDocManifest } from '@lobechat/builtin-tool-lark-doc';
+import { LarkMessageManifest } from '@lobechat/builtin-tool-lark-message';
 import { LocalSystemManifest } from '@lobechat/builtin-tool-local-system';
 import { MemoryManifest } from '@lobechat/builtin-tool-memory';
 import { NotebookManifest } from '@lobechat/builtin-tool-notebook';
@@ -14,6 +17,7 @@ import { RemoteDeviceManifest } from '@lobechat/builtin-tool-remote-device';
 import { SkillStoreManifest } from '@lobechat/builtin-tool-skill-store';
 import { SkillsManifest } from '@lobechat/builtin-tool-skills';
 import { LobeToolsManifest } from '@lobechat/builtin-tool-tools';
+import { TopicReferenceManifest } from '@lobechat/builtin-tool-topic-reference';
 import { WebBrowsingManifest } from '@lobechat/builtin-tool-web-browsing';
 import { isDesktop } from '@lobechat/const';
 import { type LobeBuiltinTool } from '@lobechat/types';
@@ -31,13 +35,19 @@ export const defaultToolIds = [
   MemoryManifest.identifier,
   LocalSystemManifest.identifier,
   CloudSandboxManifest.identifier,
+  LarkDocManifest.identifier,
+  TopicReferenceManifest.identifier,
 ];
 
 /**
  * Tool IDs that are always enabled regardless of user selection.
  * These are core system tools that the agent needs to function properly.
  */
-export const alwaysOnToolIds = [LobeToolsManifest.identifier, SkillsManifest.identifier];
+export const alwaysOnToolIds = [
+  LobeToolsManifest.identifier,
+  SkillsManifest.identifier,
+  LarkDocManifest.identifier,
+];
 
 export const builtinTools: LobeBuiltinTool[] = [
   {
@@ -75,6 +85,16 @@ export const builtinTools: LobeBuiltinTool[] = [
     type: 'builtin',
   },
   {
+    identifier: LarkDocManifest.identifier,
+    manifest: LarkDocManifest,
+    type: 'builtin',
+  },
+  {
+    identifier: LarkMessageManifest.identifier,
+    manifest: LarkMessageManifest,
+    type: 'builtin',
+  },
+  {
     hidden: true,
     identifier: WebBrowsingManifest.identifier,
     manifest: WebBrowsingManifest,
@@ -104,6 +124,12 @@ export const builtinTools: LobeBuiltinTool[] = [
     hidden: true,
     identifier: AgentBuilderManifest.identifier,
     manifest: AgentBuilderManifest,
+    type: 'builtin',
+  },
+  {
+    hidden: true,
+    identifier: AgentDocumentsManifest.identifier,
+    manifest: AgentDocumentsManifest,
     type: 'builtin',
   },
   {
@@ -145,6 +171,13 @@ export const builtinTools: LobeBuiltinTool[] = [
     hidden: true,
     identifier: RemoteDeviceManifest.identifier,
     manifest: RemoteDeviceManifest,
+    type: 'builtin',
+  },
+  {
+    discoverable: false,
+    hidden: true,
+    identifier: TopicReferenceManifest.identifier,
+    manifest: TopicReferenceManifest,
     type: 'builtin',
   },
 ];

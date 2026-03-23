@@ -98,6 +98,7 @@ export default {
   'createNewAiProvider.description.title': 'Provider Description',
   'createNewAiProvider.id.desc':
     'Unique identifier for the service provider, which cannot be modified after creation',
+  'createNewAiProvider.id.duplicate': 'Provider ID already exists',
   'createNewAiProvider.id.format':
     'Can only contain numbers, lowercase letters, hyphens (-), and underscores (_) ',
   'createNewAiProvider.id.placeholder':
@@ -125,6 +126,13 @@ export default {
     'Enter your HuggingFace Token, click [here](https://huggingface.co/settings/tokens) to create one',
   'huggingface.accessToken.placeholder': 'hf_xxxxxxxxx',
   'huggingface.accessToken.title': 'HuggingFace Token',
+  'jemmia.apiKey.desc': 'Enter your Jemmia API Key',
+  'jemmia.apiKey.placeholder': 'Jemmia API Key',
+  'jemmia.apiKey.title': 'API Key',
+  'jemmia.proxyUrl.desc': 'Specific proxy address for Jemmia provider',
+  'jemmia.proxyUrl.placeholder': 'https://aiproxy.jemmia.vn/v1',
+  'jemmia.proxyUrl.title': 'API Proxy URL',
+  'jemmia.title': 'Jemmia',
   'list.title.custom': 'Custom provider not enabled',
   'list.title.disabled': 'Disabled',
   'list.title.enabled': 'Enabled',
