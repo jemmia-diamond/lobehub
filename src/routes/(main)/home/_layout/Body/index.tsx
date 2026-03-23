@@ -36,7 +36,7 @@ SectionLabel.displayName = 'SectionLabel';
 const Body = memo(() => {
   const { t } = useTranslation('home');
   const navigate = useNavigate();
-  const { enableAgent, showHomeTopicHistory } = useServerConfigStore(featureFlagsSelectors);
+  const { showHomeTopicHistory } = useServerConfigStore(featureFlagsSelectors);
   const isLogin = useUserStore(authSelectors.isLogin);
   const recentTopics = useHomeStore(homeRecentSelectors.recentTopics);
   const isRecentTopicsInit = useHomeStore(homeRecentSelectors.isRecentTopicsInit);
@@ -45,12 +45,10 @@ const Body = memo(() => {
   return (
     <Flexbox flex={1} paddingInline={4} style={{ overflowY: 'auto' }}>
       {/* Agents section — always above history */}
-      {enableAgent && (
-        <Flexbox>
-          <SectionLabel>{t('sidebar.yourAssistants')}</SectionLabel>
-          <Agent />
-        </Flexbox>
-      )}
+      <Flexbox>
+        <SectionLabel>{t('sidebar.yourAssistants')}</SectionLabel>
+        <Agent />
+      </Flexbox>
 
       {/* History section */}
       {showHomeTopicHistory && isLogin && hasRecentTopics && (

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 
 import PageTitle from '@/components/PageTitle';
-import JemosHeader from '@/features/JemosHeader';
+import NavHeader from '@/features/NavHeader';
 import WideScreenContainer from '@/features/WideScreenContainer';
 
 import { PinnedInputArea, ScrollableContent } from './features';
@@ -17,7 +17,15 @@ const Home: FC = () => {
   return (
     <Flexbox height={'100%'} style={{ display: 'flex', flexDirection: 'column' }}>
       {isHomeRoute && <PageTitle title="" />}
-      <JemosHeader />
+      <NavHeader
+        right={<Flexbox horizontal align="center" />}
+        showTogglePanelButton={false}
+        left={
+          <span style={{ fontSize: 16, fontWeight: 800, color: '#1D4ED8', paddingLeft: 16 }}>
+            Trợ lý JemX
+          </span>
+        }
+      />
 
       <Flexbox flex={1} style={{ overflowY: 'auto' }} width={'100%'}>
         <Flexbox style={{ width: '100%', maxWidth: '100%', padding: '0 24px' }}>

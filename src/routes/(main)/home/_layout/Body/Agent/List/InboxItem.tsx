@@ -42,7 +42,6 @@ const InboxItem = memo<InboxItemProps>(({ className, style }) => {
         className={className}
         icon={<SmartToyIcon />}
         loading={isLoading}
-        title={inboxAgentTitle}
         extra={
           <span
             style={{
@@ -67,6 +66,9 @@ const InboxItem = memo<InboxItemProps>(({ className, style }) => {
           boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)',
           color: '#1D4ED8',
         }}
+        title={
+          <span style={{ color: '#1D4ED8', fontSize: 12, fontWeight: 700 }}>{inboxAgentTitle}</span>
+        }
       />
     </Link>
   );

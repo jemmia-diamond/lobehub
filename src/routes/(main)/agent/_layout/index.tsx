@@ -8,6 +8,7 @@ import { useInitAgentConfig } from '@/hooks/useInitAgentConfig';
 import AgentIdSync from '@/routes/(main)/agent/_layout/AgentIdSync';
 
 import RegisterHotkeys from './RegisterHotkeys';
+import Sidebar from './Sidebar';
 import { styles } from './style';
 
 const Layout: FC = () => {
@@ -15,6 +16,7 @@ const Layout: FC = () => {
 
   return (
     <>
+      <Sidebar />
       <Flexbox className={styles.mainContainer} flex={1} height={'100%'}>
         <Outlet />
       </Flexbox>

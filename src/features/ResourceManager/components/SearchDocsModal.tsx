@@ -122,7 +122,7 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
             <Input
               placeholder={t('lark.searchDocs')}
               size="large"
-              style={{ paddingLeft: 112, paddingRight: 40 }}
+              style={{ paddingLeft: 150, paddingRight: 40 }}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -211,6 +211,7 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
                 key={label}
                 style={{
                   borderRadius: 8,
+                  cursor: 'pointer',
                   fontSize: 12,
                   padding: '4px 12px',
                 }}
@@ -224,6 +225,7 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
                 alignItems: 'center',
                 borderRadius: 8,
                 color: '#1D4ED8',
+                cursor: 'pointer',
                 display: 'inline-flex',
                 fontSize: 12,
                 fontWeight: 600,
