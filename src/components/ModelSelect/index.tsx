@@ -5,10 +5,12 @@ import { type FlexboxProps } from '@lobehub/ui';
 import { Avatar, Flexbox, Icon, Tag, Text, Tooltip } from '@lobehub/ui';
 import { createStaticStyles, useResponsive } from 'antd-style';
 import {
+  Brain,
   Infinity as InfinityIcon,
   LucideEye,
   LucideImage,
   LucidePaperclip,
+  Search,
   Video,
   Wrench,
 } from 'lucide-react';
@@ -63,7 +65,7 @@ interface ModelInfoTagsProps extends ModelAbilities {
 
 interface FeatureTagsProps extends Pick<
   ModelAbilities,
-  'files' | 'imageOutput' | 'vision' | 'video' | 'functionCall'
+  'files' | 'imageOutput' | 'vision' | 'video' | 'functionCall' | 'reasoning' | 'search'
 > {
   disableTooltip?: boolean;
   placement: 'top' | 'right';
@@ -107,6 +109,8 @@ const FeatureTags = memo<FeatureTagsProps>(
     functionCall,
     imageOutput,
     placement,
+    reasoning,
+    search,
     tagClassName,
     video,
     vision,
@@ -159,6 +163,24 @@ const FeatureTags = memo<FeatureTagsProps>(
           icon={Wrench}
           placement={placement}
           title={t('ModelSelect.featureTag.functionCall')}
+        />
+        <FeatureTagItem
+          className={tagClassName}
+          color={'magenta'}
+          disableTooltip={disableTooltip}
+          enabled={reasoning}
+          icon={Brain}
+          placement={placement}
+          title={t('ModelSelect.featureTag.reasoning')}
+        />
+        <FeatureTagItem
+          className={tagClassName}
+          color={'success'}
+          disableTooltip={disableTooltip}
+          enabled={search}
+          icon={Search}
+          placement={placement}
+          title={t('ModelSelect.featureTag.search')}
         />
       </>
     );
@@ -217,6 +239,8 @@ export const ModelInfoTags = memo<ModelInfoTagsProps>(
           functionCall={model.functionCall}
           imageOutput={model.imageOutput}
           placement={placement}
+          reasoning={model.reasoning}
+          search={model.search}
           tagClassName={styles.tag}
           video={model.video}
           vision={model.vision}
@@ -234,7 +258,8 @@ export const ModelInfoTags = memo<ModelInfoTagsProps>(
   },
 );
 
-interface ModelItemRenderProps extends ChatModelCard, Partial<Omit<FlexboxProps, 'id' | 'title'>> {
+interface ModelItemRenderProps
+  extends ChatModelCard, ModelAbilities, Partial<Omit<FlexboxProps, 'id' | 'title'>> {
   abilities?: ModelAbilities;
   newBadgeLabel?: string;
   proBadgeLabel?: string;
@@ -253,6 +278,9 @@ export const ModelItemRender = memo<ModelItemRenderProps>(
     proBadgeLabel,
     video,
     vision,
+    reasoning,
+    search,
+    structuredOutput: _structuredOutput,
     id,
     displayName,
     releasedAt,
@@ -308,6 +336,8 @@ export const ModelItemRender = memo<ModelItemRenderProps>(
             files={files ?? abilities?.files}
             functionCall={functionCall ?? abilities?.functionCall}
             imageOutput={imageOutput ?? abilities?.imageOutput}
+            reasoning={reasoning ?? abilities?.reasoning}
+            search={search ?? abilities?.search}
             style={{ zoom: 0.9 }}
             video={video ?? abilities?.video}
             vision={vision ?? abilities?.vision}

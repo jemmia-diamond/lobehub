@@ -11,6 +11,8 @@
  */
 import { CloudSandboxManifest } from '@lobechat/builtin-tool-cloud-sandbox';
 import { KnowledgeBaseManifest } from '@lobechat/builtin-tool-knowledge-base';
+import { LarkDocManifest } from '@lobechat/builtin-tool-lark-doc';
+import { LarkMessageManifest } from '@lobechat/builtin-tool-lark-message';
 import { LocalSystemManifest } from '@lobechat/builtin-tool-local-system';
 import { MemoryManifest } from '@lobechat/builtin-tool-memory';
 import { RemoteDeviceManifest } from '@lobechat/builtin-tool-remote-device';
@@ -19,6 +21,8 @@ import { alwaysOnToolIds, builtinTools, defaultToolIds } from '@lobechat/builtin
 import { createEnableChecker, type LobeToolManifest } from '@lobechat/context-engine';
 import { ToolsEngine } from '@lobechat/context-engine';
 import debug from 'debug';
+
+import { serverFeatureFlags } from '@/config/featureFlags';
 
 import {
   type ServerAgentToolsContext,
@@ -118,6 +122,9 @@ export const createServerAgentToolsEngine = (
     !!deviceContext?.gatewayConfigured,
   );
 
+  const flags = serverFeatureFlags();
+  const enableLarkTools = flags.enableLarkTools ?? true;
+
   return createServerToolsEngine(context, {
     // Pass additional manifests (e.g., LobeHub Skills)
     additionalManifests,
@@ -132,6 +139,8 @@ export const createServerAgentToolsEngine = (
         // System-level rules (may override user selection for specific tools)
         [CloudSandboxManifest.identifier]: runtimeMode === 'cloud',
         [KnowledgeBaseManifest.identifier]: hasEnabledKnowledgeBases,
+        [LarkDocManifest.identifier]: enableLarkTools,
+        [LarkMessageManifest.identifier]: enableLarkTools,
         [LocalSystemManifest.identifier]:
           runtimeMode === 'local' &&
           !!deviceContext?.gatewayConfigured &&

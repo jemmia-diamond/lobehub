@@ -83,4 +83,5 @@ export interface ModelSwitchPanelProps {
    * Current provider ID. If not provided, uses currentAgentModelProvider from store.
    */
   provider?: string;
+  variant?: 'default' | 'jemmia';
 }

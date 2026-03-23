@@ -1,10 +1,9 @@
 import { validateVideoFileSize } from '@lobechat/utils/client';
-import { type ItemType } from '@lobehub/ui';
-import { Icon, Tooltip } from '@lobehub/ui';
+import { Icon, type ItemType } from '@lobehub/ui';
 import { Upload } from 'antd';
 import { css, cx } from 'antd-style';
 import isEqual from 'fast-deep-equal';
-import { ArrowRight, FileUp, FolderUp, ImageUp, LibraryBig, Paperclip } from 'lucide-react';
+import { ArrowRight, LibraryBig, Paperclip } from 'lucide-react';
 import { memo, Suspense, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -13,10 +12,12 @@ import FileIcon from '@/components/FileIcon';
 import RepoIcon from '@/components/LibIcon';
 import TipGuide from '@/components/TipGuide';
 import { AttachKnowledgeModal } from '@/features/LibraryModal';
+import SearchDocsModal from '@/features/ResourceManager/components/SearchDocsModal';
 import { useModelSupportVision } from '@/hooks/useModelSupportVision';
 import { useAgentStore } from '@/store/agent';
 import { agentByIdSelectors } from '@/store/agent/selectors';
 import { useFileStore } from '@/store/file';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useUserStore } from '@/store/user';
 import { preferenceSelectors } from '@/store/user/selectors';
 
@@ -36,8 +37,8 @@ const hotArea = css`
 
 const FileUpload = memo(() => {
   const { t } = useTranslation('chat');
-
   const upload = useFileStore((s) => s.uploadChatFiles);
+  const { enableFileUpload, enableLarkTools } = useServerConfigStore(featureFlagsSelectors);
 
   const agentId = useAgentId();
   const model = useAgentStore((s) => agentByIdSelectors.getAgentModelById(agentId)(s));
@@ -50,6 +51,7 @@ const FileUpload = memo(() => {
     s.updateGuideState,
   ]);
   const [modalOpen, setModalOpen] = useState(false);
+  const [searchDocsModalOpen, setSearchDocsModalOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [updating, setUpdating] = useState(false);
 
@@ -65,98 +67,169 @@ const FileUpload = memo(() => {
   ]);
 
   const uploadItems: ActionDropdownMenuItems = [
-    {
-      closeOnClick: false,
-      disabled: !canUploadImage,
-      icon: ImageUp,
-      key: 'upload-image',
-      label: canUploadImage ? (
-        <Upload
-          multiple
-          accept={'image/*'}
-          showUploadList={false}
-          beforeUpload={async (file) => {
-            setDropdownOpen(false);
-            await upload([file]);
+    ...(enableFileUpload
+      ? [
+          {
+            closeOnClick: false,
+            key: 'upload-file',
+            icon: (
+              <span
+                className="material-symbols-outlined"
+                style={{ color: '#3b82f6', fontSize: 18 }}
+              >
+                upload_file
+              </span>
+            ),
+            label: (
+              <Upload
+                multiple
+                showUploadList={false}
+                beforeUpload={async (file) => {
+                  if (
+                    !canUploadImage &&
+                    (file.type.startsWith('image') || file.type.startsWith('video'))
+                  )
+                    return false;
 
-            return false;
-          }}
-        >
-          <div className={cx(hotArea)}>{t('upload.action.imageUpload')}</div>
-        </Upload>
-      ) : (
-        <Tooltip placement={'right'} title={t('upload.action.imageDisabled')}>
-          <div className={cx(hotArea)}>{t('upload.action.imageUpload')}</div>
-        </Tooltip>
-      ),
-    },
-    {
-      closeOnClick: false,
-      icon: FileUp,
-      key: 'upload-file',
-      label: (
-        <Upload
-          multiple
-          showUploadList={false}
-          beforeUpload={async (file) => {
-            if (!canUploadImage && (file.type.startsWith('image') || file.type.startsWith('video')))
-              return false;
+                  const validation = validateVideoFileSize(file);
+                  if (!validation.isValid) {
+                    message.error(
+                      t('upload.validation.videoSizeExceeded', {
+                        actualSize: validation.actualSize,
+                      }),
+                    );
+                    return false;
+                  }
 
-            // Validate video file size
-            const validation = validateVideoFileSize(file);
-            if (!validation.isValid) {
-              message.error(
-                t('upload.validation.videoSizeExceeded', {
-                  actualSize: validation.actualSize,
-                }),
-              );
-              return false;
-            }
+                  setDropdownOpen(false);
+                  await upload([file]);
 
-            setDropdownOpen(false);
-            await upload([file]);
+                  return false;
+                }}
+              >
+                <div className={cx(hotArea)}>
+                  <span style={{ fontSize: 14, fontWeight: 500 }}>
+                    {t('upload.action.fileUpload')}
+                  </span>
+                </div>
+              </Upload>
+            ),
+          },
+        ]
+      : []),
+    ...(enableLarkTools
+      ? [
+          {
+            closeOnClick: true,
+            key: 'upload-lark',
+            icon: (
+              <span
+                className="material-symbols-outlined"
+                style={{ color: '#22c55e', fontSize: 18 }}
+              >
+                description
+              </span>
+            ),
+            label: (
+              <div
+                className={cx(hotArea)}
+                onClick={() => {
+                  setDropdownOpen(false);
+                  setSearchDocsModalOpen(true);
+                }}
+              >
+                <span style={{ fontSize: 14, fontWeight: 500 }}>{t('larkSelectAction')}</span>
+              </div>
+            ),
+          },
+        ]
+      : []),
+    ...(canUploadImage
+      ? [
+          {
+            closeOnClick: false,
+            key: 'upload-image',
+            icon: (
+              <span
+                className="material-symbols-outlined"
+                style={{ color: '#a855f7', fontSize: 18 }}
+              >
+                image
+              </span>
+            ),
+            label: (
+              <Upload
+                multiple
+                accept={'image/*'}
+                showUploadList={false}
+                beforeUpload={async (file) => {
+                  setDropdownOpen(false);
+                  await upload([file]);
 
-            return false;
-          }}
-        >
-          <div className={cx(hotArea)}>{t('upload.action.fileUpload')}</div>
-        </Upload>
-      ),
-    },
-    {
-      closeOnClick: false,
-      icon: FolderUp,
-      key: 'upload-folder',
-      label: (
-        <Upload
-          directory
-          multiple={true}
-          showUploadList={false}
-          beforeUpload={async (file) => {
-            if (!canUploadImage && (file.type.startsWith('image') || file.type.startsWith('video')))
-              return false;
+                  return false;
+                }}
+              >
+                <div className={cx(hotArea)}>
+                  <span style={{ fontSize: 14, fontWeight: 500 }}>
+                    {t('upload.action.imageUpload')}
+                  </span>
+                </div>
+              </Upload>
+            ),
+          },
+        ]
+      : []),
+    ...(enableFileUpload
+      ? [
+          {
+            closeOnClick: false,
+            key: 'upload-folder',
+            icon: (
+              <span
+                className="material-symbols-outlined"
+                style={{ color: '#f59e0b', fontSize: 18 }}
+              >
+                create_new_folder
+              </span>
+            ),
+            label: (
+              <Upload
+                directory
+                multiple={true}
+                showUploadList={false}
+                beforeUpload={async (file) => {
+                  if (
+                    !canUploadImage &&
+                    (file.type.startsWith('image') || file.type.startsWith('video'))
+                  )
+                    return false;
 
-            // Validate video file size
-            const validation = validateVideoFileSize(file);
-            if (!validation.isValid) {
-              message.error(
-                t('upload.validation.videoSizeExceeded', {
-                  actualSize: validation.actualSize,
-                }),
-              );
-              return false;
-            }
+                  const validation = validateVideoFileSize(file);
+                  if (!validation.isValid) {
+                    message.error(
+                      t('upload.validation.videoSizeExceeded', {
+                        actualSize: validation.actualSize,
+                      }),
+                    );
+                    return false;
+                  }
 
-            setDropdownOpen(false);
-            await upload([file]);
+                  setDropdownOpen(false);
+                  await upload([file]);
 
-            return false;
-          }}
-        >
-          <div className={cx(hotArea)}>{t('upload.action.folderUpload')}</div>
-        </Upload>
-      ),
-    },
+                  return false;
+                }}
+              >
+                <div className={cx(hotArea)}>
+                  <span style={{ fontSize: 14, fontWeight: 500 }}>
+                    {t('upload.action.folderUpload')}
+                  </span>
+                </div>
+              </Upload>
+            ),
+          },
+        ]
+      : []),
   ];
 
   const knowledgeItems: ItemType[] = [];
@@ -263,6 +336,7 @@ const FileUpload = memo(() => {
         content
       )}
       <AttachKnowledgeModal open={modalOpen} setOpen={setModalOpen} />
+      <SearchDocsModal open={searchDocsModalOpen} onClose={() => setSearchDocsModalOpen(false)} />
     </Suspense>
   );
 });

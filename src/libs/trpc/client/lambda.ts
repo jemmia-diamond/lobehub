@@ -63,6 +63,12 @@ const errorHandlingLink: TRPCLink<LambdaRouter> = () => {
                     // Desktop app doesn't have the web auth routes like `/signin`,
                     // so skip the login redirect/notification there.
                     if (!isDesktop) {
+                      if (typeof window !== 'undefined' && !!(window as any).h5sdk) {
+                        window.localStorage.removeItem('lark_silent_login_done');
+                        window.location.reload();
+                        return;
+                      }
+
                       const { getUserStoreState } = await import('@/store/user/store');
                       const { isSignedIn, logout } = getUserStoreState();
                       // If user is still marked as signed in but got 401,

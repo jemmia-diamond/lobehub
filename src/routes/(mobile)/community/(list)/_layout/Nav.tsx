@@ -60,23 +60,25 @@ const Nav = memo(() => {
       </Flexbox>
 
       <Drawer
-        headerStyle={{ display: 'none' }}
         open={open}
         placement={'left'}
         rootStyle={{ position: 'absolute' }}
         width={260}
         zIndex={10}
-        bodyStyle={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 20,
-          justifyContent: 'space-between',
-          padding: 16,
-        }}
         style={{
           background: cssVar.colorBgLayout,
           borderRight: `1px solid ${cssVar.colorSplit}`,
           paddingTop: 44,
+        }}
+        styles={{
+          body: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 20,
+            justifyContent: 'space-between',
+            padding: 16,
+          },
+          header: { display: 'none' },
         }}
         onClick={() => setOpen(false)}
         onClose={() => setOpen(false)}

@@ -13,7 +13,7 @@ class LarkDocService {
     return toolsClient.larkDoc.listDocs.query(params);
   }
 
-  async searchDocs(params: { query: string }) {
+  async searchDocs(params: { query: string; page?: number }) {
     return toolsClient.larkDoc.searchDocs.query(params);
   }
 }

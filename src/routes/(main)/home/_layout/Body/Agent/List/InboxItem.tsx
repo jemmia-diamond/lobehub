@@ -1,9 +1,8 @@
 'use client';
 
-import { DEFAULT_INBOX_AVATAR, SESSION_CHAT_URL } from '@lobechat/const';
-import { Avatar } from '@lobehub/ui';
-import { type CSSProperties } from 'react';
-import { memo } from 'react';
+import { SESSION_CHAT_URL } from '@lobechat/const';
+import { type CSSProperties, memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 import NavItem from '@/features/NavPanel/components/NavItem';
@@ -17,27 +16,57 @@ interface InboxItemProps {
   style?: CSSProperties;
 }
 
-const InboxItem = memo<InboxItemProps>(({ className, style }) => {
-  const inboxAgentId = useAgentStore(builtinAgentSelectors.inboxAgentId);
+const SmartToyIcon = memo(() => (
+  <span
+    className="material-symbols-outlined"
+    style={{
+      color: '#1D4ED8',
+      fontSize: 18,
+    }}
+  >
+    smart_toy
+  </span>
+));
 
+SmartToyIcon.displayName = 'SmartToyIcon';
+
+const InboxItem = memo<InboxItemProps>(({ className, style }) => {
+  const { t } = useTranslation('home');
+  const inboxAgentId = useAgentStore(builtinAgentSelectors.inboxAgentId);
   const isLoading = useChatStore(operationSelectors.isAgentRuntimeRunning);
-  const inboxAgentTitle = 'Lobe AI';
+  const inboxAgentTitle = 'Trợ lý JemX';
 
   return (
     <Link aria-label={inboxAgentTitle} to={SESSION_CHAT_URL(inboxAgentId, false)}>
       <NavItem
         className={className}
+        icon={<SmartToyIcon />}
         loading={isLoading}
-        style={style}
         title={inboxAgentTitle}
-        icon={
-          <Avatar
-            emojiScaleWithBackground
-            avatar={DEFAULT_INBOX_AVATAR}
-            shape={'square'}
-            size={24}
-          />
+        extra={
+          <span
+            style={{
+              backgroundColor: '#dbeafe',
+              borderRadius: 4,
+              color: '#1D4ED8',
+              fontSize: 10,
+              fontWeight: 700,
+              lineHeight: '18px',
+              paddingBlock: '2px',
+              paddingInline: '6px',
+              textTransform: 'uppercase',
+            }}
+          >
+            {t('sidebar.defaultBadge')}
+          </span>
         }
+        style={{
+          ...style,
+          backgroundColor: '#fff',
+          borderRadius: 6,
+          boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)',
+          color: '#1D4ED8',
+        }}
       />
     </Link>
   );

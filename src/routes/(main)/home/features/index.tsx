@@ -21,11 +21,7 @@ import RecentTopic from './RecentTopic';
 
 type ThinkingMode = 'fast' | 'deep' | 'expert' | null;
 
-const Home = memo(() => {
-  useTranslation();
-  const isLogin = useUserStore(authSelectors.isLogin);
-  const inputActiveMode = useHomeStore((s) => s.inputActiveMode);
-
+const useJemmiaModeSelection = () => {
   const enabledModels = useEnabledChatModels();
   const inboxAgentId = useAgentStore(builtinAgentSelectors.inboxAgentId);
   const [model, provider] = useAgentStore((s) => [
@@ -33,7 +29,6 @@ const Home = memo(() => {
     agentByIdSelectors.getAgentModelProviderById(inboxAgentId)(s),
   ]);
   const updateAgentConfigById = useAgentStore((s) => s.updateAgentConfigById);
-  const { showHomeRecentTopic, showHomeRecentPage } = useServerConfigStore(featureFlagsSelectors);
 
   const jemmia = useMemo(() => {
     if (!enabledModels || enabledModels.length === 0) return {};
@@ -80,15 +75,25 @@ const Home = memo(() => {
     [inboxAgentId, jemmia, model, provider, updateAgentConfigById],
   );
 
+  return { handleModeChange, thinkingMode };
+};
+
+export const ScrollableContent = memo(() => {
+  useTranslation();
+  const isLogin = useUserStore(authSelectors.isLogin);
+  const inputActiveMode = useHomeStore((s) => s.inputActiveMode);
+  const { enableAgent, showHomeRecentTopic, showHomeRecentPage, showHomeTopicHistory } =
+    useServerConfigStore(featureFlagsSelectors);
+  const { handleModeChange, thinkingMode } = useJemmiaModeSelection();
+
   const hideOtherModules = inputActiveMode && ['agent', 'group', 'write'].includes(inputActiveMode);
 
   return (
-    <Flexbox gap={40}>
+    <Flexbox gap={40} width="100%">
       <HomeHeader />
       <ModeSelection activeMode={thinkingMode} onChangeMode={handleModeChange} />
-      <InputArea />
       <Flexbox gap={40} style={{ display: hideOtherModules ? 'none' : undefined }}>
-        {isLogin && (
+        {showHomeTopicHistory && enableAgent && isLogin && (
           <>
             {showHomeRecentTopic && <RecentTopic />}
             {showHomeRecentPage && <RecentPage />}
@@ -96,6 +101,23 @@ const Home = memo(() => {
         )}
         {isLogin && <RecentResource />}
       </Flexbox>
+    </Flexbox>
+  );
+});
+
+ScrollableContent.displayName = 'ScrollableContent';
+
+export const PinnedInputArea = memo(() => {
+  return <InputArea />;
+});
+
+PinnedInputArea.displayName = 'PinnedInputArea';
+
+const Home = memo(() => {
+  return (
+    <Flexbox gap={40}>
+      <ScrollableContent />
+      <InputArea />
     </Flexbox>
   );
 });

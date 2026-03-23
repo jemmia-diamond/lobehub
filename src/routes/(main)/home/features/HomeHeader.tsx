@@ -1,34 +1,25 @@
 'use client';
 
-import { Flexbox } from '@lobehub/ui';
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const HomeHeader = memo(() => {
+  const { t } = useTranslation('home');
   return (
-    <Flexbox
-      horizontal
-      align="center"
-      justify="space-between"
+    <h1
       style={{
-        width: '100%',
-        paddingBlock: 16,
-        borderBottom: '1px solid rgba(148, 163, 184, 0.6)',
-        backgroundColor: 'rgba(248, 250, 252, 0.9)',
-        flexShrink: 0,
+        color: '#111827',
+        fontSize: 36,
+        fontWeight: 800,
+        letterSpacing: '-0.02em',
+        lineHeight: 1.25,
+        margin: 0,
+        maxWidth: '100%',
+        textAlign: 'left',
       }}
     >
-      <Flexbox horizontal align="center" gap={16}>
-        <span
-          style={{
-            fontSize: 18,
-            fontWeight: 900,
-            color: '#1D4ED8',
-          }}
-        >
-          Trợ lý JemX
-        </span>
-      </Flexbox>
-    </Flexbox>
+      {t('modeSelection.title')}
+    </h1>
   );
 });
 

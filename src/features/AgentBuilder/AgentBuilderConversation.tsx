@@ -1,11 +1,12 @@
 import { Flexbox } from '@lobehub/ui';
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 
 import DragUploadZone, { useUploadFiles } from '@/components/DragUploadZone';
 import { type ActionKeys } from '@/features/ChatInput';
 import { ChatInput, ChatList } from '@/features/Conversation';
 import { useAgentStore } from '@/store/agent';
 import { agentByIdSelectors } from '@/store/agent/selectors';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 import AgentBuilderWelcome from './AgentBuilderWelcome';
 import TopicSelector from './TopicSelector';
@@ -13,7 +14,6 @@ import TopicSelector from './TopicSelector';
 interface AgentBuilderConversationProps {
   agentId: string;
 }
-const actions: ActionKeys[] = ['model'];
 
 /**
  * Agent Builder Conversation Component
@@ -24,6 +24,12 @@ const AgentBuilderConversation = memo<AgentBuilderConversationProps>(({ agentId 
   const model = useAgentStore((s) => agentByIdSelectors.getAgentModelById(agentId)(s));
   const provider = useAgentStore((s) => agentByIdSelectors.getAgentModelProviderById(agentId)(s));
   const { handleUploadFiles } = useUploadFiles({ model, provider });
+  const { enableModel } = useServerConfigStore(featureFlagsSelectors);
+
+  const actions: ActionKeys[] = useMemo(
+    () => (enableModel ? (['model'] as ActionKeys[]) : []),
+    [enableModel],
+  );
 
   return (
     <DragUploadZone style={{ flex: 1, height: '100%' }} onUploadFiles={handleUploadFiles}>

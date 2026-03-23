@@ -37,6 +37,7 @@ interface ListItemRendererProps {
   onRestrictedModelClick?: () => void;
   proLabel?: string;
   subscribeScroll?: (cb: () => void) => () => void;
+  variant?: 'default' | 'jemmia';
 }
 
 export const ListItemRenderer = memo<ListItemRendererProps>(
@@ -50,6 +51,7 @@ export const ListItemRenderer = memo<ListItemRendererProps>(
     onRestrictedModelClick,
     proLabel,
     subscribeScroll,
+    variant: _variant,
   }) => {
     const { t } = useTranslation('components');
     const navigate = useNavigate();

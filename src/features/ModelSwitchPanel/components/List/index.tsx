@@ -16,6 +16,7 @@ import { type GroupMode } from '../../types';
 import { menuKey } from '../../utils';
 import type { PricingMode } from '../ModelDetailPanel';
 import GenerationListItemRenderer from './GenerationListItemRenderer';
+import { JemmiaListItemRenderer } from './JemmiaListItemRenderer';
 import { ListItemRenderer } from './ListItemRenderer';
 
 interface ListProps {
@@ -28,6 +29,7 @@ interface ListProps {
   pricingMode?: PricingMode;
   provider?: string;
   searchKeyword?: string;
+  variant?: 'default' | 'jemmia';
 }
 
 export const List: FC<ListProps> = ({
@@ -40,6 +42,7 @@ export const List: FC<ListProps> = ({
   pricingMode,
   provider: providerProp,
   searchKeyword = '',
+  variant,
 }) => {
   const { t: tCommon } = useTranslation('common');
   const newLabel = tCommon('new');
@@ -125,8 +128,20 @@ export const List: FC<ListProps> = ({
           (item.type === 'model-item-multiple' &&
             item.data.providers.some((p) => menuKey(p.id, item.data.model.id) === activeKey));
 
-        const renderItem = (key?: string) =>
-          ModelItemComponent ? (
+        const renderItem = (key?: string) => {
+          if (variant === 'jemmia') {
+            return (
+              <JemmiaListItemRenderer
+                activeKey={activeKey}
+                item={item}
+                key={key}
+                onClose={handleClose}
+                onModelChange={handleModelChange}
+              />
+            );
+          }
+
+          return ModelItemComponent ? (
             <GenerationListItemRenderer
               ModelItemComponent={ModelItemComponent}
               activeKey={activeKey}
@@ -146,11 +161,13 @@ export const List: FC<ListProps> = ({
               newLabel={newLabel}
               proLabel={proLabel}
               subscribeScroll={subscribeScroll}
+              variant={variant}
               onClose={handleClose}
               onModelChange={handleModelChange}
               onRestrictedModelClick={onRestrictedModelClick}
             />
           );
+        };
 
         return isActive ? (
           <div key={itemKey} ref={activeItemRef}>

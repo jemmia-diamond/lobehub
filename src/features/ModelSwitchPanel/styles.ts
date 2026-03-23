@@ -60,10 +60,59 @@ export const styles = createStaticStyles(({ css, cssVar }) => ({
     display: inline-flex;
     outline: none;
 
-    /* SVG icons (from @lobehub/icons IconAvatar) can receive focus when dropdown closes,
-       causing an unwanted blue outline ring */
     svg:focus {
       outline: none;
     }
+  `,
+  jemmiaContainer: css`
+    pointer-events: auto;
+    user-select: none;
+
+    overflow: hidden;
+
+    width: 192px;
+    padding: 0 !important;
+    border: 1px solid rgb(0 0 0 / 5%);
+    border-radius: 12px;
+
+    background: white;
+  `,
+  jemmiaMenuItem: css`
+    cursor: pointer;
+
+    display: flex;
+    gap: 12px;
+    align-items: center;
+
+    width: 100%;
+    padding-block: 10px;
+    padding-inline: 16px;
+    border: none;
+
+    font-size: 14px;
+    color: #374151;
+
+    background: transparent;
+    outline: none;
+
+    transition: background 0.2s;
+
+    &:hover {
+      background: rgb(29 78 216 / 5%);
+    }
+
+    &:focus,
+    &:focus-visible {
+      outline: none;
+      box-shadow: none;
+    }
+  `,
+  jemmiaMenuItemActive: css`
+    font-weight: 500;
+    color: #1d4ed8;
+
+    background: rgb(29 78 216 / 5%);
+    outline: none;
+    box-shadow: none;
   `,
 }));

@@ -23,6 +23,7 @@ interface PanelContentProps {
   onOpenChange?: (open: boolean) => void;
   pricingMode?: PricingMode;
   provider?: string;
+  variant?: 'default' | 'jemmia';
 }
 
 export const PanelContent: FC<PanelContentProps> = ({
@@ -33,6 +34,7 @@ export const PanelContent: FC<PanelContentProps> = ({
   onOpenChange,
   pricingMode,
   provider: providerProp,
+  variant,
 }) => {
   const chatEnabledList = useEnabledChatModels();
   const enabledList = enabledListProp ?? chatEnabledList;
@@ -43,21 +45,24 @@ export const PanelContent: FC<PanelContentProps> = ({
 
   const content = (
     <>
-      <Toolbar
-        groupMode={groupMode}
-        searchKeyword={searchKeyword}
-        showGroupModeSwitch={isDevMode}
-        onGroupModeChange={handleGroupModeChange}
-        onSearchKeywordChange={setSearchKeyword}
-      />
+      {variant !== 'jemmia' && (
+        <Toolbar
+          groupMode={groupMode}
+          searchKeyword={searchKeyword}
+          showGroupModeSwitch={isDevMode}
+          onGroupModeChange={handleGroupModeChange}
+          onSearchKeywordChange={setSearchKeyword}
+        />
+      )}
       <List
         ModelItemComponent={ModelItemComponent}
         enabledList={enabledList}
-        groupMode={isDevMode ? groupMode : 'byModel'}
+        groupMode={variant === 'jemmia' ? 'byProvider' : isDevMode ? groupMode : 'byModel'}
         model={modelProp}
         pricingMode={pricingMode}
         provider={providerProp}
         searchKeyword={searchKeyword}
+        variant={variant}
         onModelChange={onModelChangeProp}
         onOpenChange={onOpenChange}
       />
@@ -88,9 +93,9 @@ export const PanelContent: FC<PanelContentProps> = ({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        height: panelHeight,
+        height: variant === 'jemmia' ? 'auto' : panelHeight,
         position: 'relative',
-        width: DEFAULT_WIDTH,
+        width: variant === 'jemmia' ? '100%' : DEFAULT_WIDTH,
       }}
     >
       {content}
