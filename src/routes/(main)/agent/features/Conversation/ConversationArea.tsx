@@ -3,10 +3,12 @@
 import { Flexbox } from '@lobehub/ui';
 import debug from 'debug';
 import { memo, Suspense, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import ChatMiniMap from '@/features/ChatMiniMap';
 import { ChatList, ConversationProvider, TodoProgress } from '@/features/Conversation';
 import JemosChatInput from '@/features/JemosChatInput';
+import WideScreenContainer from '@/features/WideScreenContainer';
 import ZenModeToast from '@/features/ZenModeToast';
 import { useOperationState } from '@/hooks/useOperationState';
 import { useChatStore } from '@/store/chat';
@@ -28,6 +30,7 @@ const log = debug('lobe-render:agent:ConversationArea');
  * Uses ChatList from @/features/Conversation and JemosChatInput for custom features.
  */
 const Conversation = memo(() => {
+  const { t } = useTranslation('home');
   const context = useAgentContext();
 
   // Get raw dbMessages from ChatStore for this context
@@ -62,12 +65,35 @@ const Conversation = memo(() => {
           overflowX: 'hidden',
           overflowY: 'auto',
           position: 'relative',
+          paddingInline: 24,
         }}
       >
         <ChatList welcome={<WelcomeChatItem />} />
       </Flexbox>
       <TodoProgress />
-      <JemosChatInput agentId={context.agentId} />
+
+      <Flexbox flex={'none'} width={'100%'}>
+        <WideScreenContainer>
+          <JemosChatInput agentId={context.agentId} />
+        </WideScreenContainer>
+      </Flexbox>
+
+      <Flexbox
+        align="center"
+        flex={'none'}
+        width={'100%'}
+        style={{
+          paddingBlock: 12,
+          fontSize: 11,
+          fontWeight: 500,
+          letterSpacing: '0.05em',
+          color: '#9ca3af',
+          textTransform: 'uppercase',
+        }}
+      >
+        {t('home.footer')}
+      </Flexbox>
+
       <ChatHydration />
       <ThreadHydration />
       <ChatMiniMap />

@@ -1,7 +1,7 @@
-'use client';
-
 import { Flexbox } from '@lobehub/ui';
 import { memo } from 'react';
+
+import NavHeader from '@/features/NavHeader';
 
 interface JemosHeaderProps {
   children?: React.ReactNode;
@@ -11,25 +11,12 @@ interface JemosHeaderProps {
 
 const JemosHeader = memo<JemosHeaderProps>(({ left, right, children }) => {
   return (
-    <Flexbox
-      horizontal
-      align="center"
-      justify="space-between"
-      style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-        backdropFilter: 'blur(24px)',
-        borderBottom: '1px solid rgba(169, 180, 185, 0.1)',
-        flexShrink: 0,
-        height: 44,
-        paddingInline: 16,
-        width: '100%',
-        zIndex: 10,
-      }}
-    >
-      <Flexbox horizontal align="center" gap={16}>
-        {left || (
+    <NavHeader
+      left={
+        left || (
           <span
             style={{
+              paddingLeft: 16,
               color: '#1D4ED8',
               fontSize: 16,
               fontWeight: 800,
@@ -37,13 +24,23 @@ const JemosHeader = memo<JemosHeaderProps>(({ left, right, children }) => {
           >
             Trợ lý JemX
           </span>
-        )}
-      </Flexbox>
+        )
+      }
+      right={
+        right || (
+          <Flexbox horizontal align="center">
+            {/* Standard right side actions can go here */}
+          </Flexbox>
+        )
+      }
+      style={{
+        backdropFilter: 'blur(24px)',
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        borderBottom: '1px solid rgba(169, 180, 185, 0.1)',
+      }}
+    >
       {children}
-      <Flexbox horizontal align="center" gap={16}>
-        {right}
-      </Flexbox>
-    </Flexbox>
+    </NavHeader>
   );
 });
 
