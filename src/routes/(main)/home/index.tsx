@@ -21,7 +21,7 @@ const Home: FC = () => {
         right={<Flexbox horizontal align="center" />}
         showTogglePanelButton={false}
         left={
-          <span style={{ fontSize: 16, fontWeight: 800, color: '#1D4ED8', paddingLeft: 24 }}>
+          <span style={{ fontSize: 16, fontWeight: 800, color: '#1D4ED8', paddingLeft: 16 }}>
             Trợ lý JemX
           </span>
         }
