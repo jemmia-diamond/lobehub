@@ -39,6 +39,10 @@ export interface ChatInputProps {
    */
   extraActionItems?: ChatInputActionsProps['items'];
   /**
+   * Custom props for the input container
+   */
+  inputContainerProps?: any;
+  /**
    * Left action buttons configuration
    */
   leftActions?: ActionKeys[];
@@ -86,6 +90,7 @@ const ChatInput = memo<ChatInputProps>(
   ({
     actionBarStyle,
     allowExpand,
+    inputContainerProps,
     leftActions = [],
     leftContent,
     rightActions = [],
@@ -187,6 +192,7 @@ const ChatInput = memo<ChatInputProps>(
           actionBarStyle={actionBarStyle}
           borderRadius={12}
           extraActionItems={extraActionItems}
+          inputContainerProps={inputContainerProps}
           leftContent={leftContent}
           sendAreaPrefix={sendAreaPrefix}
         />

@@ -20,6 +20,8 @@ import {
   serverConfigSelectors,
   useServerConfigStore,
 } from '@/store/serverConfig';
+import { useUserStore } from '@/store/user';
+import { userGeneralSettingsSelectors } from '@/store/user/selectors';
 
 import ModeTag from './components/ModeTag';
 import SkillInstallBanner from './components/SkillInstallBanner';
@@ -94,6 +96,8 @@ const JemosChatInput = memo<JemosChatInputProps>(({ agentId, showStarters }) => 
 
   const showSkillBanner = isLobehubSkillEnabled || isKlavisEnabled;
   const chatInputRef = useRef<HTMLDivElement>(null);
+
+  const isDevMode = useUserStore((s) => userGeneralSettingsSelectors.config(s).isDevMode);
 
   // Focus and scroll into view when mode changes
   useEffect(() => {
@@ -212,8 +216,12 @@ const JemosChatInput = memo<JemosChatInputProps>(({ agentId, showStarters }) => 
               [
                 ...(enableModel ? (['model'] as ActionKeys[]) : []),
                 ...(enableSearch ? (['search'] as ActionKeys[]) : []),
+                'memory',
                 ...(enableFileUpload ? (['fileUpload'] as ActionKeys[]) : []),
                 ...(enableTools ? (['tools'] as ActionKeys[]) : []),
+                'typo',
+                ...(isDevMode ? (['params'] as ActionKeys[]) : []),
+                'mainToken',
               ] as ActionKeys[]
             }
             sendButtonProps={{

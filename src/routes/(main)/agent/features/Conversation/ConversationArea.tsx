@@ -6,6 +6,7 @@ import { memo, Suspense, useMemo } from 'react';
 
 import ChatMiniMap from '@/features/ChatMiniMap';
 import { ChatList, ConversationProvider, TodoProgress } from '@/features/Conversation';
+import JemosChatInput from '@/features/JemosChatInput';
 import ZenModeToast from '@/features/ZenModeToast';
 import { useOperationState } from '@/hooks/useOperationState';
 import { useChatStore } from '@/store/chat';
@@ -13,7 +14,6 @@ import { messageMapKey } from '@/store/chat/utils/messageMapKey';
 
 import WelcomeChatItem from './AgentWelcome';
 import ChatHydration from './ChatHydration';
-import MainChatInput from './MainChatInput';
 import MessageFromUrl from './MainChatInput/MessageFromUrl';
 import ThreadHydration from './ThreadHydration';
 import { useActionsBarConfig } from './useActionsBarConfig';
@@ -25,17 +25,14 @@ const log = debug('lobe-render:agent:ConversationArea');
  * ConversationArea
  *
  * Main conversation area component using the new ConversationStore architecture.
- * Uses ChatList from @/features/Conversation and MainChatInput for custom features.
+ * Uses ChatList from @/features/Conversation and JemosChatInput for custom features.
  */
 const Conversation = memo(() => {
   const context = useAgentContext();
 
   // Get raw dbMessages from ChatStore for this context
   // ConversationStore will parse them internally to generate displayMessages
-  const chatKey = useMemo(
-    () => messageMapKey(context),
-    [context.agentId, context.topicId, context.threadId],
-  );
+  const chatKey = useMemo(() => messageMapKey(context), [context]);
   const replaceMessages = useChatStore((s) => s.replaceMessages);
   const messages = useChatStore((s) => s.dbMessagesMap[chatKey]);
   log('contextKey %s: %o', chatKey, messages);
@@ -70,7 +67,7 @@ const Conversation = memo(() => {
         <ChatList welcome={<WelcomeChatItem />} />
       </Flexbox>
       <TodoProgress />
-      <MainChatInput />
+      <JemosChatInput agentId={context.agentId} />
       <ChatHydration />
       <ThreadHydration />
       <ChatMiniMap />

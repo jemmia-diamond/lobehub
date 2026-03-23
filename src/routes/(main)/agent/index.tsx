@@ -19,7 +19,7 @@ const ChatPage = memo(() => {
       <Flexbox
         horizontal
         height={'100%'}
-        style={{ overflow: 'hidden', position: 'relative' }}
+        style={{ overflow: 'hidden', paddingInline: 16, position: 'relative' }}
         width={'100%'}
       >
         <Conversation />

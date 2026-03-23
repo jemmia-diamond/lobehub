@@ -16,12 +16,13 @@ const JemosHeader = memo<JemosHeaderProps>(({ left, right, children }) => {
       align="center"
       justify="space-between"
       style={{
-        width: '100%',
-        paddingBlock: 16,
-        paddingInline: 16,
-        borderBottom: '1px solid rgba(148, 163, 184, 0.6)',
-        backgroundColor: 'rgba(248, 250, 252, 0.9)',
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(24px)',
+        borderBottom: '1px solid rgba(169, 180, 185, 0.1)',
         flexShrink: 0,
+        height: 44,
+        paddingInline: 16,
+        width: '100%',
         zIndex: 10,
       }}
     >
@@ -29,9 +30,9 @@ const JemosHeader = memo<JemosHeaderProps>(({ left, right, children }) => {
         {left || (
           <span
             style={{
-              fontSize: 18,
-              fontWeight: 900,
               color: '#1D4ED8',
+              fontSize: 16,
+              fontWeight: 800,
             }}
           >
             Trợ lý JemX
