@@ -5,6 +5,7 @@ import { memo, useMemo } from 'react';
 import { type ActionKeys } from '@/features/ChatInput';
 import { ChatInput } from '@/features/Conversation';
 import { useChatStore } from '@/store/chat';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useUserStore } from '@/store/user';
 import { userGeneralSettingsSelectors } from '@/store/user/selectors';
 
@@ -23,19 +24,21 @@ const rightActions: ActionKeys[] = [];
 const MainChatInput = memo(() => {
   const isDevMode = useUserStore((s) => userGeneralSettingsSelectors.config(s).isDevMode);
   const sendMenuItems = useSendMenuItems();
+  const { enableSearch, enableTools, enableModel, enableFileUpload } =
+    useServerConfigStore(featureFlagsSelectors);
 
   const leftActions: ActionKeys[] = useMemo(
     () => [
-      'model',
-      'search',
+      ...(enableModel ? (['model'] as ActionKeys[]) : []),
+      ...(enableSearch ? (['search'] as ActionKeys[]) : []),
       'memory',
-      'fileUpload',
-      'tools',
+      ...(enableFileUpload ? (['fileUpload'] as ActionKeys[]) : []),
+      ...(enableTools ? (['tools'] as ActionKeys[]) : []),
       'typo',
       ...(isDevMode ? (['params'] as ActionKeys[]) : []),
       'mainToken',
     ],
-    [isDevMode],
+    [enableModel, enableSearch, enableFileUpload, enableTools, isDevMode],
   );
 
   return (

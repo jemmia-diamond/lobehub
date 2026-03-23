@@ -35,7 +35,8 @@ export interface NavLayout {
 export const useNavLayout = (): NavLayout => {
   const { t } = useTranslation('common');
   const toggleCommandMenu = useGlobalStore((s) => s.toggleCommandMenu);
-  const { showMarket, hideGitHub, enableResource } = useServerConfigStore(featureFlagsSelectors);
+  const { showMarket, hideGitHub, enablePages, enableResource } =
+    useServerConfigStore(featureFlagsSelectors);
 
   const topNavItems = useMemo(
     () =>
@@ -53,6 +54,7 @@ export const useNavLayout = (): NavLayout => {
           url: '/',
         },
         {
+          hidden: !enablePages,
           icon: getRouteById('page')!.icon,
           key: SidebarTabKey.Pages,
           title: t('tab.pages'),
@@ -66,7 +68,7 @@ export const useNavLayout = (): NavLayout => {
           url: '/community',
         },
       ] as NavItem[],
-    [t, toggleCommandMenu, showMarket],
+    [t, toggleCommandMenu, showMarket, enablePages],
   );
 
   const bottomMenuItems = useMemo(

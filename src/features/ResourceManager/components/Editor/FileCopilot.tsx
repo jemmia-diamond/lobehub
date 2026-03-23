@@ -1,7 +1,7 @@
 'use client';
 
 import { Flexbox } from '@lobehub/ui';
-import { memo, useEffect } from 'react';
+import { memo, useEffect, useMemo } from 'react';
 
 import DragUploadZone, { useUploadFiles } from '@/components/DragUploadZone';
 import { type ActionKeys } from '@/features/ChatInput';
@@ -15,8 +15,7 @@ import RightPanel from '@/features/RightPanel';
 import { useAgentStore } from '@/store/agent';
 import { agentByIdSelectors } from '@/store/agent/selectors';
 import { useChatStore } from '@/store/chat';
-
-const actions: ActionKeys[] = ['model', 'search'];
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 /**
  * Help analyze and work with files
@@ -27,6 +26,15 @@ const FileCopilot = memo(() => {
     s.useFetchAgentConfig,
   ]);
   const currentAgentId = useConversationStore(conversationSelectors.agentId);
+  const { enableModel, enableSearch } = useServerConfigStore(featureFlagsSelectors);
+
+  const actions: ActionKeys[] = useMemo(
+    () => [
+      ...(enableModel ? (['model'] as ActionKeys[]) : []),
+      ...(enableSearch ? (['search'] as ActionKeys[]) : []),
+    ],
+    [enableModel, enableSearch],
+  );
 
   useEffect(() => {
     if (!currentAgentId) return;

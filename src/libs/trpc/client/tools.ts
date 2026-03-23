@@ -50,6 +50,13 @@ const errorHandlingLink: TRPCLink<ToolsRouter> = () => {
               const now = Date.now();
               if (now - last401Time > MIN_401_INTERVAL) {
                 last401Time = now;
+
+                if (typeof window !== 'undefined' && !!(window as any).h5sdk) {
+                  window.localStorage.removeItem('lark_silent_login_done');
+                  window.location.reload();
+                  return;
+                }
+
                 const { getUserStoreState } = await import('@/store/user/store');
                 const { isSignedIn, logout } = getUserStoreState();
                 if (isSignedIn) {

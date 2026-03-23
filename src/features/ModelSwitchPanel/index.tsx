@@ -26,6 +26,7 @@ const ModelSwitchPanel = memo<ModelSwitchPanelProps>(
     pricingMode,
     provider: providerProp,
     openOnHover = true,
+    variant = 'default',
   }) => {
     const [internalOpen, setInternalOpen] = useState(false);
     const isOpen = open ?? internalOpen;
@@ -46,13 +47,17 @@ const ModelSwitchPanel = memo<ModelSwitchPanelProps>(
           </DropdownMenuTrigger>
           <DropdownMenuPortal>
             <DropdownMenuPositioner hoverTrigger={openOnHover} placement={placement}>
-              <DropdownMenuPopup className={styles.container} onKeyDown={stopPropagation}>
+              <DropdownMenuPopup
+                className={variant === 'jemmia' ? styles.jemmiaContainer : styles.container}
+                onKeyDown={stopPropagation}
+              >
                 <PanelContent
                   ModelItemComponent={ModelItemComponent}
                   enabledList={enabledList}
                   model={modelProp}
                   pricingMode={pricingMode}
                   provider={providerProp}
+                  variant={variant}
                   onModelChange={onModelChange}
                   onOpenChange={handleOpenChange}
                 />

@@ -42,7 +42,10 @@ const SPAGlobalProvider = memo<PropsWithChildren>(({ children }) => {
   return (
     <Locale defaultLang={locale}>
       <NextThemeProvider>
-        <AppTheme>
+        <AppTheme
+          customFontFamily="Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif"
+          customFontURL="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        >
           <ServerConfigStoreProvider
             featureFlags={serverConfig?.featureFlags}
             isMobile={isMobile}

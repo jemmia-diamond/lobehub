@@ -15,19 +15,10 @@ import { useAgentGroupStore } from '@/store/agentGroup';
 import { agentGroupSelectors } from '@/store/agentGroup/selectors';
 import { useChatStore } from '@/store/chat';
 import { aiChatSelectors } from '@/store/chat/selectors';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 import MessageFromUrl from './MessageFromUrl';
 import { useSendMenuItems } from './useSendMenuItems';
-
-const leftActions: ActionKeys[] = [
-  'typo',
-  'fileUpload',
-  '---',
-  ['tools', 'params', 'clear'],
-  'mainToken',
-];
-
-const dmLeftActions: ActionKeys[] = ['typo', 'fileUpload', '---', ['stt']];
 
 const rightActions: ActionKeys[] = [];
 
@@ -38,6 +29,7 @@ const Desktop = memo((props: { targetMemberId?: string }) => {
   const { t } = useTranslation('chat');
 
   const isDMPortal = !!props.targetMemberId;
+  const { enableTools, enableFileUpload } = useServerConfigStore(featureFlagsSelectors);
   const currentGroupMembers = useAgentGroupStore(agentGroupSelectors.currentGroupAgents, isEqual);
 
   const [mainInputSendErrorMsg, clearSendMessageError] = useChatStore((s) => [
@@ -80,6 +72,24 @@ const Desktop = memo((props: { targetMemberId?: string }) => {
   }, [currentGroupMembers]);
 
   const sendMenuItems = useSendMenuItems();
+
+  const leftActions: ActionKeys[] = useMemo(
+    () => [
+      'typo',
+      ...(enableFileUpload ? (['fileUpload'] as ActionKeys[]) : []),
+      '---',
+      ...(enableTools ? ([['tools', 'params', 'clear']] as ActionKeys[]) : []),
+      'mainToken',
+    ],
+    [enableFileUpload, enableTools],
+  );
+
+  const dmLeftActions: ActionKeys[] = [
+    'typo',
+    ...(enableFileUpload ? (['fileUpload'] as ActionKeys[]) : []),
+    '---',
+    ['stt'],
+  ];
 
   return (
     <ChatInputProvider

@@ -1,23 +1,13 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 
 import { type ActionKeys } from '@/features/ChatInput';
 import { ChatInput } from '@/features/Conversation';
 import { useChatStore } from '@/store/chat';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 import { useSendMenuItems } from './useSendMenuItems';
-
-const leftActions: ActionKeys[] = [
-  'model',
-  'search',
-  'memory',
-  'fileUpload',
-  'tools',
-  '---',
-  ['typo', 'params', 'clear'],
-  'mainToken',
-];
 
 const rightActions: ActionKeys[] = [];
 
@@ -31,6 +21,22 @@ const rightActions: ActionKeys[] = [];
  */
 const MainChatInput = memo(() => {
   const sendMenuItems = useSendMenuItems();
+  const { enableSearch, enableTools, enableModel, enableFileUpload } =
+    useServerConfigStore(featureFlagsSelectors);
+
+  const leftActions: ActionKeys[] = useMemo(
+    () => [
+      ...(enableModel ? (['model'] as ActionKeys[]) : []),
+      ...(enableSearch ? (['search'] as ActionKeys[]) : []),
+      'memory',
+      ...(enableFileUpload ? (['fileUpload'] as ActionKeys[]) : []),
+      ...(enableTools ? (['tools'] as ActionKeys[]) : []),
+      '---',
+      ['typo', 'params', 'clear'],
+      'mainToken',
+    ],
+    [enableModel, enableSearch, enableFileUpload, enableTools],
+  );
 
   return (
     <ChatInput

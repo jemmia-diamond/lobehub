@@ -16,7 +16,7 @@ async function withLarkRuntime<T>(ctx: any, handler: (runtime: any) => Promise<T
     },
     (error) => {
       const message = String(error?.message || error || '');
-      return message.includes('Lark doc fetch failed: 401');
+      return message.includes('failed: 401');
     },
   );
 }
@@ -42,7 +42,7 @@ export const larkDocRouter = router({
     )
     .query(async ({ input, ctx }) => {
       return await withLarkRuntime(ctx, (runtime) =>
-        runtime.getDocMeta({ documentId: input.documentId }),
+        runtime.getDocMetaRaw({ documentId: input.documentId }),
       );
     }),
 
@@ -54,7 +54,7 @@ export const larkDocRouter = router({
     )
     .query(async ({ input, ctx }) => {
       return await withLarkRuntime(ctx, (runtime) =>
-        runtime.listDocs({ folderToken: input.folderToken }),
+        runtime.listDocsRaw({ folderToken: input.folderToken }),
       );
     }),
 
@@ -62,10 +62,13 @@ export const larkDocRouter = router({
     .input(
       z.object({
         query: z.string(),
+        page: z.number().optional().default(1),
       }),
     )
     .query(async ({ input, ctx }) => {
-      return await withLarkRuntime(ctx, (runtime) => runtime.searchDocs({ query: input.query }));
+      return await withLarkRuntime(ctx, (runtime) =>
+        runtime.searchDocsRaw({ query: input.query, page: input.page }),
+      );
     }),
 });
 

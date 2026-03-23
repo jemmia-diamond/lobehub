@@ -33,12 +33,12 @@ const NavBar = memo(() => {
   const activeKey = useActiveTabKey();
   const navigate = useNavigate();
 
-  const { showMarket } = useServerConfigStore(featureFlagsSelectors);
+  const { enableAgent, showMarket } = useServerConfigStore(featureFlagsSelectors);
 
   const items: TabBarProps['items'] = useMemo(
     () =>
       [
-        {
+        enableAgent && {
           icon: (active: boolean) => (
             <Icon className={active ? styles.active : undefined} icon={MessageSquare} />
           ),
@@ -69,7 +69,7 @@ const NavBar = memo(() => {
           title: t('tab.me'),
         },
       ].filter(Boolean) as TabBarProps['items'],
-    [t],
+    [t, enableAgent, showMarket, navigate],
   );
 
   return (

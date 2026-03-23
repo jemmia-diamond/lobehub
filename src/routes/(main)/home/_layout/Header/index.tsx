@@ -1,19 +1,41 @@
 'use client';
 
+import { Flexbox } from '@lobehub/ui';
 import { memo } from 'react';
 
-import SideBarHeaderLayout from '@/features/NavPanel/SideBarHeaderLayout';
+import NewConversationButton from '@/features/Conversation/NewConversationButton';
+import { useQueryRoute } from '@/hooks/useQueryRoute';
+import { useActionSWR } from '@/libs/swr';
+import { useAgentStore } from '@/store/agent';
+import { builtinAgentSelectors } from '@/store/agent/selectors';
+import { useChatStore } from '@/store/chat';
 
-import AddButton from './components/AddButton';
-import Nav from './components/Nav';
-import User from './components/User';
+import JemXLogo from './components/JemXLogo';
 
 const Header = memo(() => {
+  const router = useQueryRoute();
+  const openNewTopicOrSaveTopic = useChatStore((s) => s.openNewTopicOrSaveTopic);
+  const inboxAgentId = useAgentStore(builtinAgentSelectors.inboxAgentId);
+  const { mutate } = useActionSWR('openNewTopicOrSaveTopic', openNewTopicOrSaveTopic);
+
+  const handleCreateNewConversation = () => {
+    if (inboxAgentId) router.push(`/agent/${inboxAgentId}`);
+    else router.push('/agent');
+
+    void mutate();
+  };
+
   return (
-    <>
-      <SideBarHeaderLayout left={<User />} right={<AddButton />} showBack={false} />
-      <Nav />
-    </>
+    <Flexbox
+      gap={8}
+      paddingInline={4}
+      style={{
+        paddingTop: 4,
+      }}
+    >
+      <JemXLogo />
+      <NewConversationButton onClick={handleCreateNewConversation} />
+    </Flexbox>
   );
 });
 

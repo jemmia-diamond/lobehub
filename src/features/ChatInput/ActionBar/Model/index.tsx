@@ -51,6 +51,36 @@ const styles = createStaticStyles(({ css, cssVar }) => ({
       background: ${cssVar.colorFillTertiary};
     }
   `,
+  jemmiaButton: css`
+    cursor: pointer;
+    user-select: none;
+
+    display: flex;
+    gap: 8px;
+    align-items: center;
+
+    padding-block: 6px;
+    padding-inline: 12px;
+    border: none;
+    border-radius: 0.25rem;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 5%);
+
+    transition: opacity 200ms ease;
+
+    && {
+      color: white;
+      background: #1d4ed8;
+      outline: none;
+    }
+
+    &&:hover {
+      opacity: 0.9;
+    }
+  `,
 }));
 
 const ModelSwitch = memo(() => {
@@ -84,17 +114,50 @@ const ModelSwitch = memo(() => {
         model={model}
         placement={dropdownPlacement}
         provider={provider}
+        variant={
+          provider === 'jemmia' &&
+          ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'].includes(model)
+            ? 'jemmia'
+            : 'default'
+        }
         onModelChange={handleModelChange}
       >
-        <Center
-          className={cx(styles.model, showExtendParams && styles.modelWithControl)}
-          height={36}
-          width={36}
-        >
-          <div className={styles.icon}>
-            <ModelIcon model={model} size={22} />
-          </div>
-        </Center>
+        {provider === 'jemmia' &&
+        ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'].includes(model) ? (
+          <button
+            className={styles.jemmiaButton}
+            style={{ color: 'white', backgroundColor: '#1d4ed8' }}
+            type="button"
+          >
+            <span className={`material-symbols-outlined`} style={{ fontSize: 18 }}>
+              {model === 'gemini-2.5-flash'
+                ? 'psychology'
+                : model === 'gemini-2.5-flash-lite'
+                  ? 'bolt'
+                  : 'school'}
+            </span>
+            <span>
+              {model === 'gemini-2.5-flash'
+                ? 'Nghĩ Kỹ'
+                : model === 'gemini-2.5-flash-lite'
+                  ? 'Làm Nhanh'
+                  : 'Chuyên Gia'}
+            </span>
+            <span className={`material-symbols-outlined`} style={{ fontSize: 18 }}>
+              expand_more
+            </span>
+          </button>
+        ) : (
+          <Center
+            className={cx(styles.model, showExtendParams && styles.modelWithControl)}
+            height={36}
+            width={36}
+          >
+            <div className={styles.icon}>
+              <ModelIcon model={model} size={22} />
+            </div>
+          </Center>
+        )}
       </ModelSwitchPanel>
 
       {showExtendParams && (

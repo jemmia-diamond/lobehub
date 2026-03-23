@@ -53,7 +53,7 @@ const StarterList = memo(() => {
   useInitBuiltinAgent(BUILTIN_AGENT_SLUGS.groupAgentBuilder);
   useInitBuiltinAgent(BUILTIN_AGENT_SLUGS.pageAgent);
 
-  const { enableImageGeneration, enableVideoGeneration } =
+  const { enableAgent, enableImageGeneration, enableVideoGeneration } =
     useServerConfigStore(featureFlagsSelectors);
 
   const [inputActiveMode, setInputActiveMode, navigate] = useHomeStore((s) => [
@@ -65,17 +65,17 @@ const StarterList = memo(() => {
   const items: StarterItem[] = useMemo(
     () =>
       [
-        {
+        enableAgent && {
           icon: BotIcon,
           key: 'agent',
           titleKey: 'starter.createAgent',
         },
-        {
+        enableAgent && {
           icon: GroupBotSquareIcon,
           key: 'group',
           titleKey: 'starter.createGroup',
         },
-        {
+        enableAgent && {
           icon: PenLineIcon,
           key: 'write',
           titleKey: 'starter.write',
@@ -98,7 +98,7 @@ const StarterList = memo(() => {
         //   titleKey: 'starter.deepResearch',
         // },
       ].filter(Boolean) as StarterItem[],
-    [enableImageGeneration, enableVideoGeneration],
+    [enableAgent, enableImageGeneration, enableVideoGeneration],
   );
 
   const handleClick = useCallback(
