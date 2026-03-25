@@ -1,11 +1,16 @@
 import { toolsClient } from '@/libs/trpc/client';
 
 class LarkMessageService {
-  async findUser(params: { query: string }) {
-    return toolsClient.larkMessage.findUser.query(params);
+  async searchEmployees(params: { pageSize?: number; pageToken?: string; query?: string }) {
+    return toolsClient.larkMessage.searchEmployees.query(params);
   }
 
-  async getChats(params: { chatType?: 'p2p' | 'group' }) {
+  async getChats(params: {
+    pageSize?: number;
+    pageToken?: string;
+    sortType?: string;
+    userIdType?: string;
+  }) {
     return toolsClient.larkMessage.getChats.query(params);
   }
 

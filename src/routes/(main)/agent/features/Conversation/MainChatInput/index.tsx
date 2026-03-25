@@ -42,18 +42,33 @@ const MainChatInput = memo(() => {
   );
 
   return (
-    <ChatInput
-      skipScrollMarginWithList
-      leftActions={leftActions}
-      rightActions={rightActions}
-      {...(isDevMode
-        ? { sendMenu: { items: sendMenuItems } }
-        : { sendButtonProps: { shape: 'round' } })}
-      onEditorReady={(instance) => {
-        // Sync to global ChatStore for compatibility with other features
-        useChatStore.setState({ mainInputEditor: instance });
-      }}
-    />
+    <div style={{ paddingInline: 16, paddingBottom: 16 }}>
+      <ChatInput
+        skipScrollMarginWithList
+        leftActions={leftActions}
+        rightActions={rightActions}
+        {...(isDevMode
+          ? { sendMenu: { items: sendMenuItems } }
+          : { sendButtonProps: { shape: 'round' } })}
+        inputContainerProps={{
+          minHeight: 88,
+          resize: false,
+          style: {
+            WebkitBackdropFilter: 'blur(24px)',
+            backdropFilter: 'blur(24px)',
+            background: 'rgba(255, 255, 255, 0.8)',
+            border: '1px solid rgba(169, 180, 185, 0.1)',
+            borderRadius: 12,
+            boxShadow: '0 12px 40px rgba(42,52,57,0.06)',
+            padding: 4,
+          },
+        }}
+        onEditorReady={(instance) => {
+          // Sync to global ChatStore for compatibility with other features
+          useChatStore.setState({ mainInputEditor: instance });
+        }}
+      />
+    </div>
   );
 });
 

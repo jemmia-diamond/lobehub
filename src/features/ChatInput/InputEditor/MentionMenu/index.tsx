@@ -13,8 +13,6 @@ import { CATEGORY_KEY_PREFIX, getCategoryIdFromKey, isCategoryEntry } from './ty
 import { useKeyboardNav } from './useKeyboardNav';
 import { useMenuPosition } from './useMenuPosition';
 
-const RECENT_COUNT = 8;
-
 interface MenuRenderProps {
   activeKey: string | null;
   loading?: boolean;
@@ -24,7 +22,7 @@ interface MenuRenderProps {
   setActiveKey: (key: string | null) => void;
 }
 
-const getRecentItems = (options: ISlashMenuOption[], count: number): ISlashMenuOption[] => {
+const getMostRecentItems = (options: ISlashMenuOption[], count: number): ISlashMenuOption[] => {
   return [...options]
     .sort((a, b) => {
       const ta = (a as any).metadata?.timestamp || 0;
@@ -43,6 +41,33 @@ const buildCategoryEntries = (categories: MentionCategory[]): ISlashMenuOption[]
       label: cat.label,
       metadata: { categoryId: cat.id, count: cat.items.length, type: '__category__' },
     }));
+
+const SORT_PRIORITY: Record<string, number> = {
+  'agent': 0,
+  'lark-doc': 1,
+  'lark-user': 2,
+  'topic': 3,
+};
+
+const sortItems = (items: ISlashMenuOption[]): ISlashMenuOption[] => {
+  return [...items].sort((a, b) => {
+    const typeA = (a.metadata as any)?.type || '';
+    const typeB = (b.metadata as any)?.type || '';
+    return (SORT_PRIORITY[typeA] ?? 99) - (SORT_PRIORITY[typeB] ?? 99);
+  });
+};
+
+const limitItemsPerCategory = (items: ISlashMenuOption[], limit: number): ISlashMenuOption[] => {
+  const groups: Record<string, ISlashMenuOption[]> = {};
+  for (const item of items) {
+    const type = (item.metadata as any)?.type || 'unknown';
+    if (!groups[type]) groups[type] = [];
+    if (groups[type].length < limit) {
+      groups[type].push(item);
+    }
+  }
+  return Object.values(groups).flat();
+};
 
 export const createMentionMenu = (
   stateRef: RefObject<MentionMenuState>,
@@ -79,15 +104,24 @@ export const createMentionMenu = (
 
       // Derive visible items for current view
       const visibleItems = useMemo((): ISlashMenuOption[] => {
-        if (isSearch) return menuOptions;
+        if (isSearch) return sortItems(limitItemsPerCategory(menuOptions, 4));
 
         if (viewMode === 'category' && selectedCategoryId) {
           const cat = categories.find((c) => c.id === selectedCategoryId);
           return cat?.items || [];
         }
 
-        // Home: recent items + category entries (unified list)
-        const recent = getRecentItems(menuOptions, RECENT_COUNT);
+        // Home: 4 docs + 4 users (most recent) + category entries
+        const docs = getMostRecentItems(
+          menuOptions.filter((o) => o.metadata?.type === 'lark-doc'),
+          4,
+        );
+        const users = getMostRecentItems(
+          menuOptions.filter((o) => o.metadata?.type === 'lark-user'),
+          4,
+        );
+
+        const recent = sortItems([...docs, ...users]);
         return [...recent, ...categoryEntries];
       }, [menuOptions, isSearch, viewMode, selectedCategoryId, categories, categoryEntries]);
 
@@ -164,6 +198,7 @@ export const createMentionMenu = (
           {effectiveMode === 'home' && (
             <HomeView
               activeKey={activeKey}
+              categories={categories}
               dividerIndex={recentCount}
               visibleItems={visibleItems}
               onSelectItem={handleSelectItem}
@@ -180,6 +215,7 @@ export const createMentionMenu = (
           {effectiveMode === 'search' && (
             <SearchView
               activeKey={activeKey}
+              categories={categories}
               options={visibleItems}
               onSelectItem={handleSelectItem}
             />

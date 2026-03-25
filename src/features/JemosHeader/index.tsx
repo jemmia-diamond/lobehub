@@ -1,0 +1,49 @@
+import { Flexbox } from '@lobehub/ui';
+import { memo } from 'react';
+
+import NavHeader from '@/features/NavHeader';
+
+interface JemosHeaderProps {
+  children?: React.ReactNode;
+  left?: React.ReactNode;
+  right?: React.ReactNode;
+}
+
+const JemosHeader = memo<JemosHeaderProps>(({ left, right, children }) => {
+  return (
+    <NavHeader
+      left={
+        left || (
+          <span
+            style={{
+              paddingLeft: 16,
+              color: '#1D4ED8',
+              fontSize: 16,
+              fontWeight: 800,
+            }}
+          >
+            Trợ lý JemX
+          </span>
+        )
+      }
+      right={
+        right || (
+          <Flexbox horizontal align="center">
+            {/* Standard right side actions can go here */}
+          </Flexbox>
+        )
+      }
+      style={{
+        backdropFilter: 'blur(24px)',
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        borderBottom: '1px solid rgba(169, 180, 185, 0.1)',
+      }}
+    >
+      {children}
+    </NavHeader>
+  );
+});
+
+JemosHeader.displayName = 'JemosHeader';
+
+export default JemosHeader;

@@ -91,10 +91,47 @@ export const useStyles = createStyles(({ css, token, isDarkMode }) => ({
     height: 24px;
   `,
   itemLabel: css`
-    overflow: hidden;
+    display: flex;
     flex: 1;
+    flex-direction: column;
+    min-width: 0;
+  `,
+  itemLabelTitle: css`
+    overflow: hidden;
+
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: ${token.colorText};
     text-overflow: ellipsis;
     white-space: nowrap;
+  `,
+  itemDescription: css`
+    overflow: hidden;
+
+    font-size: 11px;
+    line-height: 1.2;
+    color: ${token.colorTextDescription};
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  `,
+  itemContent: css`
+    display: flex;
+    flex: 1;
+    gap: 8px;
+    align-items: center;
+
+    min-width: 0;
+  `,
+  categoryTitle: css`
+    padding-block: 10px 6px;
+    padding-inline: 12px;
+
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   `,
   scrollArea: css`
     overflow-y: auto;

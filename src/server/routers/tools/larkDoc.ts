@@ -42,7 +42,7 @@ export const larkDocRouter = router({
     )
     .query(async ({ input, ctx }) => {
       return await withLarkRuntime(ctx, (runtime) =>
-        runtime.getDocMetaRaw({ documentId: input.documentId }),
+        runtime.getDocMeta({ documentId: input.documentId }),
       );
     }),
 
@@ -54,20 +54,31 @@ export const larkDocRouter = router({
     )
     .query(async ({ input, ctx }) => {
       return await withLarkRuntime(ctx, (runtime) =>
-        runtime.listDocsRaw({ folderToken: input.folderToken }),
+        runtime.listDocs({ folderToken: input.folderToken }),
       );
     }),
 
   searchDocs: larkDocProcedure
     .input(
       z.object({
+        pageSize: z.number().optional(),
         query: z.string(),
+        chatIds: z.array(z.string()).optional(),
+        ownerIds: z.array(z.string()).optional(),
         page: z.number().optional().default(1),
+        sortBy: z.number().optional(),
       }),
     )
     .query(async ({ input, ctx }) => {
       return await withLarkRuntime(ctx, (runtime) =>
-        runtime.searchDocsRaw({ query: input.query, page: input.page }),
+        runtime.searchDocs({
+          chatIds: input.chatIds,
+          ownerIds: input.ownerIds,
+          page: input.page,
+          pageSize: input.pageSize,
+          query: input.query,
+          sortBy: input.sortBy,
+        }),
       );
     }),
 });

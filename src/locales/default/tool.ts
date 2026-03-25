@@ -190,4 +190,11 @@ export default {
   'updateArgs.formValidationFailed': 'Form validation failed, please check the parameter format',
   'updateArgs.keyRequired': 'Field key cannot be empty',
   'updateArgs.stringifyError': 'Unable to serialize parameters, please check the parameter format',
+  'tool.lark-message.title': 'Lark Message',
+  'tool.lark-message.description': 'Search and send messages in Lark/Feishu',
+  'tool.lark-doc.title': 'Lark Document',
+  'tool.lark-doc.description': 'Search and read documents in Lark/Feishu',
+  'tool.lark-entity.user.label': 'Mention (Lark)',
+  'tool.lark-entity.user.placeholder': 'Search Lark users...',
+  'tool.lark-entity.user.description': 'Bot contact',
 };

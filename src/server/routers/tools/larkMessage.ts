@@ -8,42 +8,40 @@ import { larkMessageRuntime } from '@/server/services/toolExecution/serverRuntim
 
 const larkMessageProcedure = authedProcedure.use(serverDatabase);
 
-// Helper to get App Access Token (needed for token refresh)
 async function getAppAccessToken(appId: string, appSecret: string) {
-  const res = await fetch(
-    'https://open.larksuite.com/open-apis/auth/v3/app_access_token/internal',
-    {
-      body: JSON.stringify({
-        app_id: appId,
-        app_secret: appSecret,
-      }),
-      headers: { 'Content-Type': 'application/json' },
-      method: 'POST',
-    },
-  );
+  const baseUrl = process.env.AUTH_FEISHU_APP_ID
+    ? 'https://open.feishu.cn/open-apis'
+    : 'https://open.larksuite.com/open-apis';
+  const res = await fetch(`${baseUrl}/auth/v3/app_access_token/internal`, {
+    body: JSON.stringify({
+      app_id: appId,
+      app_secret: appSecret,
+    }),
+    headers: { 'Content-Type': 'application/json' },
+    method: 'POST',
+  });
   const data = await res.json();
   return data.app_access_token;
 }
 
-// Helper to refresh user access token
 async function refreshUserAccessToken(refreshToken: string, appId: string, appSecret: string) {
   try {
+    const baseUrl = process.env.AUTH_FEISHU_APP_ID
+      ? 'https://open.feishu.cn/open-apis'
+      : 'https://open.larksuite.com/open-apis';
     const appAccessToken = await getAppAccessToken(appId, appSecret);
 
-    const res = await fetch(
-      'https://open.larksuite.com/open-apis/authen/v1/oidc/refresh_access_token',
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${appAccessToken}`,
-          'Content-Type': 'application/json; charset=utf-8',
-        },
-        body: JSON.stringify({
-          grant_type: 'refresh_token',
-          refresh_token: refreshToken,
-        }),
+    const res = await fetch(`${baseUrl}/authen/v1/oidc/refresh_access_token`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${appAccessToken}`,
+        'Content-Type': 'application/json; charset=utf-8',
       },
-    );
+      body: JSON.stringify({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+      }),
+    });
 
     const data = await res.json();
 
@@ -54,10 +52,9 @@ async function refreshUserAccessToken(refreshToken: string, appId: string, appSe
         expiresIn: data.data.expires_in,
       };
     }
-    console.error('[LarkMessageRouter] Token refresh failed:', data);
     return null;
-  } catch (error) {
-    console.error('[LarkMessageRouter] Token refresh error:', error);
+  } catch (e) {
+    console.error('[LarkRouter] refreshUserAccessToken error:', e);
     return null;
   }
 }
@@ -110,35 +107,55 @@ async function getUserAccessToken(ctx: any) {
         }
       }
     }
-  } catch (error) {
-    console.error('[LarkMessageRouter] Failed to fetch user access token:', error);
+  } catch (e) {
+    console.error('[LarkRouter] getUserAccessToken error:', e);
   }
   return userAccessToken;
 }
 
 export const larkMessageRouter = router({
-  findUser: larkMessageProcedure
+  searchEmployees: larkMessageProcedure
     .input(
       z.object({
-        query: z.string(),
+        pageSize: z.number().optional(),
+        pageToken: z.string().optional(),
+        query: z.string().optional(),
       }),
     )
     .query(async ({ input, ctx }) => {
-      const userAccessToken = await getUserAccessToken(ctx);
-      const runtime = await getRuntime(userAccessToken);
-      return await runtime.findUser({ query: input.query });
+      try {
+        const userAccessToken = await getUserAccessToken(ctx);
+        const runtime = await getRuntime(userAccessToken);
+        return await runtime.searchEmployees(input);
+      } catch (e) {
+        console.error('[LarkRouter] searchEmployees error:', e);
+        return { content: `Error: ${e}`, success: false };
+      }
     }),
 
   getChats: larkMessageProcedure
     .input(
       z.object({
-        chatType: z.enum(['p2p', 'group']).optional(),
+        pageSize: z.number().optional(),
+        pageToken: z.string().optional(),
+        sortType: z.string().optional(),
+        userIdType: z.string().optional(),
       }),
     )
     .query(async ({ input, ctx }) => {
-      const userAccessToken = await getUserAccessToken(ctx);
-      const runtime = await getRuntime(userAccessToken);
-      return await runtime.getChats({ chatType: input.chatType });
+      try {
+        const userAccessToken = await getUserAccessToken(ctx);
+        const runtime = await getRuntime(userAccessToken);
+        return await runtime.getChats({
+          pageSize: input.pageSize,
+          pageToken: input.pageToken,
+          sortType: input.sortType,
+          userIdType: input.userIdType,
+        });
+      } catch (e) {
+        console.error('[LarkRouter] getChats error:', e);
+        return { content: `Error: ${e}`, success: false };
+      }
     }),
 
   getMessages: larkMessageProcedure
@@ -150,13 +167,18 @@ export const larkMessageRouter = router({
       }),
     )
     .query(async ({ input, ctx }) => {
-      const userAccessToken = await getUserAccessToken(ctx);
-      const runtime = await getRuntime(userAccessToken);
-      return await runtime.getMessages({
-        chatId: input.chatId,
-        startTime: input.startTime,
-        endTime: input.endTime,
-      });
+      try {
+        const userAccessToken = await getUserAccessToken(ctx);
+        const runtime = await getRuntime(userAccessToken);
+        return await runtime.getMessages({
+          chatId: input.chatId,
+          startTime: input.startTime,
+          endTime: input.endTime,
+        });
+      } catch (e) {
+        console.error('[LarkRouter] getMessages error:', e);
+        return { content: `Error: ${e}`, success: false };
+      }
     }),
 });
 
@@ -164,10 +186,13 @@ async function getRuntime(userAccessToken?: string) {
   const runtime = larkMessageRuntime.factory({ toolManifestMap: {} });
 
   if (userAccessToken) {
+    const { authEnv } = await import('@/envs/auth');
     const { LarkMessageExecutionRuntime } =
       await import('@lobechat/builtin-tool-lark-message/executor');
 
     return new LarkMessageExecutionRuntime({
+      appId: authEnv.AUTH_LARK_APP_ID || authEnv.AUTH_FEISHU_APP_ID,
+      appSecret: authEnv.AUTH_LARK_APP_SECRET || authEnv.AUTH_FEISHU_APP_SECRET,
       userAccessToken,
     });
   }

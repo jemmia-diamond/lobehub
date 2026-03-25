@@ -8,9 +8,12 @@ import { css, cx } from 'antd-style';
 import Fuse from 'fuse.js';
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useHotkeysContext } from 'react-hotkeys-hook';
+import { useTranslation } from 'react-i18next';
 
 import { usePasteFile, useUploadFiles } from '@/components/DragUploadZone';
 import { useIMECompositionEvent } from '@/hooks/useIMECompositionEvent';
+import { larkDocService } from '@/services/larkDoc';
+import { larkMessageService } from '@/services/larkMessage';
 import { useAgentStore } from '@/store/agent';
 import { agentByIdSelectors } from '@/store/agent/selectors';
 import { useUserStore } from '@/store/user';
@@ -21,6 +24,7 @@ import { useChatInputStore, useStoreApi } from '../store';
 import { useSlashActionItems } from './ActionTag';
 import { createMentionMenu } from './MentionMenu';
 import type { MentionMenuState } from './MentionMenu/types';
+import { mapLarkDocToMentionItem, mapLarkUserToMentionItem } from './MentionMenu/utils';
 import Placeholder from './Placeholder';
 import { CHAT_INPUT_EMBED_PLUGINS, createChatInputRichPlugins } from './plugins';
 import { INSERT_REFER_TOPIC_COMMAND } from './ReferTopic';
@@ -33,6 +37,7 @@ const className = cx(css`
 `);
 
 const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
+  const { t } = useTranslation('tool');
   const [editor, slashMenuRef, send, updateMarkdownContent, expand, slashPlacement] =
     useChatInputStore((s) => [
       s.editor,
@@ -75,17 +80,65 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
     ) => {
       if (search?.matchingString) {
         stateRef.current = { isSearch: true, matchingString: search.matchingString };
-        return fuse.search(search.matchingString).map((r) => r.item);
+
+        const localResults = fuse.search(search.matchingString).map((r) => r.item);
+
+        try {
+          const [employeeRes, docRes] = (await Promise.all([
+            larkMessageService.searchEmployees({
+              pageSize: 4,
+              query: search.matchingString,
+            }),
+            larkDocService.searchDocs({
+              pageSize: 4,
+              query: search.matchingString,
+              sortBy: 1,
+            }),
+          ])) as any[];
+
+          let remoteLarkItems: any[] = [];
+
+          if (docRes.success) {
+            const data = JSON.parse(docRes.content);
+            const items = data.items || data;
+            const docItems = (items || []).slice(0, 4).map((d: any) => mapLarkDocToMentionItem(d));
+            remoteLarkItems = [...remoteLarkItems, ...docItems];
+          }
+
+          if (employeeRes.success) {
+            const data = JSON.parse(employeeRes.content);
+            const items = data.items || data;
+            const userItems = (items || [])
+              .slice(0, 4)
+              .map((u: any) => mapLarkUserToMentionItem(u, t));
+            remoteLarkItems = [...remoteLarkItems, ...userItems];
+          }
+
+          if (remoteLarkItems.length > 0) {
+            console.info('Remote Lark items returned:', remoteLarkItems.length);
+
+            // Deduplicate: remove remote items that are already in localResults by key
+            const localKeys = new Set(localResults.map((r) => String(r.key)));
+            const uniqueRemoteItems = remoteLarkItems.filter((r) => !localKeys.has(String(r.key)));
+
+            return [...localResults, ...uniqueRemoteItems];
+          }
+        } catch (e) {
+          console.error('Lark search error:', e);
+        }
+
+        console.info('Returning only local results:', localResults);
+        return localResults;
       }
       stateRef.current = { isSearch: false, matchingString: '' };
       return [...allMentionItems];
     },
-    [allMentionItems, fuse],
+    [allMentionItems, fuse, t],
   );
 
   const MentionMenuComp = useMemo(() => createMentionMenu(stateRef, categoriesRef), []);
 
-  const enableMention = allMentionItems.length > 0;
+  const enableMention = true;
 
   // Get agent's model info for vision support check and handle paste upload
   const agentId = useAgentId();

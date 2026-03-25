@@ -1,7 +1,7 @@
 'use client';
 
 import { type BlockProps, type GenericItemType, type IconProps } from '@lobehub/ui';
-import { Block, Center, ContextMenuTrigger, Flexbox, Icon, Text } from '@lobehub/ui';
+import { Block, Center, ContextMenuTrigger, Flexbox, Icon } from '@lobehub/ui';
 import { createStaticStyles, cssVar, cx } from 'antd-style';
 import { type ReactNode } from 'react';
 import { memo } from 'react';
@@ -130,15 +130,17 @@ const NavItem = memo<NavItemProps>(
         {iconPostfix}
         <Flexbox horizontal align={'center'} flex={1} gap={8} style={{ overflow: 'hidden' }}>
           {titlePrefix}
-          <Text
-            color={textColor}
-            style={{ flex: 1 }}
-            ellipsis={{
-              tooltipWhenOverflow: true,
+          <span
+            style={{
+              color: textColor,
+              flex: 1,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
             }}
           >
             {title}
-          </Text>
+          </span>
           <Flexbox
             horizontal
             align={'center'}

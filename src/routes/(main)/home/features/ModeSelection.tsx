@@ -1,8 +1,11 @@
 import { Flexbox } from '@lobehub/ui';
 import { Card, Typography } from 'antd';
 import { createStaticStyles, cx } from 'antd-style';
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { userService } from '@/services/user';
+import { useChatStore } from '@/store/chat';
 
 type ModeKey = 'fast' | 'deep' | 'expert';
 
@@ -46,10 +49,15 @@ const styles = createStaticStyles(({ css, cssVar }) => ({
     cursor: pointer;
     border: none;
     background: #f1f5f9;
+    transition: background 0.2s;
 
     .ant-card-body {
       padding-block: 8px;
       padding-inline: 12px;
+    }
+
+    &:hover {
+      background: #e2e8f0;
     }
   `,
 }));
@@ -58,8 +66,6 @@ const { Text, Paragraph } = Typography;
 
 const MODES: {
   descKey: string;
-  examples: string[];
-  examplesTitleKey: string;
   icon: string;
   key: ModeKey;
   subtitleKey: string;
@@ -71,12 +77,6 @@ const MODES: {
     titleKey: 'modeSelection.fast.title',
     subtitleKey: 'modeSelection.fast.subtitle',
     descKey: 'modeSelection.fast.desc',
-    examplesTitleKey: 'modeSelection.fast.examples.title',
-    examples: [
-      'modeSelection.fast.examples.1',
-      'modeSelection.fast.examples.2',
-      'modeSelection.fast.examples.3',
-    ],
   },
   {
     key: 'deep',
@@ -84,12 +84,6 @@ const MODES: {
     titleKey: 'modeSelection.deep.title',
     subtitleKey: 'modeSelection.deep.subtitle',
     descKey: 'modeSelection.deep.desc',
-    examplesTitleKey: 'modeSelection.deep.examples.title',
-    examples: [
-      'modeSelection.deep.examples.1',
-      'modeSelection.deep.examples.2',
-      'modeSelection.deep.examples.3',
-    ],
   },
   {
     key: 'expert',
@@ -97,17 +91,53 @@ const MODES: {
     titleKey: 'modeSelection.expert.title',
     subtitleKey: 'modeSelection.expert.subtitle',
     descKey: 'modeSelection.expert.desc',
-    examplesTitleKey: 'modeSelection.expert.examples.title',
-    examples: [
-      'modeSelection.expert.examples.1',
-      'modeSelection.expert.examples.2',
-      'modeSelection.expert.examples.3',
-    ],
   },
 ];
 
+const getDepartmentPrefix = (dept?: string | null) => {
+  if (!dept) return '';
+
+  const deptMap: Record<string, string> = {
+    'marketing': 'marketing',
+    'phòng công nghệ': 'tech',
+    'công nghệ': 'tech',
+    'tech': 'tech',
+    'phòng cung ứng': 'supply_chain',
+    'cung ứng': 'supply_chain',
+    'supply_chain': 'supply_chain',
+    'hành chính nhân sự': 'hr',
+    'phòng hành chính nhân sự': 'hr',
+    'hr': 'hr',
+    'tài chính - kế toán': 'finance',
+    'phòng tài chính - kế toán': 'finance',
+    'finance': 'finance',
+    'r&d': 'rnd',
+    'phòng r&d': 'rnd',
+    'kinh doanh': 'sales',
+    'phòng kinh doanh': 'sales',
+    'sales': 'sales',
+  };
+
+  const normalizedDept = dept.toLowerCase().trim();
+  return deptMap[normalizedDept] || '';
+};
+
 const ModeSelection = memo<ModeSelectionProps>(({ activeMode = 'deep', onChangeMode }) => {
   const { t } = useTranslation('home');
+  const { t: ts } = useTranslation('suggestQuestions');
+  const mainInputEditor = useChatStore((s) => s.mainInputEditor);
+  const [department, setDepartment] = useState<string | null>(null);
+
+  useEffect(() => {
+    userService
+      .getUserDepartment()
+      .then((dept) => {
+        if (dept) setDepartment(dept);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch user department:', err);
+      });
+  }, []);
 
   const handleSelect = useCallback(
     (mode: ModeKey) => {
@@ -116,70 +146,114 @@ const ModeSelection = memo<ModeSelectionProps>(({ activeMode = 'deep', onChangeM
     [onChangeMode],
   );
 
+  const handleExampleClick = useCallback(
+    (e: React.MouseEvent, prompt: string, mode: ModeKey) => {
+      e.stopPropagation();
+      handleSelect(mode);
+      mainInputEditor?.instance?.setDocument('markdown', prompt);
+      mainInputEditor?.focus();
+    },
+    [handleSelect, mainInputEditor],
+  );
+
+  const getExamples = (mode: ModeKey) => {
+    const deptPrefix = getDepartmentPrefix(department);
+    const prefix = deptPrefix ? `${deptPrefix}.chat` : 'chat';
+
+    // Map mode to different ranges of questions
+    // Since we have at least 6 questions per department and 40 general questions
+    const rangeMap: Record<ModeKey, number[]> = {
+      deep: [4, 5, 6],
+      expert: [7, 8, 9],
+      fast: [1, 2, 3],
+    };
+
+    const ids = rangeMap[mode];
+
+    return ids.map((id) => {
+      const idStr = String(id).padStart(2, '0');
+      const promptKey = `${prefix}.${idStr}.prompt`;
+      const titleKey = `${prefix}.${idStr}.title`;
+
+      return {
+        prompt: ts(promptKey as any),
+        title: ts(titleKey as any),
+      };
+    });
+  };
+
   return (
     <div className={styles.grid}>
-      {MODES.map((mode) => (
-        <Card
-          className={cx(styles.card, activeMode === mode.key && styles.cardActive)}
-          key={mode.key}
-          variant="outlined"
-          style={{
-            borderRadius: 16,
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100%',
-          }}
-          onClick={() => handleSelect(mode.key)}
-        >
-          <Flexbox horizontal align="center" gap={12} style={{ marginBlockEnd: 12 }}>
-            <Flexbox
-              align="center"
-              justify="center"
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 12,
-                background: '#f3f4f6',
-                fontSize: 22,
-              }}
+      {MODES.map((mode) => {
+        const examples = getExamples(mode.key);
+
+        return (
+          <Card
+            className={cx(styles.card, activeMode === mode.key && styles.cardActive)}
+            key={mode.key}
+            variant="outlined"
+            style={{
+              borderRadius: 16,
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100%',
+            }}
+            onClick={() => handleSelect(mode.key)}
+          >
+            <Flexbox horizontal align="center" gap={12} style={{ marginBlockEnd: 12 }}>
+              <Flexbox
+                align="center"
+                justify="center"
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 12,
+                  background: '#f3f4f6',
+                  fontSize: 22,
+                }}
+              >
+                {mode.icon}
+              </Flexbox>
+              <Flexbox gap={2}>
+                <Text strong style={{ fontSize: 16 }}>
+                  {t(mode.titleKey as any)}
+                </Text>
+                <Text style={{ fontSize: 12 }} type="secondary">
+                  {t(mode.subtitleKey as any)}
+                </Text>
+              </Flexbox>
+            </Flexbox>
+
+            <Paragraph
+              style={{ fontSize: 13, lineHeight: 1.6, marginBlockEnd: 20 }}
+              type="secondary"
             >
-              {mode.icon}
-            </Flexbox>
-            <Flexbox gap={2}>
-              <Text strong style={{ fontSize: 16 }}>
-                {t(mode.titleKey as any)}
-              </Text>
-              <Text style={{ fontSize: 12 }} type="secondary">
-                {t(mode.subtitleKey as any)}
-              </Text>
-            </Flexbox>
-          </Flexbox>
+              {t(mode.descKey as any)}
+            </Paragraph>
 
-          <Paragraph style={{ fontSize: 13, lineHeight: 1.6, marginBlockEnd: 20 }} type="secondary">
-            {t(mode.descKey as any)}
-          </Paragraph>
-
-          <Flexbox gap={12} style={{ marginBlockStart: 'auto' }}>
-            <Text strong style={{ fontSize: 13, color: '#374151' }}>
-              {t(mode.examplesTitleKey as any)}
-            </Text>
-            <Flexbox gap={8}>
-              {mode.examples.map((exKey) => (
-                <Card
-                  className={styles.exampleCard}
-                  key={exKey}
-                  size="small"
-                  style={{ borderRadius: 8, border: 'none', boxShadow: 'none' }}
-                >
-                  <Text style={{ fontSize: 13 }} type="secondary">
-                    {t(exKey as any)}
-                  </Text>
-                </Card>
-              ))}
+            <Flexbox gap={12} style={{ marginBlockStart: 'auto' }}>
+              <Text strong style={{ fontSize: 13, color: '#374151' }}>
+                {t('modeSelection.fast.examples.title' as any)}
+              </Text>
+              <Flexbox gap={8}>
+                {examples.map((ex, index) => (
+                  <Card
+                    className={styles.exampleCard}
+                    key={index}
+                    size="small"
+                    style={{ borderRadius: 8, border: 'none', boxShadow: 'none' }}
+                    onClick={(e) => handleExampleClick(e, ex.prompt, mode.key)}
+                  >
+                    <Text style={{ fontSize: 13 }} type="secondary">
+                      {ex.title}
+                    </Text>
+                  </Card>
+                ))}
+              </Flexbox>
             </Flexbox>
-          </Flexbox>
-        </Card>
-      ))}
+          </Card>
+        );
+      })}
     </div>
   );
 });

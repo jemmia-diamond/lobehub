@@ -24,13 +24,7 @@ export const LarkMessageManifest: BuiltinToolManifest = {
       name: LarkMessageApiName.getChats,
       parameters: {
         additionalProperties: false,
-        properties: {
-          chatType: {
-            description: 'The type of chat. "p2p" for direct messages, "group" for group chats.',
-            type: 'string',
-            enum: ['p2p', 'group'],
-          },
-        },
+        properties: {},
         type: 'object',
       },
     },
@@ -44,12 +38,12 @@ export const LarkMessageManifest: BuiltinToolManifest = {
             description: 'The unique ID of the chat.',
             type: 'string',
           },
-          startTime: {
-            description: 'Start time in Unix timestamp (seconds).',
-            type: 'number',
-          },
           endTime: {
             description: 'End time in Unix timestamp (seconds).',
+            type: 'number',
+          },
+          startTime: {
+            description: 'Start time in Unix timestamp (seconds).',
             type: 'number',
           },
         },
@@ -57,13 +51,65 @@ export const LarkMessageManifest: BuiltinToolManifest = {
         type: 'object',
       },
     },
+    {
+      description: 'Search for active employees in the organization directory by name or query.',
+      name: LarkMessageApiName.searchEmployees,
+      parameters: {
+        additionalProperties: false,
+        properties: {
+          pageSize: {
+            description: 'The number of employees to return per page (default 4).',
+            type: 'number',
+          },
+          pageToken: {
+            description: 'The token for the next page of results.',
+            type: 'string',
+          },
+          query: {
+            description: 'The search query (name, pinyin, or other keywords).',
+            type: 'string',
+          },
+        },
+        required: ['query'],
+        type: 'object',
+      },
+    },
+    {
+      description: 'Send a message to a Lark user or chat group.',
+      name: LarkMessageApiName.sendMessage,
+      parameters: {
+        additionalProperties: false,
+        properties: {
+          content: {
+            description: 'The content of the message.',
+            type: 'string',
+          },
+          msgType: {
+            description: 'The type of message. "text" is default.',
+            enum: ['text', 'post', 'image', 'file'],
+            type: 'string',
+          },
+          receiveId: {
+            description: 'The ID of the receiver (user_id, chat_id, etc.).',
+            type: 'string',
+          },
+          receiveIdType: {
+            description: 'The type of receive_id. "chat_id" is default.',
+            enum: ['open_id', 'user_id', 'union_id', 'chat_id'],
+            type: 'string',
+          },
+        },
+        required: ['content', 'receiveId'],
+        type: 'object',
+      },
+    },
   ],
   identifier: LarkMessageIdentifier,
   meta: {
     avatar: '💬',
-    description: 'Read and search your Lark/Feishu messages and chats',
-    title: 'Lark Message Reader',
+    description: 'Read, search and send Lark/Feishu messages and chats',
+    title: 'Lark Message Tool',
   },
   systemRole:
-    'You are a helpful assistant that can read Lark/Feishu messages. If the user asks you to summarize a conversation with someone, first use `findUser` to get their ID, then use `getChats` to find the chat ID between you and them, and finally use `getMessages` to read the history.',
+    'You are a helpful assistant that can read and send Lark/Feishu messages. If the user asks you to summarize a conversation with someone, first use `findUser` to get their ID, then use `getChats` to find the chat ID between you and them, and finally use `getMessages` to read the history. If asked to send a message, use `sendMessage`.',
 };

@@ -3,9 +3,12 @@
 import { Flexbox } from '@lobehub/ui';
 import debug from 'debug';
 import { memo, Suspense, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import ChatMiniMap from '@/features/ChatMiniMap';
 import { ChatList, ConversationProvider, TodoProgress } from '@/features/Conversation';
+import JemosChatInput from '@/features/JemosChatInput';
+import WideScreenContainer from '@/features/WideScreenContainer';
 import ZenModeToast from '@/features/ZenModeToast';
 import { useOperationState } from '@/hooks/useOperationState';
 import { useChatStore } from '@/store/chat';
@@ -13,7 +16,6 @@ import { messageMapKey } from '@/store/chat/utils/messageMapKey';
 
 import WelcomeChatItem from './AgentWelcome';
 import ChatHydration from './ChatHydration';
-import MainChatInput from './MainChatInput';
 import MessageFromUrl from './MainChatInput/MessageFromUrl';
 import ThreadHydration from './ThreadHydration';
 import { useActionsBarConfig } from './useActionsBarConfig';
@@ -25,17 +27,15 @@ const log = debug('lobe-render:agent:ConversationArea');
  * ConversationArea
  *
  * Main conversation area component using the new ConversationStore architecture.
- * Uses ChatList from @/features/Conversation and MainChatInput for custom features.
+ * Uses ChatList from @/features/Conversation and JemosChatInput for custom features.
  */
 const Conversation = memo(() => {
+  const { t } = useTranslation('home');
   const context = useAgentContext();
 
   // Get raw dbMessages from ChatStore for this context
   // ConversationStore will parse them internally to generate displayMessages
-  const chatKey = useMemo(
-    () => messageMapKey(context),
-    [context.agentId, context.topicId, context.threadId],
-  );
+  const chatKey = useMemo(() => messageMapKey(context), [context]);
   const replaceMessages = useChatStore((s) => s.replaceMessages);
   const messages = useChatStore((s) => s.dbMessagesMap[chatKey]);
   log('contextKey %s: %o', chatKey, messages);
@@ -65,12 +65,35 @@ const Conversation = memo(() => {
           overflowX: 'hidden',
           overflowY: 'auto',
           position: 'relative',
+          paddingInline: 24,
         }}
       >
         <ChatList welcome={<WelcomeChatItem />} />
       </Flexbox>
       <TodoProgress />
-      <MainChatInput />
+
+      <Flexbox flex={'none'} width={'100%'}>
+        <WideScreenContainer>
+          <JemosChatInput agentId={context.agentId} />
+        </WideScreenContainer>
+      </Flexbox>
+
+      <Flexbox
+        align="center"
+        flex={'none'}
+        width={'100%'}
+        style={{
+          paddingBlock: 12,
+          fontSize: 11,
+          fontWeight: 500,
+          letterSpacing: '0.05em',
+          color: '#9ca3af',
+          textTransform: 'uppercase',
+        }}
+      >
+        {t('home.footer')}
+      </Flexbox>
+
       <ChatHydration />
       <ThreadHydration />
       <ChatMiniMap />
