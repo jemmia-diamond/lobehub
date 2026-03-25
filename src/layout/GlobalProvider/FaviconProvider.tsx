@@ -3,6 +3,8 @@
 import { type ReactNode } from 'react';
 import { createContext, memo, use, useCallback, useMemo, useState } from 'react';
 
+import { isCustomBranding } from '@/const/version';
+
 export type FaviconState = 'default' | 'done' | 'error' | 'progress';
 
 interface FaviconStateContextValue {
@@ -42,9 +44,12 @@ const stateToFileName: Record<FaviconState, string> = {
 };
 
 const getFaviconPath = (state: FaviconState, isDev: boolean, size?: '32x32'): string => {
+  if (isCustomBranding && state === 'default') return '/favicon.png';
+
   const devSuffix = isDev ? '-dev' : '';
   const stateSuffix = stateToFileName[state];
   const sizeSuffix = size ? `-${size}` : '';
+
   return `/favicon${sizeSuffix}${stateSuffix}${devSuffix}.ico`;
 };
 

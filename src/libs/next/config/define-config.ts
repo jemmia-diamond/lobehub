@@ -197,7 +197,7 @@ export function defineConfig(config: CustomNextConfig) {
               value: 'public, max-age=31536000, immutable',
             },
           ],
-          source: '/favicon.ico',
+          source: '/favicon.png',
         },
         {
           headers: [
@@ -340,6 +340,11 @@ export function defineConfig(config: CustomNextConfig) {
         destination: '/',
         permanent: true,
         source: '/chat',
+      },
+      {
+        destination: '/favicon.png',
+        permanent: true,
+        source: '/favicon.ico',
       },
       // Redirect old Clerk login route to Better Auth signin
       {

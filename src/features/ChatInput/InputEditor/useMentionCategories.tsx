@@ -1,7 +1,11 @@
 import { Avatar, Icon } from '@lobehub/ui';
-import { Bot, MessageSquareText, Users } from 'lucide-react';
+import { Bot, FileText, MessageSquareText, User, Users } from 'lucide-react';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import useSWR from 'swr';
 
+import { larkDocService } from '@/services/larkDoc';
+import { larkMessageService } from '@/services/larkMessage';
 import { useChatStore } from '@/store/chat';
 import { topicSelectors } from '@/store/chat/selectors';
 import { useGlobalStore } from '@/store/global';
@@ -12,12 +16,15 @@ import { homeAgentListSelectors } from '@/store/home/selectors';
 import { useAgentId } from '../hooks/useAgentId';
 import { useChatInputStore } from '../store';
 import type { MentionCategory } from './MentionMenu/types';
+import { mapLarkDocToMentionItem, mapLarkUserToMentionItem } from './MentionMenu/utils';
 
 const MAX_AGENT_ITEMS = 20;
 const MAX_TOPIC_LABEL = 50;
 type MenuOptionWithMetadata = { key: string; metadata?: Record<string, unknown> };
 
 export const useMentionCategories = (): MentionCategory[] => {
+  const { t } = useTranslation(['tool', 'common', 'chat']);
+
   const currentAgentId = useAgentId();
   const allAgents = useHomeStore(homeAgentListSelectors.allAgents);
 
@@ -31,6 +38,84 @@ export const useMentionCategories = (): MentionCategory[] => {
 
   const externalMentionItems = useChatInputStore((s) => s.mentionItems);
   const isGroupChat = !!externalMentionItems;
+
+  const { data: defaultLarkUsers } = useSWR(
+    'default-lark-users',
+    async () => {
+      const VIETNAMESE_INITIALS = [
+        'a',
+        'b',
+        'c',
+        'd',
+        'đ',
+        'e',
+        'g',
+        'h',
+        'i',
+        'k',
+        'l',
+        'm',
+        'n',
+        'o',
+        'p',
+        'q',
+        'r',
+        's',
+        't',
+        'u',
+        'v',
+        'x',
+        'y',
+      ];
+      const randomQuery =
+        VIETNAMESE_INITIALS[Math.floor(Math.random() * VIETNAMESE_INITIALS.length)];
+
+      console.info('[MentionCategories] Fetching default lark users...', {
+        randomQuery,
+      });
+      try {
+        const res = (await larkMessageService.searchEmployees({
+          pageSize: 4,
+          query: randomQuery,
+        })) as any;
+        console.info('[MentionCategories] Fetch result:', res.success, res.content);
+        if (res.success) {
+          const data = JSON.parse(res.content);
+          return data.items || [];
+        }
+        return [];
+      } catch (e) {
+        console.error('Lark default user search error:', e);
+        return [];
+      }
+    },
+    { revalidateOnFocus: false },
+  );
+
+  const { data: defaultLarkDocs } = useSWR(
+    'default-lark-docs',
+    async () => {
+      const VIETNAMESE_INITIALS = ['a', 'b', 'c', 'd', 'đ', 'h', 'l', 'm', 'n', 'p', 's', 't', 'v'];
+      const randomQuery =
+        VIETNAMESE_INITIALS[Math.floor(Math.random() * VIETNAMESE_INITIALS.length)];
+      try {
+        const res = (await larkDocService.searchDocs({
+          pageSize: 4,
+          query: randomQuery,
+          sortBy: 1,
+        })) as any;
+        if (res.success) {
+          const data = JSON.parse(res.content);
+          return data.items || [];
+        }
+        return [];
+      } catch (e) {
+        console.error('Lark default doc search error:', e);
+        return [];
+      }
+    },
+    { revalidateOnFocus: false },
+  );
 
   return useMemo(() => {
     const categories: MentionCategory[] = [];
@@ -49,10 +134,10 @@ export const useMentionCategories = (): MentionCategory[] => {
             />
           ),
           key: `agent-${agent.id}`,
-          label: agent.title || 'Untitled Agent',
+          label: agent.title || t('chat:untitledAgent'),
           metadata: {
             id: agent.id,
-            timestamp: agent.updatedAt ? new Date(agent.updatedAt).getTime() : 0,
+            timestamp: new Date(agent.updatedAt).getTime(),
             type: 'agent' as const,
           },
         }));
@@ -62,7 +147,7 @@ export const useMentionCategories = (): MentionCategory[] => {
           id: 'agent',
           icon: <Icon icon={Bot} size={16} />,
           items,
-          label: 'Agents',
+          label: t('chat:agents'),
         });
       }
     }
@@ -81,9 +166,37 @@ export const useMentionCategories = (): MentionCategory[] => {
           id: 'member',
           icon: <Icon icon={Users} size={16} />,
           items,
-          label: 'Members',
+          label: t('chat:members'),
         });
       }
+    }
+
+    // --- Lark Documents ---
+    const docItems = (defaultLarkDocs || [])
+      .slice(0, 4)
+      .map((d: any) => mapLarkDocToMentionItem(d));
+
+    if (docItems.length > 0) {
+      categories.push({
+        id: 'lark-doc',
+        icon: <Icon icon={FileText} size={16} />,
+        items: docItems,
+        label: t('chat:mention.larkDocs', { defaultValue: 'TÀI LIỆU GẦN ĐÂY' }),
+      });
+    }
+
+    // --- Lark Users ---
+    const userItems = (defaultLarkUsers || [])
+      .slice(0, 4)
+      .map((u: any) => mapLarkUserToMentionItem(u, t));
+
+    if (userItems.length > 0) {
+      categories.push({
+        id: 'lark-user',
+        icon: <Icon icon={User} size={16} />,
+        items: userItems,
+        label: t('chat:mention.larkUsers', { defaultValue: 'NGƯỜI TƯƠNG TÁC GẦN ĐÂY' }),
+      });
     }
 
     // --- Topics ---
@@ -91,7 +204,7 @@ export const useMentionCategories = (): MentionCategory[] => {
       const items = topics
         .filter((t) => t.id !== activeTopicId)
         .map((topic) => {
-          const title = topic.title || 'Untitled';
+          const title = topic.title || t('chat:topic.untitled' as any);
           const label =
             title.length > MAX_TOPIC_LABEL ? `${title.slice(0, MAX_TOPIC_LABEL)}...` : title;
           return {
@@ -112,11 +225,21 @@ export const useMentionCategories = (): MentionCategory[] => {
           id: 'topic',
           icon: <Icon icon={MessageSquareText} size={16} />,
           items,
-          label: 'Topics',
+          label: t('chat:topic.recent'),
         });
       }
     }
 
     return categories;
-  }, [allAgents, currentAgentId, topics, activeTopicId, isGroupChat, externalMentionItems]);
+  }, [
+    allAgents,
+    currentAgentId,
+    topics,
+    activeTopicId,
+    isGroupChat,
+    externalMentionItems,
+    defaultLarkUsers,
+    defaultLarkDocs,
+    t,
+  ]);
 };

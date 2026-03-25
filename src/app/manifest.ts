@@ -14,8 +14,8 @@ const manifest = async (): Promise<MetadataRoute.Manifest> => {
           type: 'image/png',
         },
       ],
-      name: 'LobeHub',
-      short_name: 'LobeHub',
+      name: 'JemOS',
+      short_name: 'JemOS',
       start_url: '/',
       theme_color: '#000000',
     };
@@ -30,7 +30,7 @@ const manifest = async (): Promise<MetadataRoute.Manifest> => {
 
   // @ts-expect-error - manifestModule.generate returns extended manifest with custom properties
   return manifestModule.generate({
-    description: `${BRANDING_NAME} is a work-and-lifestyle space to find, build, and collaborate with agent teams that grow with you.`,
+    description: `${BRANDING_NAME} is an advanced AI workspace designed for professional collaboration, agent management, and seamless productivity.`,
     icons: [
       {
         purpose: 'any',

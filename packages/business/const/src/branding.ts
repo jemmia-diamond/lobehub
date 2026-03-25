@@ -2,12 +2,12 @@
 // if you want to use it in the commercial usage
 // please contact us for more information: hello@lobehub.com
 
-export const LOBE_CHAT_CLOUD = 'LobeHub Cloud';
+export const LOBE_CHAT_CLOUD = 'JemOS Cloud';
 
-export const BRANDING_NAME = 'LobeHub';
+export const BRANDING_NAME = 'JemOS';
 export const BRANDING_LOGO_URL = '';
 
-export const ORG_NAME = 'LobeHub';
+export const ORG_NAME = 'Jemmia Diamond';
 
 export const BRANDING_URL = {
   help: undefined,
@@ -18,11 +18,11 @@ export const BRANDING_URL = {
 };
 
 export const SOCIAL_URL = {
-  discord: 'https://discord.gg/AYFPHvv2jT',
-  github: 'https://github.com/lobehub',
-  medium: 'https://medium.com/@lobehub',
-  x: 'https://x.com/lobehub',
-  youtube: 'https://www.youtube.com/@lobehub',
+  discord: 'https://discord.gg/jemmia',
+  github: 'https://github.com/jemmia-diamond',
+  medium: 'https://medium.com/@jemmia',
+  x: 'https://x.com/jemmia',
+  youtube: 'https://www.youtube.com/@jemmia',
 };
 
 export const FILE_URL = {
@@ -30,8 +30,8 @@ export const FILE_URL = {
 };
 
 export const BRANDING_EMAIL = {
-  business: 'hello@lobehub.com',
-  support: 'support@lobehub.com',
+  business: 'tech@jemmia.vn',
+  support: 'tech@jemmia.vn',
 };
 
 export const BRANDING_PROVIDER = 'lobehub';

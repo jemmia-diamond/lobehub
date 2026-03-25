@@ -13,7 +13,14 @@ class LarkDocService {
     return toolsClient.larkDoc.listDocs.query(params);
   }
 
-  async searchDocs(params: { query: string; page?: number }) {
+  async searchDocs(params: {
+    chatIds?: string[];
+    ownerIds?: string[];
+    page?: number;
+    pageSize?: number;
+    query: string;
+    sortBy?: number;
+  }) {
     return toolsClient.larkDoc.searchDocs.query(params);
   }
 }

@@ -28,16 +28,23 @@ const MenuItem = memo<MenuItemProps>(({ item, active, extra, onClick }) => {
       onClick={() => onClick(item)}
       onMouseDown={handleMouseDown}
     >
-      {item.icon && (
-        <span className={styles.itemIcon}>
-          {isValidElement(item.icon)
-            ? item.icon
-            : typeof item.icon === 'function'
-              ? createElement(item.icon)
-              : item.icon}
-        </span>
-      )}
-      <span className={styles.itemLabel}>{item.label}</span>
+      <div className={styles.itemContent}>
+        {item.icon && (
+          <span className={styles.itemIcon}>
+            {isValidElement(item.icon)
+              ? item.icon
+              : typeof item.icon === 'function'
+                ? createElement(item.icon)
+                : item.icon}
+          </span>
+        )}
+        <div className={styles.itemLabel}>
+          <div className={styles.itemLabelTitle}>{item.label}</div>
+          {(item as any).metadata?.description && (
+            <div className={styles.itemDescription}>{(item as any).metadata.description}</div>
+          )}
+        </div>
+      </div>
       {extra}
     </div>
   );
