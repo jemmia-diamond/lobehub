@@ -86,6 +86,7 @@ export const FeatureFlagsSchema = z.object({
   show_chat_more_menu: FeatureFlagValue.optional(),
   enable_view_more_upload_file: FeatureFlagValue.optional(),
   show_message_edit: FeatureFlagValue.optional(),
+  show_agent_list_sidebar: FeatureFlagValue.optional(),
 });
 
 export type IFeatureFlags = z.infer<typeof FeatureFlagsSchema>;
@@ -184,6 +185,7 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   show_chat_more_menu: false,
   enable_view_more_upload_file: false,
   show_message_edit: false,
+  show_agent_list_sidebar: false,
 };
 
 export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string) => {
@@ -259,6 +261,7 @@ export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string
     showChatMoreMenu: evaluateFeatureFlag(config.show_chat_more_menu, userId),
     enableViewMoreUploadFile: evaluateFeatureFlag(config.enable_view_more_upload_file, userId),
     showMessageEdit: evaluateFeatureFlag(config.show_message_edit, userId),
+    showAgentListSidebar: evaluateFeatureFlag(config.show_agent_list_sidebar, userId),
   };
 };
 
