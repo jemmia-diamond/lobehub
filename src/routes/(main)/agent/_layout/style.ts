@@ -1,10 +1,22 @@
 import { createStaticStyles } from 'antd-style';
 
 export const styles = createStaticStyles(({ css, cssVar }) => ({
-  // Main container
-  mainContainer: css`
-    position: relative;
+  absoluteContainer: css`
+    position: absolute;
+    inset: 0;
+  `,
+
+  contentDark: css`
     overflow: hidden;
-    background: ${cssVar.colorBgContainer};
+    background: linear-gradient(
+      to bottom,
+      ${cssVar.colorBgContainer},
+      var(--content-bg-secondary, ${cssVar.colorBgContainer})
+    );
+  `,
+
+  contentLight: css`
+    overflow: hidden;
+    background: var(--content-bg-secondary, ${cssVar.colorBgContainer});
   `,
 }));

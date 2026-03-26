@@ -4,6 +4,7 @@ import { ActionIconGroup, createRawModal } from '@lobehub/ui';
 import { memo, useCallback, useMemo } from 'react';
 
 import { useEventCallback } from '@/hooks/useEventCallback';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 import { type ShareModalProps } from '../../../components/ShareMessageModal';
 import ShareMessageModal from '../../../components/ShareMessageModal';
@@ -115,23 +116,34 @@ export const AssistantActionsBar = memo<AssistantActionsBarProps>(
         .filter((item): item is NonNullable<typeof item> => item !== null);
     }, [actionsConfig?.extraMenuActions, id]);
 
+    const { showMessageShare, showMessageActionMenu, showMessageEdit } =
+      useServerConfigStore(featureFlagsSelectors);
+
     // Use external config if provided, otherwise use defaults
     // Append extra actions from factories
     const barItems = useMemo(() => {
       const base =
         actionsConfig?.bar ??
-        (hasTools ? [defaultActions.copy] : [defaultActions.edit, defaultActions.copy]);
+        (hasTools
+          ? [defaultActions.copy]
+          : [...(showMessageEdit ? [defaultActions.edit] : []), defaultActions.copy]);
       return [...base, ...extraBarItems];
-    }, [actionsConfig?.bar, hasTools, defaultActions.copy, defaultActions.edit, extraBarItems]);
+    }, [
+      actionsConfig?.bar,
+      hasTools,
+      defaultActions.copy,
+      defaultActions.edit,
+      extraBarItems,
+      showMessageEdit,
+    ]);
 
     const menuItems = useMemo(() => {
       const base = actionsConfig?.menu ?? [
-        defaultActions.edit,
+        ...(showMessageEdit ? [defaultActions.edit] : []),
         defaultActions.copy,
         collapseAction,
         defaultActions.divider,
-        defaultActions.share,
-        defaultActions.divider,
+        ...(showMessageShare ? [defaultActions.share, defaultActions.divider] : []),
         defaultActions.regenerate,
         defaultActions.del,
       ];
@@ -146,6 +158,8 @@ export const AssistantActionsBar = memo<AssistantActionsBarProps>(
       defaultActions.regenerate,
       defaultActions.del,
       extraMenuItems,
+      showMessageShare,
+      showMessageEdit,
     ]);
 
     // Strip handleClick for DOM safety
@@ -187,7 +201,13 @@ export const AssistantActionsBar = memo<AssistantActionsBarProps>(
 
     if (error) return <ErrorActionsBar actions={defaultActions} onActionClick={handleAction} />;
 
-    return <ActionIconGroup items={items} menu={menu} onActionClick={handleAction} />;
+    return (
+      <ActionIconGroup
+        items={items}
+        menu={showMessageActionMenu ? menu : undefined}
+        onActionClick={handleAction}
+      />
+    );
   },
 );
 

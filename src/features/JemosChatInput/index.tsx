@@ -3,12 +3,12 @@
 import { Flexbox } from '@lobehub/ui';
 import { createStyles } from 'antd-style';
 import { AnimatePresence, m as motion } from 'motion/react';
-import { memo, useEffect, useMemo, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 
 import DragUploadZone, { useUploadFiles } from '@/components/DragUploadZone';
-import { type ActionKeys } from '@/features/ChatInput';
-import { ChatInputProvider, DesktopChatInput } from '@/features/ChatInput';
+import { type ActionKeys, ChatInputProvider, DesktopChatInput } from '@/features/ChatInput';
+import ServerMode from '@/features/ChatInput/ActionBar/Upload/ServerMode';
+import SearchDocsModal from '@/features/ResourceManager/components/SearchDocsModal';
 import CommunityRecommend from '@/routes/(main)/home/features/CommunityRecommend';
 import SuggestQuestions from '@/routes/(main)/home/features/SuggestQuestions';
 import { useAgentStore } from '@/store/agent';
@@ -23,9 +23,10 @@ import {
 import { useUserStore } from '@/store/user';
 import { userGeneralSettingsSelectors } from '@/store/user/selectors';
 
-import ModeTag from './components/ModeTag';
+import FileChatChips from './components/FileChatChips';
 import SkillInstallBanner from './components/SkillInstallBanner';
 import StarterList from './components/StarterList';
+import ThinkingModeButton from './components/ThinkingModeButton';
 import { useSend } from './hooks/useSend';
 
 const useStyles = createStyles(({ css }) => ({
@@ -35,10 +36,13 @@ const useStyles = createStyles(({ css }) => ({
       align-items: center;
       justify-content: center;
 
+      aspect-ratio: 1 / 1 !important;
       width: 36px !important;
+      min-width: 36px !important;
       height: 36px !important;
+      padding: 0 !important;
       border: none !important;
-      border-radius: 14px !important;
+      border-radius: 0.75rem !important;
 
       box-shadow: none !important;
     }
@@ -50,7 +54,7 @@ const useStyles = createStyles(({ css }) => ({
 
     .ant-btn-primary:not([disabled]) {
       color: #fff !important;
-      background: #111827 !important;
+      background: #1d4ed8 !important;
     }
 
     .ant-btn-primary:not(.ant-btn-loading) svg,
@@ -71,8 +75,18 @@ const useStyles = createStyles(({ css }) => ({
       height: 18px;
 
       background: currentcolor;
+    }
 
-      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 7-7 7 7'/%3E%3Cpath d='M12 19V5'/%3E%3C/svg%3E")
+    /* Send Icon (Paper Plane) */
+    .ant-btn-primary:not(.ant-btn-loading, [ant-click-animating-without-extra-node='true'])::after {
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m22 2-7 20-4-9-9-4Z'/%3E%3Cpath d='M22 2 11 13'/%3E%3C/svg%3E")
+        no-repeat center / contain;
+    }
+
+    /* Stop Icon (Square) - Triggered when generating */
+    .ant-btn-primary.ant-btn-loading::after,
+    .ant-btn-primary[ant-click-animating-without-extra-node='true']::after {
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Crect width='16' height='16' x='4' y='4' rx='2'/%3E%3C/svg%3E")
         no-repeat center / contain;
     }
   `,
@@ -81,13 +95,15 @@ const useStyles = createStyles(({ css }) => ({
 interface JemosChatInputProps {
   agentId?: string;
   showStarters?: boolean;
+  threadId?: string | null;
+  topicId?: string | null;
 }
 
-const JemosChatInput = memo<JemosChatInputProps>(({ agentId, showStarters }) => {
+const JemosChatInput = memo<JemosChatInputProps>(({ agentId, showStarters, threadId, topicId }) => {
   const { styles } = useStyles();
-  const { t } = useTranslation('chat');
-  const { loading, send, inboxAgentId } = useSend({ agentId });
+  const { loading, send, inboxAgentId } = useSend({ agentId, threadId, topicId });
   const inputActiveMode = useHomeStore((s) => s.inputActiveMode);
+  const [searchDocsModalOpen, setSearchDocsModalOpen] = useState<boolean>(false);
 
   const isLobehubSkillEnabled = useServerConfigStore(serverConfigSelectors.enableLobehubSkill);
   const isKlavisEnabled = useServerConfigStore(serverConfigSelectors.enableKlavis);
@@ -136,63 +152,6 @@ const JemosChatInput = memo<JemosChatInputProps>(({ agentId, showStarters }) => 
     showHomeSuggestion &&
     (!inputActiveMode || ['agent', 'group', 'write'].includes(inputActiveMode));
 
-  const extraActionItems = useMemo(() => {
-    const defaultItems = [
-      {
-        children: (
-          <motion.div
-            animate={{ y: [0, -3, 0] }}
-            style={{ alignItems: 'center', cursor: 'pointer', display: 'flex', marginLeft: 8 }}
-            transition={{ duration: 2, ease: 'easeInOut', repeat: Infinity }}
-          >
-            <div
-              style={{
-                position: 'relative',
-                background: '#dbeafe',
-                color: '#1d4ed8',
-                fontSize: 12,
-                fontWeight: 700,
-                borderRadius: 8,
-                padding: '6px 12px',
-                border: '1px solid #bfdbfe',
-                whiteSpace: 'nowrap',
-                boxShadow: '0 4px 12px rgba(30,64,175,0.2)',
-              }}
-            >
-              <div
-                style={{
-                  position: 'absolute',
-                  left: -6,
-                  top: '50%',
-                  marginTop: -6,
-                  width: 12,
-                  height: 12,
-                  background: '#dbeafe',
-                  borderLeft: '1px solid #bfdbfe',
-                  borderBottom: '1px solid #bfdbfe',
-                  boxShadow: '-2px 2px 4px rgba(30,64,175,0.1)',
-                  transform: 'rotate(45deg)',
-                }}
-              />
-              <span style={{ position: 'relative', zIndex: 1 }}>{t('larkSelectAction')}</span>
-            </div>
-          </motion.div>
-        ),
-        key: 'lark-picker',
-      },
-    ];
-
-    return inputActiveMode
-      ? [
-          ...defaultItems,
-          {
-            children: <ModeTag />,
-            key: 'mode-tag',
-          },
-        ]
-      : defaultItems;
-  }, [inputActiveMode, t]);
-
   return (
     <Flexbox gap={16} style={{ marginBottom: 16 }}>
       <Flexbox
@@ -217,7 +176,6 @@ const JemosChatInput = memo<JemosChatInputProps>(({ agentId, showStarters }) => 
                 ...(enableModel ? (['model'] as ActionKeys[]) : []),
                 ...(enableSearch ? (['search'] as ActionKeys[]) : []),
                 'memory',
-                ...(enableFileUpload ? (['fileUpload'] as ActionKeys[]) : []),
                 ...(enableTools ? (['tools'] as ActionKeys[]) : []),
                 'typo',
                 ...(isDevMode ? (['params'] as ActionKeys[]) : []),
@@ -238,7 +196,6 @@ const JemosChatInput = memo<JemosChatInputProps>(({ agentId, showStarters }) => 
             <div className={styles.chatInputWrapper}>
               <DesktopChatInput
                 dropdownPlacement="bottomLeft"
-                extraActionItems={extraActionItems}
                 showRuntimeConfig={false}
                 actionBarStyle={{
                   borderTop: '1px solid rgba(169, 180, 185, 0.1)',
@@ -248,6 +205,7 @@ const JemosChatInput = memo<JemosChatInputProps>(({ agentId, showStarters }) => 
                   paddingRight: 8,
                   paddingTop: 4,
                 }}
+                extentHeaderContent={<FileChatChips onAdd={() => setSearchDocsModalOpen(true)} />}
                 inputContainerProps={{
                   ...inputContainerProps,
                   minHeight: 88,
@@ -263,11 +221,19 @@ const JemosChatInput = memo<JemosChatInputProps>(({ agentId, showStarters }) => 
                     padding: 4,
                   },
                 }}
+                leftContent={
+                  <Flexbox horizontal align="center" gap={8} paddingInline={8}>
+                    <ThinkingModeButton />
+                    {enableFileUpload && <ServerMode />}
+                  </Flexbox>
+                }
               />
             </div>
           </ChatInputProvider>
         </DragUploadZone>
       </Flexbox>
+
+      <SearchDocsModal open={searchDocsModalOpen} onClose={() => setSearchDocsModalOpen(false)} />
 
       {showStarters && (
         <div style={{ display: hideStarterList ? 'none' : undefined }}>

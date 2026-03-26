@@ -3,6 +3,8 @@ import type { ActionIconGroupEvent, ActionIconGroupItemType } from '@lobehub/ui'
 import { ActionIconGroup, createRawModal, Flexbox } from '@lobehub/ui';
 import { memo, useCallback, useMemo } from 'react';
 
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
+
 import { ReactionPicker } from '../../../components/Reaction';
 import ShareMessageModal, { type ShareModalProps } from '../../../components/ShareMessageModal';
 import {
@@ -122,6 +124,9 @@ export const AssistantActionsBar = memo<AssistantActionsBarProps>(
         .filter((item): item is NonNullable<typeof item> => item !== null);
     }, [actionsConfig?.extraMenuActions, id]);
 
+    const { showMessageShare, showMessageActionMenu, showMessageEdit } =
+      useServerConfigStore(featureFlagsSelectors);
+
     // Use external config if provided, otherwise use defaults
     // Append extra actions from factories
     const barItems = useMemo(() => {
@@ -129,7 +134,7 @@ export const AssistantActionsBar = memo<AssistantActionsBarProps>(
         actionsConfig?.bar ??
         (hasTools
           ? [defaultActions.delAndRegenerate, defaultActions.copy]
-          : [defaultActions.edit, defaultActions.copy]);
+          : [...(showMessageEdit ? [defaultActions.edit] : []), defaultActions.copy]);
       return [...base, ...extraBarItems];
     }, [
       actionsConfig?.bar,
@@ -138,23 +143,25 @@ export const AssistantActionsBar = memo<AssistantActionsBarProps>(
       defaultActions.copy,
       defaultActions.edit,
       extraBarItems,
+      showMessageEdit,
     ]);
 
     const menuItems = useMemo(() => {
-      const base = actionsConfig?.menu ?? [
-        defaultActions.edit,
-        defaultActions.copy,
-        collapseAction,
-        defaultActions.divider,
-        defaultActions.tts,
-        defaultActions.translate,
-        defaultActions.divider,
-        defaultActions.share,
-        defaultActions.divider,
-        defaultActions.regenerate,
-        defaultActions.delAndRegenerate,
-        defaultActions.del,
-      ];
+      const base =
+        actionsConfig?.menu ??
+        ([
+          ...(showMessageEdit ? [defaultActions.edit] : []),
+          defaultActions.copy,
+          collapseAction,
+          defaultActions.divider,
+          defaultActions.tts,
+          defaultActions.translate,
+          defaultActions.divider,
+          ...(showMessageShare ? [defaultActions.share, defaultActions.divider] : []),
+          defaultActions.regenerate,
+          defaultActions.delAndRegenerate,
+          defaultActions.del,
+        ].filter(Boolean) as MessageActionItemOrDivider[]);
       return [...base, ...extraMenuItems];
     }, [
       actionsConfig?.menu,
@@ -169,6 +176,8 @@ export const AssistantActionsBar = memo<AssistantActionsBarProps>(
       defaultActions.delAndRegenerate,
       defaultActions.del,
       extraMenuItems,
+      showMessageShare,
+      showMessageEdit,
     ]);
 
     // Strip handleClick for DOM safety
@@ -213,7 +222,11 @@ export const AssistantActionsBar = memo<AssistantActionsBarProps>(
     return (
       <Flexbox horizontal align={'center'} gap={8}>
         <ReactionPicker messageId={id} />
-        <ActionIconGroup items={items} menu={menu} onActionClick={handleAction} />
+        <ActionIconGroup
+          items={items}
+          menu={showMessageActionMenu ? menu : undefined}
+          onActionClick={handleAction}
+        />
       </Flexbox>
     );
   },

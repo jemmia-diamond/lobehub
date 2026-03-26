@@ -238,17 +238,14 @@ describe('thinkingResolver', () => {
     describe('gemini-3-pro-preview (the original issue model)', () => {
       const model = 'gemini-3-pro-preview';
 
-      it('should not set thinkingBudget or includeThoughts by default for Gemini 3 (let API decide)', () => {
+      it('should return undefined by default for Gemini 3 (let API decide)', () => {
         const result = resolveGoogleThinkingConfig(model, {});
 
         // For Gemini 3 models, when neither thinkingLevel nor thinkingBudget is set,
         // don't set any thinking params - let API use its default behavior.
         // includeThoughts must be undefined to avoid Vertex AI error:
         // "include_thoughts is only enabled when thinking is enabled"
-        expect(result).toEqual({
-          includeThoughts: undefined,
-          thinkingBudget: undefined,
-        });
+        expect(result).toBeUndefined();
       });
 
       it('should enable includeThoughts with thinkingLevel (without thinkingBudget - mutually exclusive)', () => {
@@ -276,14 +273,11 @@ describe('thinkingResolver', () => {
     describe('gemini-3-pro-image-preview (thinking-enabled model)', () => {
       const model = 'gemini-3-pro-image-preview';
 
-      it('should not set thinkingBudget or includeThoughts by default for Gemini 3 (let API decide)', () => {
+      it('should return undefined by default for Gemini 3 (let API decide)', () => {
         const result = resolveGoogleThinkingConfig(model, {});
 
         // For Gemini 3 models, don't set thinkingBudget by default
-        expect(result).toEqual({
-          includeThoughts: undefined,
-          thinkingBudget: undefined,
-        });
+        expect(result).toBeUndefined();
       });
     });
 
@@ -312,8 +306,8 @@ describe('thinkingResolver', () => {
         const result = resolveGoogleThinkingConfig(model, { thinkingLevel: 'high' });
 
         // thinkingLevel enables includeThoughts, but the level itself is not passed for 2.5
-        expect(result.includeThoughts).toBe(true);
-        expect(result.thinkingLevel).toBeUndefined();
+        expect(result!.includeThoughts).toBe(true);
+        expect(result!.thinkingLevel).toBeUndefined();
       });
     });
 
@@ -338,27 +332,21 @@ describe('thinkingResolver', () => {
         });
       });
 
-      it('should allow disabling thinking with budget 0', () => {
+      it('should return undefined when disabling thinking with budget 0', () => {
         const result = resolveGoogleThinkingConfig(model, { thinkingBudget: 0 });
 
-        expect(result).toEqual({
-          includeThoughts: undefined,
-          thinkingBudget: 0,
-        });
+        expect(result).toBeUndefined();
       });
     });
 
     describe('gemini-3-flash (supports thinking and thinkingLevel)', () => {
       const model = 'gemini-3-flash';
 
-      it('should not set thinkingBudget or includeThoughts by default for Gemini 3 (let API decide)', () => {
+      it('should return undefined by default for Gemini 3 (let API decide)', () => {
         const result = resolveGoogleThinkingConfig(model, {});
 
         // For Gemini 3 models, don't set thinkingBudget by default
-        expect(result).toEqual({
-          includeThoughts: undefined,
-          thinkingBudget: undefined,
-        });
+        expect(result).toBeUndefined();
       });
 
       it('should include thinkingLevel for 3.0 models (without thinkingBudget - mutually exclusive)', () => {
@@ -392,43 +380,37 @@ describe('thinkingResolver', () => {
     describe('gemini-2.5-flash-lite', () => {
       const model = 'gemini-2.5-flash-lite';
 
-      it('should return disabled by default', () => {
+      it('should return undefined by default', () => {
         const result = resolveGoogleThinkingConfig(model, {});
 
-        expect(result).toEqual({
-          includeThoughts: undefined,
-          thinkingBudget: 0,
-        });
+        expect(result).toBeUndefined();
       });
 
-      it('should not enable includeThoughts when budget is 0', () => {
+      it('should return undefined when budget is 0', () => {
         const result = resolveGoogleThinkingConfig(model, { thinkingBudget: 0 });
 
-        expect(result.includeThoughts).toBeUndefined();
+        expect(result).toBeUndefined();
       });
 
-      it('should not enable includeThoughts when thinkingLevel is set but budget defaults to 0', () => {
+      it('should return undefined when thinkingLevel is set but budget defaults to 0', () => {
         // flash-lite ignores thinkingLevel (not Gemini 3) and defaults to budget=0.
         // Must not emit includeThoughts:true with thinkingBudget:0 — Vertex AI rejects this.
         const result = resolveGoogleThinkingConfig(model, { thinkingLevel: 'high' });
 
-        expect(result).toEqual({
-          includeThoughts: undefined,
-          thinkingBudget: 0,
-        });
+        expect(result).toBeUndefined();
       });
     });
 
     describe('nano-banana-pro-preview (thinking-enabled model)', () => {
       const model = 'nano-banana-pro-preview';
 
-      it('should not enable includeThoughts when thinkingBudget is undefined', () => {
+      it('should return undefined when thinkingBudget is undefined', () => {
         const result = resolveGoogleThinkingConfig(model, {});
 
         // nano-banana-pro is 'other' category, so thinkingBudget is undefined.
-        // Without an actual thinking budget or level, includeThoughts should not be set
+        // Without an actual thinking budget or level, it should return undefined
         // to avoid Vertex AI error.
-        expect(result.includeThoughts).toBeUndefined();
+        expect(result).toBeUndefined();
       });
     });
   });
@@ -485,15 +467,15 @@ describe('thinkingBudget and thinkingLevel mutual exclusivity', () => {
     it.each(models)('%s: should use thinkingLevel only when set', (model) => {
       const result = resolveGoogleThinkingConfig(model, { thinkingLevel: 'high' });
 
-      expect(result.thinkingLevel).toBe('high');
-      expect(result.thinkingBudget).toBeUndefined();
+      expect(result!.thinkingLevel).toBe('high');
+      expect(result!.thinkingBudget).toBeUndefined();
     });
 
     it.each(models)('%s: should use thinkingBudget when thinkingLevel is not set', (model) => {
       const result = resolveGoogleThinkingConfig(model, { thinkingBudget: 5000 });
 
-      expect(result.thinkingBudget).toBe(5000);
-      expect(result.thinkingLevel).toBeUndefined();
+      expect(result!.thinkingBudget).toBe(5000);
+      expect(result!.thinkingLevel).toBeUndefined();
     });
 
     it.each(models)('%s: should prioritize thinkingLevel when both are provided', (model) => {
@@ -502,8 +484,8 @@ describe('thinkingBudget and thinkingLevel mutual exclusivity', () => {
         thinkingLevel: 'low',
       });
 
-      expect(result.thinkingLevel).toBe('low');
-      expect(result.thinkingBudget).toBeUndefined();
+      expect(result!.thinkingLevel).toBe('low');
+      expect(result!.thinkingBudget).toBeUndefined();
     });
 
     it.each(models)(
@@ -512,8 +494,7 @@ describe('thinkingBudget and thinkingLevel mutual exclusivity', () => {
         const result = resolveGoogleThinkingConfig(model, {});
 
         // For Gemini 3 models, don't set any thinking params by default
-        expect(result.thinkingBudget).toBeUndefined();
-        expect(result.thinkingLevel).toBeUndefined();
+        expect(result).toBeUndefined();
       },
     );
   });
@@ -524,8 +505,8 @@ describe('thinkingBudget and thinkingLevel mutual exclusivity', () => {
     it.each(models)('%s: should always use thinkingBudget', (model) => {
       const result = resolveGoogleThinkingConfig(model, { thinkingBudget: 8000 });
 
-      expect(result.thinkingBudget).toBe(8000);
-      expect(result.thinkingLevel).toBeUndefined();
+      expect(result!.thinkingBudget).toBe(8000);
+      expect(result!.thinkingLevel).toBeUndefined();
     });
 
     it.each(models)('%s: should ignore thinkingLevel (not supported)', (model) => {
@@ -533,8 +514,8 @@ describe('thinkingBudget and thinkingLevel mutual exclusivity', () => {
       const result = resolveGoogleThinkingConfig(model, { thinkingLevel: 'high' });
 
       // thinkingLevel is not supported, so it falls back to default budget
-      expect(result.thinkingBudget).toBe(-1);
-      expect(result.thinkingLevel).toBeUndefined();
+      expect(result!.thinkingBudget).toBe(-1);
+      expect(result!.thinkingLevel).toBeUndefined();
     });
 
     it.each(models)(
@@ -545,8 +526,8 @@ describe('thinkingBudget and thinkingLevel mutual exclusivity', () => {
           thinkingLevel: 'low',
         });
 
-        expect(result.thinkingBudget).toBe(12000);
-        expect(result.thinkingLevel).toBeUndefined();
+        expect(result!.thinkingBudget).toBe(12000);
+        expect(result!.thinkingLevel).toBeUndefined();
       },
     );
   });

@@ -60,7 +60,9 @@ export const useSend = () => {
             message: inputMessage,
           });
 
-          router.push(SESSION_CHAT_URL(inboxAgentId, false));
+          if (window.location.pathname !== '/') {
+            router.push(SESSION_CHAT_URL(inboxAgentId, false));
+          }
         }
       }
     } finally {

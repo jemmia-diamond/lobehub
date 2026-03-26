@@ -32,6 +32,14 @@ export const styles = createStaticStyles(({ css, cssVar }) => {
       overflow: hidden;
       max-width: 100%;
     `,
+    userBubble: css`
+      color: #fff !important;
+      background-color: #1d4ed8 !important;
+
+      article * {
+        color: #fff !important;
+      }
+    `,
   };
 });
 
@@ -44,6 +52,7 @@ export interface MessageContentProps {
   message?: ReactNode;
   messageExtra?: ChatItemProps['messageExtra'];
   onDoubleClick?: ChatItemProps['onDoubleClick'];
+  placement?: ChatItemProps['placement'];
   variant?: 'bubble' | 'default';
 }
 
@@ -58,7 +67,9 @@ const MessageContent = memo<MessageContentProps>(
     disabled,
     className,
     variant,
+    placement,
   }) => {
+    const isUser = placement === 'right';
     const [toggleMessageEditing, updateMessageContent] = useConversationStore((s) => [
       s.toggleMessageEditing,
       s.updateMessageContent,
@@ -81,6 +92,7 @@ const MessageContent = memo<MessageContentProps>(
             MSG_CONTENT_CLASSNAME,
             styles.message,
             variant === 'bubble' && styles.bubble,
+            isUser && variant === 'bubble' && styles.userBubble,
             disabled && styles.disabled,
             className,
           )}

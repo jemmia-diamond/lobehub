@@ -66,7 +66,7 @@ const Layout: FC<LayoutProps> = ({ children }) => {
           {content}
         </Flexbox>
 
-        <HomeAgentIdSync />
+        {isHomeRoute && <HomeAgentIdSync />}
         <RecentHydration />
       </Flexbox>
     </Activity>

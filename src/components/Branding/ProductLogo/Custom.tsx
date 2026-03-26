@@ -38,6 +38,8 @@ const CustomTextLogo = memo<FlexboxProps & { size: number }>(({ size, style, ...
 
 const CustomImageLogo = memo<Omit<ImageProps, 'alt' | 'src'> & { size: number }>(
   ({ size, ...rest }) => {
+    if (!BRANDING_LOGO_URL) return <CustomTextLogo size={size} {...rest} />;
+
     return (
       <Image
         alt={BRANDING_NAME}

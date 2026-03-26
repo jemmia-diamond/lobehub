@@ -174,7 +174,6 @@ export class StreamingExecutorActionImpl {
     // When skillActivateMode is 'manual', skipDefaultTools gives user precise control
     const isManualMode = agentConfig.chatConfig?.skillActivateMode === 'manual';
 
-
     const toolsDetailed = toolsEngine.generateToolsDetailed({
       model: agentConfigData.model,
       provider: agentConfigData.provider!,
@@ -286,27 +285,25 @@ export class StreamingExecutorActionImpl {
         : undefined;
 
     // Create initial context or use provided context
-    const context: AgentRuntimeContext = initialContext
-      ? {
-          ...initialContext,
-          initialContext: mergedRuntimeInitialContext,
-        }
-      : {
-          phase: 'init',
-          payload: {
-            model: agentConfigData.model,
-            provider: agentConfigData.provider,
-            parentMessageId,
-          },
-          session: {
-            sessionId: agentId,
-            messageCount: messages.length,
-            status: state.status,
-            stepCount: 0,
-          },
-          // Inject initialContext if available
-          initialContext: mergedRuntimeInitialContext,
-        };
+    const context: AgentRuntimeContext = {
+      phase: 'init',
+      session: {
+        sessionId: agentId,
+        messageCount: messages.length,
+        status: state.status,
+        stepCount: 0,
+      },
+      ...initialContext,
+      // Ensure payload model/provider are preserved if not specifically overridden
+      payload: {
+        model: agentConfigData.model,
+        provider: agentConfigData.provider,
+        parentMessageId,
+        ...(initialContext?.payload as any),
+      },
+      // Inject initialContext if available
+      initialContext: mergedRuntimeInitialContext,
+    };
 
     return { agentConfig: agentConfigWithTools, context, state, toolsEngine };
   };

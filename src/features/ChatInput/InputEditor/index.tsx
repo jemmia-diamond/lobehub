@@ -1,3 +1,4 @@
+import { LarkDocIdentifier } from '@lobechat/builtin-tool-lark-doc';
 import { isDesktop } from '@lobechat/const';
 import { HotkeyEnum, KeyEnum } from '@lobechat/types';
 import { isCommandPressed } from '@lobechat/utils';
@@ -15,7 +16,8 @@ import { useIMECompositionEvent } from '@/hooks/useIMECompositionEvent';
 import { larkDocService } from '@/services/larkDoc';
 import { larkMessageService } from '@/services/larkMessage';
 import { useAgentStore } from '@/store/agent';
-import { agentByIdSelectors } from '@/store/agent/selectors';
+import { agentByIdSelectors, agentSelectors } from '@/store/agent/selectors';
+import { useFileStore } from '@/store/file';
 import { useUserStore } from '@/store/user';
 import { labPreferSelectors, preferenceSelectors, settingsSelectors } from '@/store/user/selectors';
 
@@ -226,13 +228,36 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
                 return `<mention name="${mention.label}" id="${mention.metadata.id}" />`;
               },
               maxLength: 50,
-              onSelect: (editor, option) => {
+              onSelect: async (editor, option) => {
                 if (option.metadata?.type === 'topic') {
                   editor.dispatchCommand(INSERT_REFER_TOPIC_COMMAND, {
                     topicId: option.metadata.topicId as string,
                     topicTitle: String(option.metadata.topicTitle ?? option.label),
                   });
                 } else {
+                  // If it is a Lark document, add it to the chat context and enable the tool
+                  if (option.metadata?.type === 'lark-doc') {
+                    const docId = option.metadata.id;
+                    const title = String(option.label);
+
+                    // 1. Add to chat context
+                    useFileStore.getState().addChatContextSelection({
+                      content: `Lark Document ID: ${docId}`,
+                      format: 'text',
+                      id: `lark-${docId}`,
+                      preview: title,
+                      title,
+                      type: 'text',
+                    });
+
+                    // 2. Enable Lark Doc tool if not enabled
+                    const agentStore = useAgentStore.getState();
+                    const currentPlugins = agentSelectors.currentAgentPlugins(agentStore);
+                    if (!currentPlugins.includes(LarkDocIdentifier)) {
+                      await agentStore.toggleAgentPlugin(LarkDocIdentifier, true);
+                    }
+                  }
+
                   editor.dispatchCommand(INSERT_MENTION_COMMAND, {
                     label: String(option.label),
                     metadata: option.metadata,

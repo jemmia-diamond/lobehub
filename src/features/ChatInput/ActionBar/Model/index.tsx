@@ -18,6 +18,7 @@ import { userGeneralSettingsSelectors } from '@/store/user/selectors';
 import { useAgentId } from '../../hooks/useAgentId';
 import Action from '../components/Action';
 import { useActionBarContext } from '../context';
+import { JEMMIA_MODEL_IDS, JEMMIA_MODEL_LABEL_KEYS } from './constants';
 
 const styles = createStaticStyles(({ css, cssVar }) => ({
   container: css`
@@ -114,21 +115,11 @@ const ModelSwitch = memo(() => {
         model={model}
         placement={dropdownPlacement}
         provider={provider}
-        variant={
-          provider === 'jemmia' &&
-          ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'].includes(model)
-            ? 'jemmia'
-            : 'default'
-        }
+        variant={provider === 'jemmia' && JEMMIA_MODEL_IDS.includes(model) ? 'jemmia' : 'default'}
         onModelChange={handleModelChange}
       >
-        {provider === 'jemmia' &&
-        ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'].includes(model) ? (
-          <button
-            className={styles.jemmiaButton}
-            style={{ color: 'white', backgroundColor: '#1d4ed8' }}
-            type="button"
-          >
+        {provider === 'jemmia' && JEMMIA_MODEL_IDS.includes(model) ? (
+          <button className={styles.jemmiaButton} type="button">
             <span className={`material-symbols-outlined`} style={{ fontSize: 18 }}>
               {model === 'gemini-2.5-flash'
                 ? 'psychology'
@@ -136,13 +127,7 @@ const ModelSwitch = memo(() => {
                   ? 'bolt'
                   : 'school'}
             </span>
-            <span>
-              {model === 'gemini-2.5-flash'
-                ? 'Nghĩ Kỹ'
-                : model === 'gemini-2.5-flash-lite'
-                  ? 'Làm Nhanh'
-                  : 'Chuyên Gia'}
-            </span>
+            <span>{t(JEMMIA_MODEL_LABEL_KEYS[model] as any)}</span>
             <span className={`material-symbols-outlined`} style={{ fontSize: 18 }}>
               expand_more
             </span>

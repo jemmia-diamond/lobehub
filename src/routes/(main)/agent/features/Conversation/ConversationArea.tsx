@@ -5,6 +5,7 @@ import debug from 'debug';
 import { memo, Suspense, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { CURRENT_VERSION } from '@/const/version';
 import ChatMiniMap from '@/features/ChatMiniMap';
 import { ChatList, ConversationProvider, TodoProgress } from '@/features/Conversation';
 import JemosChatInput from '@/features/JemosChatInput';
@@ -74,7 +75,11 @@ const Conversation = memo(() => {
 
       <Flexbox flex={'none'} width={'100%'}>
         <WideScreenContainer>
-          <JemosChatInput agentId={context.agentId} />
+          <JemosChatInput
+            agentId={context.agentId}
+            threadId={context.threadId}
+            topicId={context.topicId}
+          />
         </WideScreenContainer>
       </Flexbox>
 
@@ -91,7 +96,7 @@ const Conversation = memo(() => {
           textTransform: 'uppercase',
         }}
       >
-        {t('home.footer')}
+        {t('home.footer', { version: CURRENT_VERSION })}
       </Flexbox>
 
       <ChatHydration />

@@ -19,9 +19,20 @@ const ThinkingTitle = memo<ThinkingTitleProps>(({ showDetail, thinking, duration
     <Flexbox horizontal align={'center'} gap={6}>
       <StatusIndicator showDetail={showDetail} thinking={thinking} />
       {thinking ? (
-        <span className={shinyTextStyles.shinyText}>{t('Thinking.thinking')}</span>
+        <span
+          className={shinyTextStyles.shinyText}
+          style={{
+            color: '#1D4ED8',
+            fontSize: 12,
+            fontWeight: 800,
+            letterSpacing: '0.05em',
+            textTransform: 'uppercase',
+          }}
+        >
+          {t('Thinking.thinking')}
+        </span>
       ) : (
-        <Text type={'secondary'}>
+        <Text style={{ fontSize: 13, fontWeight: 500 }} type={'secondary'}>
           {!duration
             ? t('Thinking.thoughtWithDuration')
             : t('Thinking.thought', { duration: ((duration || 0) / 1000).toFixed(1) })}

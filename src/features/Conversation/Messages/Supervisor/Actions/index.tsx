@@ -3,6 +3,8 @@ import type { ActionIconGroupEvent, ActionIconGroupItemType } from '@lobehub/ui'
 import { ActionIconGroup, createRawModal, Flexbox } from '@lobehub/ui';
 import { memo, useCallback, useMemo } from 'react';
 
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
+
 import { ReactionPicker } from '../../../components/Reaction';
 import ShareMessageModal, { type ShareModalProps } from '../../../components/ShareMessageModal';
 import {
@@ -105,18 +107,41 @@ const WithContentId = memo<GroupActionsProps>(({ actionsConfig, id, data, conten
   // Get collapse/expand action based on current state
   const collapseAction = isCollapsed ? defaultActions.expand : defaultActions.collapse;
 
-  // Use external config if provided, otherwise use defaults
-  const barItems = actionsConfig?.bar ?? [defaultActions.copy];
+  const barItems = useMemo(
+    () => actionsConfig?.bar ?? [defaultActions.copy],
+    [actionsConfig?.bar, defaultActions.copy],
+  );
 
-  const menuItems = actionsConfig?.menu ?? [
+  const { showMessageShare, showMessageActionMenu } = useServerConfigStore(featureFlagsSelectors);
+
+  const extraMenuItems = useMemo(() => {
+    if (!actionsConfig?.extraMenuActions) return [];
+    return actionsConfig.extraMenuActions
+      .map((factory) => factory(id))
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+  }, [actionsConfig?.extraMenuActions, id]);
+
+  const menuItems = useMemo(() => {
+    const base = actionsConfig?.menu ?? [
+      defaultActions.copy,
+      collapseAction,
+      defaultActions.divider,
+      ...(showMessageShare ? [defaultActions.share, defaultActions.divider] : []),
+      defaultActions.regenerate,
+      defaultActions.del,
+    ];
+    return [...base, ...extraMenuItems];
+  }, [
+    actionsConfig?.menu,
     defaultActions.copy,
     collapseAction,
     defaultActions.divider,
     defaultActions.share,
-    defaultActions.divider,
     defaultActions.regenerate,
     defaultActions.del,
-  ];
+    extraMenuItems,
+    showMessageShare,
+  ]);
 
   // Strip handleClick for DOM safety
   const items = useMemo(
@@ -158,7 +183,11 @@ const WithContentId = memo<GroupActionsProps>(({ actionsConfig, id, data, conten
   return (
     <Flexbox horizontal align={'center'} gap={8}>
       <ReactionPicker messageId={id} />
-      <ActionIconGroup items={items} menu={menu} onActionClick={handleAction} />
+      <ActionIconGroup
+        items={items}
+        menu={showMessageActionMenu ? menu : undefined}
+        onActionClick={handleAction}
+      />
     </Flexbox>
   );
 });

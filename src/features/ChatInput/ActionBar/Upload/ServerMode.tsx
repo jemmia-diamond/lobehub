@@ -38,7 +38,15 @@ const hotArea = css`
 const FileUpload = memo(() => {
   const { t } = useTranslation('chat');
   const upload = useFileStore((s) => s.uploadChatFiles);
-  const { enableFileUpload, enableLarkTools } = useServerConfigStore(featureFlagsSelectors);
+  const {
+    enableFileUpload,
+    enableLarkTools,
+    showUploadFile,
+    showUploadLark,
+    showUploadImage,
+    showUploadFolder,
+    enableViewMoreUploadFile,
+  } = useServerConfigStore(featureFlagsSelectors);
 
   const agentId = useAgentId();
   const model = useAgentStore((s) => agentByIdSelectors.getAgentModelById(agentId)(s));
@@ -67,7 +75,7 @@ const FileUpload = memo(() => {
   ]);
 
   const uploadItems: ActionDropdownMenuItems = [
-    ...(enableFileUpload
+    ...(enableFileUpload && showUploadFile
       ? [
           {
             closeOnClick: false,
@@ -117,7 +125,7 @@ const FileUpload = memo(() => {
           },
         ]
       : []),
-    ...(enableLarkTools
+    ...(enableLarkTools && showUploadLark
       ? [
           {
             closeOnClick: true,
@@ -144,7 +152,7 @@ const FileUpload = memo(() => {
           },
         ]
       : []),
-    ...(canUploadImage
+    ...(canUploadImage && showUploadImage
       ? [
           {
             closeOnClick: false,
@@ -179,7 +187,7 @@ const FileUpload = memo(() => {
           },
         ]
       : []),
-    ...(enableFileUpload
+    ...(enableFileUpload && showUploadFolder
       ? [
           {
             closeOnClick: false,
@@ -280,21 +288,23 @@ const FileUpload = memo(() => {
     });
   }
 
-  // Always add the "View More" option
-  knowledgeItems.push(
-    {
-      type: 'divider',
-    },
-    {
-      extra: <Icon icon={ArrowRight} />,
-      icon: LibraryBig,
-      key: 'knowledge-base-store',
-      label: t('knowledgeBase.viewMore'),
-      onClick: () => {
-        setModalOpen(true);
+  // Always add the "View More" option if enabled
+  if (enableViewMoreUploadFile) {
+    knowledgeItems.push(
+      {
+        type: 'divider',
       },
-    },
-  );
+      {
+        extra: <Icon icon={ArrowRight} />,
+        icon: LibraryBig,
+        key: 'knowledge-base-store',
+        label: t('knowledgeBase.viewMore'),
+        onClick: () => {
+          setModalOpen(true);
+        },
+      },
+    );
+  }
 
   const items: ActionDropdownMenuItems = [
     ...uploadItems,

@@ -18,6 +18,7 @@ import { type ChatStore } from '@/store/chat';
 import { topicMapKey } from '@/store/chat/utils/topicMapKey';
 import { useGlobalStore } from '@/store/global';
 import { globalHelpers } from '@/store/global/helpers';
+import { FETCH_RECENT_TOPICS_KEY } from '@/store/home/slices/recent';
 import { type StoreSetter } from '@/store/types';
 import { useUserStore } from '@/store/user';
 import { systemAgentSelectors, userGeneralSettingsSelectors } from '@/store/user/selectors';
@@ -89,8 +90,10 @@ export class ChatTopicActionImpl {
     const { switchTopic, saveToTopic, refreshMessages, activeTopicId } = this.#get();
     const hasTopic = !!activeTopicId;
 
-    if (hasTopic) switchTopic(null);
-    else {
+    if (hasTopic) {
+      await switchTopic(null);
+      await this.#get().refreshTopic();
+    } else {
       await saveToTopic();
       refreshMessages();
     }
@@ -525,7 +528,7 @@ export class ChatTopicActionImpl {
     }
 
     this.#set(
-      { activeTopicId: !id ? (null as any) : id, activeThreadId: undefined },
+      { activeTopicId: id || (null as any), activeThreadId: undefined },
       false,
       n('toggleTopic'),
     );
@@ -612,6 +615,11 @@ export class ChatTopicActionImpl {
     const containerKey = topicMapKey({ agentId: activeAgentId, groupId: activeGroupId });
     await mutate(
       (key) => Array.isArray(key) && key[0] === SWR_USE_FETCH_TOPIC && key[1] === containerKey,
+    );
+    await mutate(
+      (key) =>
+        (typeof key === 'string' && key === FETCH_RECENT_TOPICS_KEY) ||
+        (Array.isArray(key) && key[0] === FETCH_RECENT_TOPICS_KEY),
     );
   };
 

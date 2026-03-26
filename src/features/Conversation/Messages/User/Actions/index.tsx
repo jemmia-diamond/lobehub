@@ -4,6 +4,7 @@ import { ActionIconGroup, Flexbox } from '@lobehub/ui';
 import { memo, useCallback, useMemo } from 'react';
 
 import { MESSAGE_ACTION_BAR_PORTAL_ATTRIBUTES } from '@/const/messageActionPortal';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useUserStore } from '@/store/user';
 import { userGeneralSettingsSelectors } from '@/store/user/selectors';
 
@@ -61,6 +62,8 @@ interface UserActionsProps {
 }
 
 export const UserActionsBar = memo<UserActionsProps>(({ actionsConfig, id, data }) => {
+  const { showMessageActionMenu, showMessageEdit } = useServerConfigStore(featureFlagsSelectors);
+
   // Get default actions from hook
   const defaultActions = useUserActions({ data, id });
 
@@ -84,15 +87,22 @@ export const UserActionsBar = memo<UserActionsProps>(({ actionsConfig, id, data 
   const barItems = useMemo(() => {
     const base = actionsConfig?.bar ?? [
       defaultActions.regenerate,
-      defaultActions.edit,
+      ...(showMessageEdit ? [defaultActions.edit] : []),
       defaultActions.copy,
     ];
     return [...base, ...extraBarItems];
-  }, [actionsConfig?.bar, defaultActions.regenerate, defaultActions.edit, extraBarItems]);
+  }, [
+    actionsConfig?.bar,
+    defaultActions.regenerate,
+    defaultActions.edit,
+    defaultActions.copy,
+    extraBarItems,
+    showMessageEdit,
+  ]);
 
   const menuItems = useMemo(() => {
     const base = actionsConfig?.menu ?? [
-      defaultActions.edit,
+      ...(showMessageEdit ? [defaultActions.edit] : []),
       defaultActions.copy,
       defaultActions.divider,
       defaultActions.tts,
@@ -112,6 +122,7 @@ export const UserActionsBar = memo<UserActionsProps>(({ actionsConfig, id, data 
     defaultActions.regenerate,
     defaultActions.del,
     extraMenuItems,
+    showMessageEdit,
   ]);
 
   // Strip handleClick for DOM safety
@@ -145,7 +156,13 @@ export const UserActionsBar = memo<UserActionsProps>(({ actionsConfig, id, data 
     [allActions],
   );
 
-  return <ActionIconGroup items={items} menu={menu} onActionClick={handleAction} />;
+  return (
+    <ActionIconGroup
+      items={items}
+      menu={showMessageActionMenu ? menu : undefined}
+      onActionClick={handleAction}
+    />
+  );
 });
 
 UserActionsBar.displayName = 'UserActionsBar';

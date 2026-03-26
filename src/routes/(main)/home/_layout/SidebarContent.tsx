@@ -4,7 +4,9 @@ import { Flexbox } from '@lobehub/ui';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { CURRENT_VERSION } from '@/const/version';
 import SideBarLayout from '@/features/NavPanel/SideBarLayout';
+import { useInitRecentTopic } from '@/hooks/useInitRecentTopic';
 
 import Body from './Body';
 import { AgentModalProvider } from './Body/Agent/ModalProvider';
@@ -25,7 +27,7 @@ const VersionFooter = memo(() => {
         paddingInline: 10,
       }}
     >
-      {t('sidebar.version')}
+      {t('sidebar.version', { version: CURRENT_VERSION })}
     </Flexbox>
   );
 });
@@ -33,6 +35,8 @@ const VersionFooter = memo(() => {
 VersionFooter.displayName = 'VersionFooter';
 
 const Sidebar = memo(() => {
+  useInitRecentTopic();
+
   return (
     <AgentModalProvider>
       <SideBarLayout

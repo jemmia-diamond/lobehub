@@ -25,10 +25,10 @@ const Image = ({
   ref,
   src,
   fill,
-  priority,
-  quality,
-  sizes,
-  unoptimized,
+  priority: _priority,
+  quality: _quality,
+  sizes: _sizes,
+  unoptimized: _unoptimized,
   style,
   ...rest
 }: ImageProps & { ref?: React.RefObject<HTMLImageElement | null> }) => {
@@ -37,6 +37,11 @@ const Image = ({
   const fillStyle: CSSProperties | undefined = fill
     ? { height: '100%', left: 0, objectFit: 'cover', position: 'absolute', top: 0, width: '100%' }
     : undefined;
+
+  // React throws an error if src is an explicit empty string ("")
+  if (resolvedSrc === '') {
+    return null;
+  }
 
   return <img ref={ref} src={resolvedSrc} style={{ ...fillStyle, ...style }} {...rest} />;
 };

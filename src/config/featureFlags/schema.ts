@@ -41,6 +41,15 @@ export const FeatureFlagsSchema = z.object({
   enable_model: FeatureFlagValue.optional(),
   enable_file_upload: FeatureFlagValue.optional(),
   enable_lark_tools: FeatureFlagValue.optional(),
+  show_lark_search_filter_sort: FeatureFlagValue.optional(),
+  show_lark_search_filter_owner: FeatureFlagValue.optional(),
+  show_lark_search_filter_chat: FeatureFlagValue.optional(),
+  show_lark_search_filter_wiki: FeatureFlagValue.optional(),
+  show_lark_search_filter_format: FeatureFlagValue.optional(),
+  show_upload_file: FeatureFlagValue.optional(),
+  show_upload_lark: FeatureFlagValue.optional(),
+  show_upload_image: FeatureFlagValue.optional(),
+  show_upload_folder: FeatureFlagValue.optional(),
 
   // internal flag
   cloud_promotion: FeatureFlagValue.optional(),
@@ -71,6 +80,12 @@ export const FeatureFlagsSchema = z.object({
   home_suggestion: FeatureFlagValue.optional(),
   home_profile: FeatureFlagValue.optional(),
   show_home_topic_history: FeatureFlagValue.optional(),
+  show_message_share: FeatureFlagValue.optional(),
+  show_message_action_menu: FeatureFlagValue.optional(),
+  show_chat_share: FeatureFlagValue.optional(),
+  show_chat_more_menu: FeatureFlagValue.optional(),
+  enable_view_more_upload_file: FeatureFlagValue.optional(),
+  show_message_edit: FeatureFlagValue.optional(),
 });
 
 export type IFeatureFlags = z.infer<typeof FeatureFlagsSchema>;
@@ -123,6 +138,15 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   enable_model: true,
   enable_file_upload: true,
   enable_lark_tools: true,
+  show_lark_search_filter_sort: true,
+  show_lark_search_filter_owner: false,
+  show_lark_search_filter_chat: false,
+  show_lark_search_filter_wiki: false,
+  show_lark_search_filter_format: false,
+  show_upload_file: true,
+  show_upload_lark: true,
+  show_upload_image: false,
+  show_upload_folder: false,
 
   cloud_promotion: false,
 
@@ -154,6 +178,12 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   home_suggestion: false,
   home_profile: false,
   show_home_topic_history: true,
+  show_message_share: false,
+  show_message_action_menu: false,
+  show_chat_share: false,
+  show_chat_more_menu: false,
+  enable_view_more_upload_file: false,
+  show_message_edit: false,
 };
 
 export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string) => {
@@ -187,6 +217,15 @@ export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string
     enableModel: evaluateFeatureFlag(config.enable_model, userId),
     enableFileUpload: evaluateFeatureFlag(config.enable_file_upload, userId),
     enableLarkTools: evaluateFeatureFlag(config.enable_lark_tools, userId),
+    showLarkSearchFilterSort: evaluateFeatureFlag(config.show_lark_search_filter_sort, userId),
+    showLarkSearchFilterOwner: evaluateFeatureFlag(config.show_lark_search_filter_owner, userId),
+    showLarkSearchFilterChat: evaluateFeatureFlag(config.show_lark_search_filter_chat, userId),
+    showLarkSearchFilterWiki: evaluateFeatureFlag(config.show_lark_search_filter_wiki, userId),
+    showLarkSearchFilterFormat: evaluateFeatureFlag(config.show_lark_search_filter_format, userId),
+    showUploadFile: evaluateFeatureFlag(config.show_upload_file, userId),
+    showUploadLark: evaluateFeatureFlag(config.show_upload_lark, userId),
+    showUploadImage: evaluateFeatureFlag(config.show_upload_image, userId),
+    showUploadFolder: evaluateFeatureFlag(config.show_upload_folder, userId),
 
     showCloudPromotion: evaluateFeatureFlag(config.cloud_promotion, userId),
 
@@ -214,6 +253,12 @@ export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string
     showHomeSuggestion: evaluateFeatureFlag(config.home_suggestion, userId),
     showHomeTopicHistory: evaluateFeatureFlag(config.show_home_topic_history, userId),
     showHomeProfile: evaluateFeatureFlag(config.home_profile, userId),
+    showMessageShare: evaluateFeatureFlag(config.show_message_share, userId),
+    showMessageActionMenu: evaluateFeatureFlag(config.show_message_action_menu, userId),
+    showChatShare: evaluateFeatureFlag(config.show_chat_share, userId),
+    showChatMoreMenu: evaluateFeatureFlag(config.show_chat_more_menu, userId),
+    enableViewMoreUploadFile: evaluateFeatureFlag(config.enable_view_more_upload_file, userId),
+    showMessageEdit: evaluateFeatureFlag(config.show_message_edit, userId),
   };
 };
 

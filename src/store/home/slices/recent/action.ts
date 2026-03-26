@@ -12,7 +12,7 @@ import { setNamespace } from '@/utils/storeDebug';
 
 const n = setNamespace('recent');
 
-const FETCH_RECENT_TOPICS_KEY = 'fetchRecentTopics';
+export const FETCH_RECENT_TOPICS_KEY = 'fetchRecentTopics';
 const FETCH_RECENT_RESOURCES_KEY = 'fetchRecentResources';
 const FETCH_RECENT_PAGES_KEY = 'fetchRecentPages';
 

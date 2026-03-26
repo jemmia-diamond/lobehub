@@ -148,7 +148,7 @@ export default {
   'historySummary': 'Historical Message Summary',
   'inactive': 'Inactive',
   'inbox.desc': 'Collaborate in one Workspace and move ideas into outcomes.',
-  'inbox.title': 'Lobe AI',
+  'inbox.title': 'Trợ lý JemX',
   'input.addAi': 'Add an AI message',
   'input.addUser': 'Add a user message',
   'input.disclaimer': 'Agents can make mistakes. Use your judgment for critical info.',
@@ -333,6 +333,9 @@ export default {
   'lark.typeToSearch': 'Type to search documents...',
   'lark.untitledDoc': 'Untitled Document',
   'larkSelectAction': 'Choose directly from Lark',
+  'jemmia.model.flash': 'Think Deeply',
+  'jemmia.model.lite': 'Quick Work',
+  'jemmia.model.pro': 'Expert',
   'sendPlaceholder': 'Enter your request or drag and drop files here...',
   'sessionGroup.config': 'Category Management',
   'sessionGroup.confirmRemoveGroupAlert':
@@ -419,7 +422,7 @@ export default {
   'sharePage.error.unauthorized.subtitle': 'Please sign in to view this shared topic.',
   'sharePage.error.unauthorized.title': 'Sign In Required',
   'sharePageDisclaimer':
-    'This content is shared by a user and does not represent the views of LobeHub. LobeHub is not responsible for any consequences arising from this shared content.',
+    'This content is shared by a user and does not represent the views of JemOS. JemOS is not responsible for any consequences arising from this shared content.',
   'stt.action': 'Voice Input',
   'stt.loading': 'Recognizing...',
   'stt.prettifying': 'Polishing...',

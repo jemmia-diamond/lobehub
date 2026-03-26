@@ -3,6 +3,8 @@ import type { ActionIconGroupEvent, ActionIconGroupItemType } from '@lobehub/ui'
 import { ActionIconGroup, createRawModal, Flexbox } from '@lobehub/ui';
 import { memo, useCallback, useMemo } from 'react';
 
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
+
 import { ReactionPicker } from '../../../components/Reaction';
 import ShareMessageModal, { type ShareModalProps } from '../../../components/ShareMessageModal';
 import {
@@ -108,23 +110,56 @@ const WithContentId = memo<GroupActionsProps>(({ actionsConfig, id, data, conten
   // Get collapse/expand action based on current state
   const collapseAction = isCollapsed ? defaultActions.expand : defaultActions.collapse;
 
-  // Use external config if provided, otherwise use defaults
-  const barItems =
-    actionsConfig?.bar ??
-    (hasTools
-      ? [defaultActions.delAndRegenerate, defaultActions.copy]
-      : [defaultActions.edit, defaultActions.copy]);
+  const { showMessageShare, showMessageActionMenu, showMessageEdit } =
+    useServerConfigStore(featureFlagsSelectors);
 
-  const menuItems = actionsConfig?.menu ?? [
+  const barItems = useMemo(
+    () =>
+      actionsConfig?.bar ??
+      (hasTools
+        ? [defaultActions.delAndRegenerate, defaultActions.copy]
+        : [...(showMessageEdit ? [defaultActions.edit] : []), defaultActions.copy]),
+    [
+      actionsConfig?.bar,
+      hasTools,
+      defaultActions.delAndRegenerate,
+      defaultActions.copy,
+      defaultActions.edit,
+      showMessageEdit,
+    ],
+  );
+
+  const extraMenuItems = useMemo(() => {
+    if (!actionsConfig?.extraMenuActions) return [];
+    return actionsConfig.extraMenuActions
+      .map((factory) => factory(id))
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+  }, [actionsConfig?.extraMenuActions, id]);
+
+  const menuItems = useMemo(() => {
+    const base = actionsConfig?.menu ?? [
+      ...(showMessageEdit ? [defaultActions.edit] : []),
+      defaultActions.copy,
+      collapseAction,
+      defaultActions.divider,
+      ...(showMessageShare ? [defaultActions.share, defaultActions.divider] : []),
+      defaultActions.regenerate,
+      defaultActions.del,
+    ];
+    return [...base, ...extraMenuItems];
+  }, [
+    actionsConfig?.menu,
     defaultActions.edit,
     defaultActions.copy,
     collapseAction,
     defaultActions.divider,
     defaultActions.share,
-    defaultActions.divider,
     defaultActions.regenerate,
     defaultActions.del,
-  ];
+    extraMenuItems,
+    showMessageShare,
+    showMessageEdit,
+  ]);
 
   // Strip handleClick for DOM safety
   const items = useMemo(
@@ -166,7 +201,11 @@ const WithContentId = memo<GroupActionsProps>(({ actionsConfig, id, data, conten
   return (
     <Flexbox horizontal align={'center'} gap={8}>
       <ReactionPicker messageId={id} />
-      <ActionIconGroup items={items} menu={menu} onActionClick={handleAction} />
+      <ActionIconGroup
+        items={items}
+        menu={showMessageActionMenu ? menu : undefined}
+        onActionClick={handleAction}
+      />
     </Flexbox>
   );
 });
@@ -184,11 +223,20 @@ const WithoutContentId = memo<Omit<GroupActionsProps, 'contentBlock' | 'contentI
     });
 
     // Use external config if provided, otherwise use defaults
-    const barItems = actionsConfig?.bar ?? [
-      defaultActions.continueGeneration,
-      defaultActions.delAndRegenerate,
-      defaultActions.del,
-    ];
+    const barItems = useMemo(
+      () =>
+        actionsConfig?.bar ?? [
+          defaultActions.continueGeneration,
+          defaultActions.delAndRegenerate,
+          defaultActions.del,
+        ],
+      [
+        actionsConfig?.bar,
+        defaultActions.continueGeneration,
+        defaultActions.delAndRegenerate,
+        defaultActions.del,
+      ],
+    );
 
     // Strip handleClick for DOM safety
     const items = useMemo(() => barItems.map(stripHandleClick), [barItems]);
