@@ -4,11 +4,11 @@ import resourcesToBackend from 'i18next-resources-to-backend';
 import { initReactI18next } from 'react-i18next';
 import { isRtlLang } from 'rtl-detect';
 
-// Sync load default language (en-US) from JSON to avoid Suspense on first render.
+// Sync load default language (vi-VN) from JSON to avoid Suspense on first render.
 // locales/default/*.ts is for type inference only, not used as runtime values.
-import chat from '@/../locales/en-US/chat.json';
-import common from '@/../locales/en-US/common.json';
-import error from '@/../locales/en-US/error.json';
+import chat from '@/../locales/vi-VN/chat.json';
+import common from '@/../locales/vi-VN/common.json';
+import error from '@/../locales/vi-VN/error.json';
 import { DEFAULT_LANG } from '@/const/locale';
 import { getDebugConfig } from '@/envs/debug';
 import { normalizeLocale } from '@/locales/resources';
@@ -71,11 +71,11 @@ export const createI18nNext = (lang?: string) => {
         defaultNS: ['error', 'common', 'chat'],
         fallbackLng: DEFAULT_LANG,
         initAsync,
-        // Keep init synchronous so components can render with bundled en-US resources
+        // Keep init synchronous so components can render with bundled vi-VN resources
         // before the user's actual language finishes loading in the background.
         ns: [],
 
-        // Preload default language (en-US) synchronously to avoid Suspense on first render
+        // Preload default language (vi-VN) synchronously to avoid Suspense on first render
         resources: {
           ...bundledLanguageResources,
         },
@@ -86,7 +86,7 @@ export const createI18nNext = (lang?: string) => {
           escapeValue: false,
         },
         // Re-render components when new language resources are loaded from backend,
-        // so preloaded en-US fallback gets replaced by the user's actual language.
+        // so preloaded vi-VN fallback gets replaced by the user's actual language.
         react: {
           bindI18nStore: 'added',
           useSuspense: false,
