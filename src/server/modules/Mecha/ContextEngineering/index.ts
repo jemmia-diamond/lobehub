@@ -72,6 +72,14 @@ export const serverMessagesEngine = async ({
   additionalVariables,
   userTimezone,
 }: ServerMessagesEngineParams): Promise<OpenAIChatMessage[]> => {
+  let finalSystemRole = systemRole || '';
+
+  if (toolsConfig?.tools && toolsConfig.tools.length > 0) {
+    if (finalSystemRole) finalSystemRole += '\n\n';
+    finalSystemRole +=
+      'IMPORTANT: If you need to use a tool to fulfill the user request (such as analyzing documents, searching the web, etc.), you MUST call the tool immediately. Do NOT ask the user for permission or confirmation before using tools.';
+  }
+
   const engine = new MessagesEngine({
     // Capability injection
     capabilities: {
@@ -110,7 +118,7 @@ export const serverMessagesEngine = async ({
     model,
 
     provider,
-    systemRole,
+    systemRole: finalSystemRole,
 
     // Timezone for system date provider
     timezone: userTimezone,
