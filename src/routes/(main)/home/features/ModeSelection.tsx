@@ -73,21 +73,21 @@ const MODES: {
 }[] = [
   {
     key: 'fast',
-    icon: '⚡',
+    icon: 'bolt',
     titleKey: 'modeSelection.fast.title',
     subtitleKey: 'modeSelection.fast.subtitle',
     descKey: 'modeSelection.fast.desc',
   },
   {
     key: 'deep',
-    icon: '🤔',
+    icon: 'psychology',
     titleKey: 'modeSelection.deep.title',
     subtitleKey: 'modeSelection.deep.subtitle',
     descKey: 'modeSelection.deep.desc',
   },
   {
     key: 'expert',
-    icon: '🎓',
+    icon: 'school',
     titleKey: 'modeSelection.expert.title',
     subtitleKey: 'modeSelection.expert.subtitle',
     descKey: 'modeSelection.expert.desc',
@@ -209,10 +209,12 @@ const ModeSelection = memo<ModeSelectionProps>(({ activeMode = 'deep', onChangeM
                   height: 44,
                   borderRadius: 12,
                   background: '#f3f4f6',
-                  fontSize: 22,
+                  color: '#1d4ed8',
                 }}
               >
-                {mode.icon}
+                <span className="material-symbols-outlined" style={{ fontSize: 24 }}>
+                  {mode.icon}
+                </span>
               </Flexbox>
               <Flexbox gap={2}>
                 <Text strong style={{ fontSize: 16 }}>

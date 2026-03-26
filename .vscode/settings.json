@@ -35,7 +35,6 @@
     "locales/pt-BR/**": true,
     "locales/ru-RU/**": true,
     "locales/tr-TR/**": true,
-    "locales/vi-VN/**": true,
     "locales/zh-TW/**": true
   },
   "stylelint.validate": [
