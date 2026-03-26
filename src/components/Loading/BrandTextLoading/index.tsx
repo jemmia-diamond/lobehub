@@ -1,9 +1,23 @@
-import { BrandLoading, LobeHubText } from '@lobehub/ui/brand';
+import { BrandLoading } from '@lobehub/ui/brand';
 
 import { isCustomBranding } from '@/const/version';
 
 import CircleLoading from '../CircleLoading';
 import styles from './index.module.css';
+
+const JemOSLogo = () => (
+  <span
+    style={{
+      color: '#1D4ED8',
+      fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+      fontSize: 32,
+      fontWeight: 800,
+      letterSpacing: '-0.05em',
+    }}
+  >
+    JemOS
+  </span>
+);
 
 interface BrandTextLoadingProps {
   debugId: string;
@@ -22,7 +36,7 @@ const BrandTextLoading = ({ debugId }: BrandTextLoadingProps) => {
   return (
     <div className={styles.container}>
       <div aria-label="Loading" className={styles.brand} role="status">
-        <BrandLoading size={40} text={LobeHubText} />
+        <BrandLoading size={40} text={JemOSLogo} />
       </div>
       {showDebug && (
         <div className={styles.debug}>
