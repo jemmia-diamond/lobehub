@@ -12,6 +12,7 @@ import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors';
 import { useHomeStore } from '@/store/home';
 import { homeAgentListSelectors } from '@/store/home/selectors';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 import { useAgentId } from '../hooks/useAgentId';
 import { useChatInputStore } from '../store';
@@ -39,8 +40,11 @@ export const useMentionCategories = (): MentionCategory[] => {
   const externalMentionItems = useChatInputStore((s) => s.mentionItems);
   const isGroupChat = !!externalMentionItems;
 
+  const enableMentionEmployee = useServerConfigStore(featureFlagsSelectors).enableMentionEmployee;
+  const enableMentionDoc = useServerConfigStore(featureFlagsSelectors).enableMentionDoc;
+
   const { data: defaultLarkUsers } = useSWR(
-    'default-lark-users',
+    enableMentionEmployee ? 'default-lark-users' : null,
     async () => {
       const VIETNAMESE_INITIALS = [
         'a',
@@ -93,7 +97,7 @@ export const useMentionCategories = (): MentionCategory[] => {
   );
 
   const { data: defaultLarkDocs } = useSWR(
-    'default-lark-docs',
+    enableMentionDoc ? 'default-lark-docs' : null,
     async () => {
       const VIETNAMESE_INITIALS = ['a', 'b', 'c', 'd', 'đ', 'h', 'l', 'm', 'n', 'p', 's', 't', 'v'];
       const randomQuery =
@@ -172,31 +176,35 @@ export const useMentionCategories = (): MentionCategory[] => {
     }
 
     // --- Lark Documents ---
-    const docItems = (defaultLarkDocs || [])
-      .slice(0, 4)
-      .map((d: any) => mapLarkDocToMentionItem(d));
+    if (enableMentionDoc) {
+      const docItems = (defaultLarkDocs || [])
+        .slice(0, 4)
+        .map((d: any) => mapLarkDocToMentionItem(d));
 
-    if (docItems.length > 0) {
-      categories.push({
-        id: 'lark-doc',
-        icon: <Icon icon={FileText} size={16} />,
-        items: docItems,
-        label: t('chat:mention.larkDocs', { defaultValue: 'TÀI LIỆU GẦN ĐÂY' }),
-      });
+      if (docItems.length > 0) {
+        categories.push({
+          id: 'lark-doc',
+          icon: <Icon icon={FileText} size={16} />,
+          items: docItems,
+          label: t('chat:mention.larkDocs', { defaultValue: 'TÀI LIỆU GẦN ĐÂY' }),
+        });
+      }
     }
 
     // --- Lark Users ---
-    const userItems = (defaultLarkUsers || [])
-      .slice(0, 4)
-      .map((u: any) => mapLarkUserToMentionItem(u, t));
+    if (enableMentionEmployee) {
+      const userItems = (defaultLarkUsers || [])
+        .slice(0, 4)
+        .map((u: any) => mapLarkUserToMentionItem(u, t));
 
-    if (userItems.length > 0) {
-      categories.push({
-        id: 'lark-user',
-        icon: <Icon icon={User} size={16} />,
-        items: userItems,
-        label: t('chat:mention.larkUsers', { defaultValue: 'NGƯỜI TƯƠNG TÁC GẦN ĐÂY' }),
-      });
+      if (userItems.length > 0) {
+        categories.push({
+          id: 'lark-user',
+          icon: <Icon icon={User} size={16} />,
+          items: userItems,
+          label: t('chat:mention.larkUsers', { defaultValue: 'NGƯỜI TƯƠNG TÁC GẦN ĐÂY' }),
+        });
+      }
     }
 
     // --- Topics ---
@@ -238,6 +246,8 @@ export const useMentionCategories = (): MentionCategory[] => {
     activeTopicId,
     isGroupChat,
     externalMentionItems,
+    enableMentionEmployee,
+    enableMentionDoc,
     defaultLarkUsers,
     defaultLarkDocs,
     t,
