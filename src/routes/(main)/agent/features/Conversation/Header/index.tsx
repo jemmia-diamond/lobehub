@@ -5,12 +5,15 @@ import { cssVar } from 'antd-style';
 import { memo } from 'react';
 
 import NavHeader from '@/features/NavHeader';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 import HeaderActions from './HeaderActions';
 import ShareButton from './ShareButton';
 import Tags from './Tags';
 
 const Header = memo(() => {
+  const { showChatShare, showChatMoreMenu } = useServerConfigStore(featureFlagsSelectors);
+
   return (
     <NavHeader
       left={
@@ -20,8 +23,8 @@ const Header = memo(() => {
       }
       right={
         <Flexbox horizontal align={'center'} style={{ backgroundColor: cssVar.colorBgContainer }}>
-          <ShareButton />
-          <HeaderActions />
+          {showChatShare && <ShareButton />}
+          {showChatMoreMenu && <HeaderActions />}
         </Flexbox>
       }
     />

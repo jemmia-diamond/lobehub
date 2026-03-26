@@ -29,7 +29,7 @@ const JemXLogo = memo(() => {
           textTransform: 'uppercase',
         }}
       >
-        Ai trên đầu ngón tay
+        AI TRÊN ĐẦU NGÓN TAY
       </Text>
     </Flexbox>
   );

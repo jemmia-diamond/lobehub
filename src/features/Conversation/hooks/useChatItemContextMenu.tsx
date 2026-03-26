@@ -12,6 +12,7 @@ import { useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { MSG_CONTENT_CLASSNAME } from '@/features/Conversation/ChatItem/components/MessageContent';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useSessionStore } from '@/store/session';
 import { sessionSelectors } from '@/store/session/selectors';
 import { useUserStore } from '@/store/user';
@@ -109,6 +110,8 @@ export const useChatItemContextMenu = ({
     [id, storeApi],
   );
 
+  const { showMessageShare, showMessageEdit } = useServerConfigStore(featureFlagsSelectors);
+
   const menuItems = useMemo<MenuItem[]>(() => {
     if (!role) return [];
 
@@ -133,21 +136,16 @@ export const useChatItemContextMenu = ({
       }
 
       const collapseAction = isCollapsed ? expand : collapse;
-      const list: MenuItem[] = [edit, copy, collapseAction];
+      const list: MenuItem[] = [showMessageEdit && edit, copy, collapseAction].filter(
+        Boolean,
+      ) as MenuItem[];
 
       if (!inThread && !isGroupSession && isDevMode) list.push(branching);
 
-      list.push(
-        divider,
-        tts,
-        translate,
-        divider,
-        share,
-        divider,
-        regenerate,
-        delAndRegenerate,
-        del,
-      );
+      if (showMessageShare) {
+        list.push(divider, share);
+      }
+      list.push(divider, regenerate, delAndRegenerate, del);
 
       return list.filter(Boolean) as MenuItem[];
     }
@@ -158,22 +156,21 @@ export const useChatItemContextMenu = ({
       }
 
       const collapseAction = isCollapsed ? expand : collapse;
-      const list: MenuItem[] = [
-        edit,
-        copy,
-        collapseAction,
-        divider,
-        share,
-        divider,
-        regenerate,
-        del,
-      ];
+      const list: MenuItem[] = [showMessageEdit && edit, copy, collapseAction, divider].filter(
+        Boolean,
+      ) as MenuItem[];
+
+      if (showMessageShare) {
+        list.push(share, divider);
+      }
+
+      list.push(regenerate, del);
 
       return list.filter(Boolean) as MenuItem[];
     }
 
     if (role === 'user') {
-      const list: MenuItem[] = [edit, copy];
+      const list: MenuItem[] = [showMessageEdit && edit, copy].filter(Boolean) as MenuItem[];
 
       if (!inThread && isDevMode) list.push(branching);
 
@@ -183,7 +180,17 @@ export const useChatItemContextMenu = ({
     }
 
     return [];
-  }, [actionsBar, error, inThread, isCollapsed, isDevMode, isGroupSession, role]);
+  }, [
+    actionsBar,
+    error,
+    inThread,
+    isCollapsed,
+    isDevMode,
+    isGroupSession,
+    role,
+    showMessageShare,
+    showMessageEdit,
+  ]);
 
   const handleShare = useCallback(() => {
     const item = getMessage();

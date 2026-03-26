@@ -1,6 +1,8 @@
 import { Avatar as A } from '@lobehub/ui';
-import { type CSSProperties } from 'react';
-import { memo } from 'react';
+import { type CSSProperties, memo } from 'react';
+
+import JemosAvatar from '@/components/JemosAvatar';
+import { DEFAULT_INBOX_AVATAR } from '@/const/meta';
 
 import { type ChatItemProps } from '../type';
 
@@ -16,6 +18,10 @@ export interface AvatarProps {
 
 const Avatar = memo<AvatarProps>(
   ({ loading, avatar, unoptimized, onClick, size = 28, style, alt }) => {
+    if (avatar.avatar === DEFAULT_INBOX_AVATAR) {
+      return <JemosAvatar size={size} />;
+    }
+
     return (
       <A
         alt={alt || avatar.title}

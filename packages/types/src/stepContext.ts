@@ -10,6 +10,8 @@
  * 3. Replaces the deprecated pluginState passing pattern
  */
 
+import type { ChatContextContent } from './message/ui/params';
+
 /** Status of a todo item */
 export type StepContextTodoStatus = 'todo' | 'processing' | 'completed';
 
@@ -159,6 +161,10 @@ export interface RuntimeMentionedAgent {
  * Remains constant throughout the operation lifecycle.
  */
 export interface RuntimeInitialContext {
+  /**
+   * Additional contextual snippets (e.g., text selections, Lark Docs) attached to the request.
+   */
+  contexts?: ChatContextContent[];
   /**
    * Agents explicitly @mentioned by the user in the input editor.
    * When present in a non-group conversation, the current agent acts as

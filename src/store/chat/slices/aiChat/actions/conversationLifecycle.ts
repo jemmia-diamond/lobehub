@@ -107,6 +107,7 @@ export class ConversationLifecycleActionImpl {
     messages: inputMessages,
     parentId: inputParentId,
     pageSelections,
+    contexts,
   }: SendMessageWithContextParams): Promise<SendMessageResult | undefined> => {
     let editorData = inputEditorData;
     const { internal_execAgentRuntime, mainInputEditor } = this.#get();
@@ -368,6 +369,9 @@ export class ConversationLifecycleActionImpl {
 
         // Record the created topicId in metadata (not context)
         this.#get().updateOperationMetadata(operationId, { createdTopicId: data.topicId });
+
+        // Refresh the sidebar topic list
+        await this.#get().refreshTopic();
       } else if (operationContext.topicId) {
         // Optimistically update topic's updatedAt so sidebar re-groups immediately
         this.#get().internal_dispatchTopic({
@@ -500,7 +504,10 @@ export class ConversationLifecycleActionImpl {
             : selectedTools;
 
         const hasInitialContext =
-          effectiveSelectedTools.length > 0 || selectedSkills.length > 0 || hasMentionedAgents;
+          effectiveSelectedTools.length > 0 ||
+          selectedSkills.length > 0 ||
+          hasMentionedAgents ||
+          (contexts && contexts.length > 0);
 
         const agentRuntimeInitialContext = hasInitialContext
           ? {
@@ -512,6 +519,7 @@ export class ConversationLifecycleActionImpl {
                 // Only inject mentionedAgents in non-group context to avoid
                 // group @member mentions (including ALL_MEMBERS) leaking into agent-management
                 ...(hasMentionedAgents ? { mentionedAgents } : undefined),
+                ...(contexts && contexts.length > 0 ? { contexts } : undefined),
               },
               phase: 'init' as const,
             }

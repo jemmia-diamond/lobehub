@@ -15,8 +15,9 @@ import { memo, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
 
+import JemosAvatar from '@/components/JemosAvatar';
 import Menu from '@/components/Menu';
-import { DEFAULT_AVATAR, DEFAULT_INBOX_AVATAR } from '@/const/meta';
+import { DEFAULT_AVATAR } from '@/const/meta';
 import { AgentSettings as Settings } from '@/features/AgentSetting';
 import { useAgentStore } from '@/store/agent';
 import { agentSelectors, builtinAgentSelectors } from '@/store/agent/selectors';
@@ -79,7 +80,9 @@ const Content = memo(() => {
     [t, isInbox],
   );
 
-  const displayTitle = isInbox ? 'Lobe AI' : meta.title || t('defaultSession', { ns: 'common' });
+  const displayTitle = isInbox
+    ? 'Trợ lý JemX'
+    : meta.title || t('defaultSession', { ns: 'common' });
 
   return (
     <Flexbox
@@ -111,12 +114,16 @@ const Content = memo(() => {
             overflow: 'hidden',
           }}
         >
-          <Avatar
-            avatar={isInbox ? DEFAULT_INBOX_AVATAR : meta.avatar || DEFAULT_AVATAR}
-            background={meta.backgroundColor || undefined}
-            shape={'square'}
-            size={28}
-          />
+          {isInbox ? (
+            <JemosAvatar size={28} />
+          ) : (
+            <Avatar
+              avatar={meta.avatar || DEFAULT_AVATAR}
+              background={meta.backgroundColor || undefined}
+              shape={'square'}
+              size={28}
+            />
+          )}
           <Text ellipsis weight={500}>
             {displayTitle}
           </Text>

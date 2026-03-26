@@ -25,6 +25,7 @@ import {
   AgentBuilderContextInjector,
   AgentDocumentInjector,
   AgentManagementContextInjector,
+  ContextsInjector,
   DiscordContextProvider,
   EvalContextSystemInjector,
   ForceFinishSummaryInjector,
@@ -310,6 +311,12 @@ export class MessagesEngine {
 
       // 14. Selected skill injection (ephemeral user-selected slash skills for this request)
       ...(hasSelectedSkills ? [new SelectedSkillInjector({ selectedSkills })] : []),
+
+      // 14.5. Additional contexts injection (Lark Docs, etc.)
+      new ContextsInjector({
+        contexts: initialContext?.contexts,
+        enabled: true,
+      }),
 
       // 15. Page Selections injection (inject user-selected text into each user message that has them)
       new PageSelectionsInjector({ enabled: isPageEditorEnabled }),

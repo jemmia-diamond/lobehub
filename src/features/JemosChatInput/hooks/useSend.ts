@@ -1,4 +1,3 @@
-import { SESSION_CHAT_URL } from '@lobechat/const';
 import { useCallback } from 'react';
 
 import { useQueryRoute } from '@/hooks/useQueryRoute';
@@ -10,9 +9,11 @@ import { useHomeStore } from '@/store/home';
 
 interface UseSendProps {
   agentId?: string;
+  threadId?: string | null;
+  topicId?: string | null;
 }
 
-export const useSend = ({ agentId }: UseSendProps = {}) => {
+export const useSend = ({ agentId, threadId, topicId }: UseSendProps = {}) => {
   const router = useQueryRoute();
   const inboxAgentId = useAgentStore(builtinAgentSelectors.inboxAgentId);
   const sendMessage = useChatStore((s) => s.sendMessage);
@@ -36,7 +37,7 @@ export const useSend = ({ agentId }: UseSendProps = {}) => {
       // If we have an explicit agentId (Agent route), just send the message to that agent
       if (agentId) {
         await sendMessage({
-          context: { agentId },
+          context: { agentId, threadId: threadId ?? undefined, topicId: topicId ?? undefined },
           contexts: contextList,
           files: fileList,
           message: inputMessage,
@@ -71,13 +72,15 @@ export const useSend = ({ agentId }: UseSendProps = {}) => {
           if (!inboxAgentId) return;
 
           await sendMessage({
-            context: { agentId: inboxAgentId },
+            context: {
+              agentId: inboxAgentId,
+              threadId: threadId ?? undefined,
+              topicId: topicId ?? undefined,
+            },
             contexts: contextList,
             files: fileList,
             message: inputMessage,
           });
-
-          router.push(SESSION_CHAT_URL(inboxAgentId, false));
         }
       }
     } finally {
@@ -90,6 +93,8 @@ export const useSend = ({ agentId }: UseSendProps = {}) => {
     agentId,
     inboxAgentId,
     sendMessage,
+    threadId,
+    topicId,
     clearChatContextSelections,
     clearChatUploadFileList,
     router,

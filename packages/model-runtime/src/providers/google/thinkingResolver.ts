@@ -63,15 +63,15 @@ const THINKING_BUDGET_CONSTRAINTS = {
 const MODEL_CATEGORY_PATTERNS: Record<Exclude<GoogleThinkingModelCategory, 'other'>, RegExp[]> = {
   robotics: [/robotics-er-1\.5-preview/i],
   flashLite: [
-    /gemini-\d+(?:\.\d+)?-flash-lite/i, // gemini-2.5-flash-lite, gemini-3.0-flash-lite
+    /gemini-[2-9]\d*(?:\.\d+)?-flash-lite/i, // gemini-2.5-flash-lite, gemini-3.0-flash-lite
     /flash-lite-latest/i,
   ],
   flash: [
-    /gemini-\d+(?:\.\d+)?-flash(?!-lite)/i, // gemini-2.5-flash, gemini-3.0-flash (but not flash-lite)
+    /gemini-[2-9]\d*(?:\.\d+)?-flash(?!-lite)/i, // gemini-2.5-flash, gemini-3.0-flash (but not flash-lite)
     /flash-latest/i,
   ],
   pro: [
-    /gemini-\d+(?:\.\d+)?-pro/i, // gemini-2.5-pro, gemini-3.0-pro, gemini-3-pro
+    /gemini-[2-9]\d*(?:\.\d+)?-pro/i, // gemini-2.5-pro, gemini-3.0-pro, gemini-3-pro
     /pro-latest/i,
   ],
 };
@@ -81,9 +81,9 @@ const MODEL_CATEGORY_PATTERNS: Record<Exclude<GoogleThinkingModelCategory, 'othe
  * These models will have includeThoughts=true even without explicit thinkingBudget
  */
 const THINKING_ENABLED_PATTERNS: RegExp[] = [
-  /gemini-\d+(?:\.\d+)?-pro(?!-image)/i, // gemini-2.5-pro, gemini-3-pro (but not pro-image, handled separately)
-  /gemini-\d+(?:\.\d+)?-flash(?!-lite)/i, // gemini-2.5-flash, gemini-3-flash (but not flash-lite)
-  /gemini-\d+-pro-image/i, // gemini-3-pro-image-preview
+  /gemini-[2-9]\d*(?:\.\d+)?-pro(?!-image)/i, // gemini-2.5-pro, gemini-3-pro (but not pro-image, handled separately)
+  /gemini-[2-9]\d*(?:\.\d+)?-flash(?!-lite)/i, // gemini-2.5-flash, gemini-3-flash (but not flash-lite)
+  /gemini-[2-9]\d*-pro-image/i, // gemini-3-pro-image-preview
   /nano-banana-pro/i,
   /thinking/i, // Any model with "thinking" in the name
 ];
@@ -273,7 +273,7 @@ const shouldIncludeThoughts = (
 export const resolveGoogleThinkingConfig = (
   model: string,
   options: GoogleThinkingResolverOptions = {},
-): ResolvedGoogleThinkingConfig => {
+): ResolvedGoogleThinkingConfig | undefined => {
   const { thinkingBudget, thinkingLevel } = options;
 
   const isGemini3 = isGemini3Model(model);
@@ -307,6 +307,8 @@ export const resolveGoogleThinkingConfig = (
 
     // Neither thinkingLevel nor thinkingBudget set - let API use default
     const includeThoughts = shouldIncludeThoughts(model, options, undefined);
+    if (includeThoughts === undefined) return undefined;
+
     return {
       includeThoughts,
       thinkingBudget: undefined,
@@ -316,6 +318,9 @@ export const resolveGoogleThinkingConfig = (
   // For Gemini 2.x and other models: use thinkingBudget (with defaults)
   const resolvedBudget = resolveGoogleThinkingBudget(model, thinkingBudget);
   const includeThoughts = shouldIncludeThoughts(model, options, resolvedBudget);
+
+  if (includeThoughts === undefined && (resolvedBudget === undefined || resolvedBudget === 0))
+    return undefined;
 
   return {
     includeThoughts,

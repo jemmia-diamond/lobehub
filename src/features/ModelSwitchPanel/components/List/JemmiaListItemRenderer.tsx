@@ -1,5 +1,10 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 
+import {
+  JEMMIA_MODEL_ICON_MAP,
+  JEMMIA_MODEL_LABEL_KEYS,
+} from '../../../ChatInput/ActionBar/Model/constants';
 import { styles } from '../../styles';
 import { type ListItem } from '../../types';
 import { menuKey } from '../../utils';
@@ -11,20 +16,15 @@ interface JemmiaListItemRendererProps {
   onModelChange: (modelId: string, providerId: string) => void;
 }
 
-const MODEL_ICON_MAP: Record<string, string> = {
-  'gemini-2.5-flash': 'psychology',
-  'gemini-2.5-flash-lite': 'bolt',
-  'gemini-2.5-pro': 'school',
-};
-
 export const JemmiaListItemRenderer = memo<JemmiaListItemRendererProps>(
   ({ activeKey, item, onModelChange, onClose }) => {
+    const { t } = useTranslation('chat');
     if (item.type !== 'provider-model-item') return null;
 
     const { model, provider } = item;
     const isActive = menuKey(provider.id, model.id) === activeKey;
 
-    const icon = MODEL_ICON_MAP[model.id] || 'psychology';
+    const icon = JEMMIA_MODEL_ICON_MAP[model.id] || 'psychology';
 
     return (
       <button
@@ -38,13 +38,7 @@ export const JemmiaListItemRenderer = memo<JemmiaListItemRendererProps>(
         <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
           {icon}
         </span>
-        <span>
-          {model.id === 'gemini-2.5-flash'
-            ? 'Nghĩ Kỹ'
-            : model.id === 'gemini-2.5-flash-lite'
-              ? 'Làm Nhanh'
-              : 'Chuyên Gia'}
-        </span>
+        <span>{t(JEMMIA_MODEL_LABEL_KEYS[model.id] as any)}</span>
 
         {isActive && (
           <span

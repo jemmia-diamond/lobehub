@@ -2,6 +2,7 @@
 export { AgentBuilderContextInjector } from './AgentBuilderContextInjector';
 export { AGENT_DOCUMENT_INJECTION_POSITIONS, AgentDocumentInjector } from './AgentDocumentInjector';
 export { AgentManagementContextInjector } from './AgentManagementContextInjector';
+export { ContextsInjector } from './ContextsInjector';
 export { DiscordContextProvider } from './DiscordContextProvider';
 export { EvalContextSystemInjector } from './EvalContextSystemInjector';
 export { ForceFinishSummaryInjector } from './ForceFinishSummaryInjector';

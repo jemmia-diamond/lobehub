@@ -14,7 +14,7 @@ export default {
   'starter.imageGeneration': 'Image Generation',
   'starter.videoGeneration': 'Video Generation',
   'starter.write': 'Write',
-  'home.footer': 'JEMOS V2.4 ARCHITECTURAL ALPHA — PROFESSIONAL AI WORKSPACE',
+  'home.footer': 'JEMOS V{{version}} ARCHITECTURAL ALPHA — PROFESSIONAL AI WORKSPACE',
   'modeSelection.title': 'Welcome to JemOS. Choose the mode that fits your task.',
   'modeSelection.fast.title': 'Fast',
   'modeSelection.fast.subtitle': 'Fast Response',
@@ -48,6 +48,6 @@ export default {
   'thinkingMode.expert.subtitle': 'Expert Level',
   'sidebar.yourAssistants': 'Your Assistants',
   'sidebar.history': 'History',
-  'sidebar.version': 'Version 1.0.4',
+  'sidebar.version': 'Version {{version}}',
   'sidebar.defaultBadge': 'DEFAULT',
 };

@@ -1,12 +1,13 @@
+import { LarkDocIdentifier } from '@lobechat/builtin-tool-lark-doc';
 import { useDebounce } from 'ahooks';
 import {
   Avatar,
   Dropdown,
   Flex,
   Input,
-  List,
   type MenuProps,
   Modal,
+  Pagination,
   Space,
   Spin,
   Tag,
@@ -18,6 +19,10 @@ import useSWR from 'swr';
 
 import { larkDocService } from '@/services/larkDoc';
 import { larkMessageService } from '@/services/larkMessage';
+import { agentSelectors } from '@/store/agent/selectors';
+import { useAgentStore } from '@/store/agent/store';
+import { useFileStore } from '@/store/file';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 interface SearchDocsModalProps {
   onClose?: () => void;
@@ -42,6 +47,13 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
   const [sortBy, setSortBy] = useState<number | undefined>(1);
   const [activeSortLabel, setActiveSortLabel] = useState<string>(() => t('lark.filter.sort'));
 
+  const {
+    showLarkSearchFilterSort,
+    showLarkSearchFilterOwner,
+    showLarkSearchFilterChat,
+    showLarkSearchFilterWiki,
+    showLarkSearchFilterFormat,
+  } = useServerConfigStore(featureFlagsSelectors);
   const [ownerIds, setOwnerIds] = useState<string[]>([]);
   const [ownerSearchQuery, setOwnerSearchQuery] = useState('');
   const debouncedOwnerQuery = useDebounce(ownerSearchQuery, { wait: 350 });
@@ -51,6 +63,9 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
   const [chatSearchQuery, setChatSearchQuery] = useState('');
   const debouncedChatQuery = useDebounce(chatSearchQuery, { wait: 350 });
   const [activeChatLabel, setActiveChatLabel] = useState<string>(() => t('lark.filter.sharedIn'));
+
+  const addChatContextSelection = useFileStore((s) => s.addChatContextSelection);
+  const toggleAgentPlugin = useAgentStore((s) => s.toggleAgentPlugin);
 
   const { data: groupsData, isLoading: isGroupsLoading } = useSWR(
     open ? ['lark-groups-search', debouncedChatQuery] : null,
@@ -113,7 +128,7 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedQuery]);
+  }, [debouncedQuery, sortBy, ownerIds, chatIds]);
 
   const { data: dataObj, isLoading } = useSWR(
     open ? ['lark-search', debouncedQuery, page, sortBy, ownerIds, chatIds] : null,
@@ -132,6 +147,12 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
       } catch {
         return { items: [] };
       }
+    },
+    {
+      dedupingInterval: 0,
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnMount: true,
     },
   );
 
@@ -195,14 +216,36 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
     });
   }, [dataObj, t]);
 
+  const handleSelect = async (item: FormattedDoc) => {
+    // 1. Add to chat context
+    addChatContextSelection({
+      content: `Lark Document ID: ${item.key}`,
+      format: 'text',
+      id: `lark-${item.key}`,
+      preview: item.title,
+      title: item.title,
+      type: 'text',
+    });
+
+    // 2. Enable Lark Doc tool if not enabled
+    const agentStore = useAgentStore.getState();
+    const currentPlugins = agentSelectors.currentAgentPlugins(agentStore);
+    if (!currentPlugins.includes(LarkDocIdentifier)) {
+      await toggleAgentPlugin(LarkDocIdentifier, true);
+    }
+
+    // 3. Close modal
+    onClose?.();
+  };
+
   const handleClose = () => {
     onClose?.();
   };
 
   const sortItems: MenuProps['items'] = [
-    { key: '3', label: t('lark.filter.viewed') || 'Đã xem gần đây' },
-    { key: '1', label: t('lark.filter.updated') || 'Được cập nhật gần đây' },
-    { key: '2', label: t('lark.filter.created') || 'Được tạo gần đây' },
+    { key: '3', label: t('lark.filter.viewed') },
+    { key: '2', label: t('lark.filter.updated') },
+    { key: '1', label: t('lark.filter.created') },
   ];
 
   const handleSortChange: MenuProps['onClick'] = ({ key, domEvent }) => {
@@ -341,197 +384,203 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
               whiteSpace: 'nowrap',
             }}
           >
-            <Dropdown menu={{ items: sortItems, onClick: handleSortChange }} trigger={['click']}>
-              <Tag
-                color={sortBy !== 1 ? '#dbeafe' : undefined}
-                style={{
-                  alignItems: 'center',
-                  borderRadius: 8,
-                  color: sortBy !== 1 ? '#1D4ED8' : undefined,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  fontSize: 12,
-                  gap: 4,
-                  padding: '4px 12px',
-                }}
-              >
-                {activeSortLabel}
-                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                  expand_more
-                </span>
-              </Tag>
-            </Dropdown>
-            <Dropdown
-              trigger={['click']}
-              dropdownRender={() => (
-                <div
+            {showLarkSearchFilterSort && (
+              <Dropdown menu={{ items: sortItems, onClick: handleSortChange }} trigger={['click']}>
+                <Tag
+                  color={sortBy !== 1 ? '#dbeafe' : undefined}
                   style={{
-                    background: '#fff',
-                    borderRadius: 12,
-                    boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
-                    width: 280,
+                    alignItems: 'center',
+                    borderRadius: 8,
+                    color: sortBy !== 1 ? '#1D4ED8' : undefined,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    fontSize: 12,
+                    gap: 4,
+                    padding: '4px 12px',
                   }}
                 >
-                  <div style={{ padding: 12 }}>
-                    <Input
-                      placeholder={
-                        t('lark.searchDocsByOwner') || 'Tìm kiếm Docs theo chủ sở hữu...'
-                      }
-                      size="small"
-                      style={{ borderRadius: 8 }}
-                      value={ownerSearchQuery}
-                      variant="filled"
-                      onChange={(e) => setOwnerSearchQuery(e.target.value)}
-                    />
-                  </div>
-                  <Spin spinning={isEmployeesLoading}>
-                    <div style={{ maxHeight: 300, overflowY: 'auto', paddingBottom: 8 }}>
-                      {(employeesData || []).map((emp: any) => (
-                        <div
-                          className="owner-item"
-                          key={emp.employee_id || emp.id}
-                          style={{
-                            alignItems: 'center',
-                            borderRadius: 8,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            gap: 12,
-                            padding: '8px 16px',
-                            transition: 'background 0.2s',
-                          }}
-                          onClick={() => handleOwnerSelect(emp)}
-                          onMouseEnter={(e) => (e.currentTarget.style.background = '#f1f5f9')}
-                          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                        >
-                          <Avatar size={32} src={emp.avatar} />
-                          <Typography.Text style={{ fontSize: 13, fontWeight: 500 }}>
-                            {getLarkName(emp.name)}
-                          </Typography.Text>
-                        </div>
-                      ))}
-                    </div>
-                  </Spin>
-                </div>
-              )}
-            >
-              <Tag
-                color={ownerIds.length > 0 ? '#dbeafe' : undefined}
-                style={{
-                  alignItems: 'center',
-                  borderRadius: 8,
-                  color: ownerIds.length > 0 ? '#1D4ED8' : undefined,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  fontSize: 12,
-                  gap: 4,
-                  padding: '4px 12px',
-                }}
-              >
-                {activeOwnerLabel}
-                {ownerIds.length > 0 ? (
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: 14 }}
-                    onClick={handleClearOwner}
-                  >
-                    close
-                  </span>
-                ) : (
+                  {activeSortLabel}
                   <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
                     expand_more
                   </span>
+                </Tag>
+              </Dropdown>
+            )}
+            {showLarkSearchFilterOwner && (
+              <Dropdown
+                trigger={['click']}
+                dropdownRender={() => (
+                  <div
+                    style={{
+                      background: '#fff',
+                      borderRadius: 12,
+                      boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+                      width: 280,
+                    }}
+                  >
+                    <div style={{ padding: 12 }}>
+                      <Input
+                        placeholder={t('lark.searchDocsByOwner')}
+                        size="small"
+                        style={{ borderRadius: 8 }}
+                        value={ownerSearchQuery}
+                        variant="filled"
+                        onChange={(e) => setOwnerSearchQuery(e.target.value)}
+                      />
+                    </div>
+                    <Spin spinning={isEmployeesLoading}>
+                      <div style={{ maxHeight: 300, overflowY: 'auto', paddingBottom: 8 }}>
+                        {(employeesData || []).map((emp: any) => (
+                          <div
+                            className="owner-item"
+                            key={emp.employee_id || emp.id}
+                            style={{
+                              alignItems: 'center',
+                              borderRadius: 8,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              gap: 12,
+                              padding: '8px 16px',
+                              transition: 'background 0.2s',
+                            }}
+                            onClick={() => handleOwnerSelect(emp)}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = '#f1f5f9')}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                          >
+                            <Avatar size={32} src={emp.avatar} />
+                            <Typography.Text style={{ fontSize: 13, fontWeight: 500 }}>
+                              {getLarkName(emp.name)}
+                            </Typography.Text>
+                          </div>
+                        ))}
+                      </div>
+                    </Spin>
+                  </div>
                 )}
-              </Tag>
-            </Dropdown>
-            <Dropdown
-              trigger={['click']}
-              dropdownRender={() => (
-                <div
+              >
+                <Tag
+                  color={ownerIds.length > 0 ? '#dbeafe' : undefined}
                   style={{
-                    background: '#fff',
-                    borderRadius: 12,
-                    boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
-                    width: 280,
+                    alignItems: 'center',
+                    borderRadius: 8,
+                    color: ownerIds.length > 0 ? '#1D4ED8' : undefined,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    fontSize: 12,
+                    gap: 4,
+                    padding: '4px 12px',
                   }}
                 >
-                  <div style={{ padding: 12 }}>
-                    <Input
-                      placeholder={t('lark.searchGroups') || 'Tìm kiếm nhóm...'}
-                      size="small"
-                      style={{ borderRadius: 8 }}
-                      value={chatSearchQuery}
-                      variant="filled"
-                      onChange={(e) => setChatSearchQuery(e.target.value)}
-                    />
-                  </div>
-                  <Spin spinning={isGroupsLoading}>
-                    <div style={{ maxHeight: 300, overflowY: 'auto', paddingBottom: 8 }}>
-                      {(groupsData || []).map((group: any) => (
-                        <div
-                          className="owner-item"
-                          key={group.chat_id}
-                          style={{
-                            alignItems: 'center',
-                            borderRadius: 8,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            gap: 12,
-                            padding: '8px 16px',
-                            transition: 'background 0.2s',
-                          }}
-                          onClick={() => handleChatSelect(group)}
-                          onMouseEnter={(e) => (e.currentTarget.style.background = '#f1f5f9')}
-                          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                        >
-                          <Avatar size={32} src={group.avatar}>
-                            {!group.avatar && (
-                              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                                groups
-                              </span>
-                            )}
-                          </Avatar>
-                          <Typography.Text style={{ fontSize: 13, fontWeight: 500 }}>
-                            {group.name}
-                          </Typography.Text>
-                        </div>
-                      ))}
-                    </div>
-                  </Spin>
-                </div>
-              )}
-            >
-              <Tag
-                color={chatIds.length > 0 ? '#dbeafe' : undefined}
-                style={{
-                  alignItems: 'center',
-                  borderRadius: 8,
-                  color: chatIds.length > 0 ? '#1D4ED8' : undefined,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  fontSize: 12,
-                  gap: 4,
-                  padding: '4px 12px',
-                }}
-              >
-                {activeChatLabel}
-                {chatIds.length > 0 ? (
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: 14 }}
-                    onClick={handleClearChat}
+                  {activeOwnerLabel}
+                  {ownerIds.length > 0 ? (
+                    <span
+                      className="material-symbols-outlined"
+                      style={{ fontSize: 14 }}
+                      onClick={handleClearOwner}
+                    >
+                      close
+                    </span>
+                  ) : (
+                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                      expand_more
+                    </span>
+                  )}
+                </Tag>
+              </Dropdown>
+            )}
+            {showLarkSearchFilterChat && (
+              <Dropdown
+                trigger={['click']}
+                dropdownRender={() => (
+                  <div
+                    style={{
+                      background: '#fff',
+                      borderRadius: 12,
+                      boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+                      width: 280,
+                    }}
                   >
-                    close
-                  </span>
-                ) : (
-                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                    expand_more
-                  </span>
+                    <div style={{ padding: 12 }}>
+                      <Input
+                        placeholder={t('lark.searchGroups')}
+                        size="small"
+                        style={{ borderRadius: 8 }}
+                        value={chatSearchQuery}
+                        variant="filled"
+                        onChange={(e) => setChatSearchQuery(e.target.value)}
+                      />
+                    </div>
+                    <Spin spinning={isGroupsLoading}>
+                      <div style={{ maxHeight: 300, overflowY: 'auto', paddingBottom: 8 }}>
+                        {(groupsData || []).map((group: any) => (
+                          <div
+                            className="owner-item"
+                            key={group.chat_id}
+                            style={{
+                              alignItems: 'center',
+                              borderRadius: 8,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              gap: 12,
+                              padding: '8px 16px',
+                              transition: 'background 0.2s',
+                            }}
+                            onClick={() => handleChatSelect(group)}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = '#f1f5f9')}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                          >
+                            <Avatar size={32} src={group.avatar}>
+                              {!group.avatar && (
+                                <span
+                                  className="material-symbols-outlined"
+                                  style={{ fontSize: 18 }}
+                                >
+                                  groups
+                                </span>
+                              )}
+                            </Avatar>
+                            <Typography.Text style={{ fontSize: 13, fontWeight: 500 }}>
+                              {group.name}
+                            </Typography.Text>
+                          </div>
+                        ))}
+                      </div>
+                    </Spin>
+                  </div>
                 )}
-              </Tag>
-            </Dropdown>
-            {[t('lark.filter.inWiki'), t('lark.filter.format')].map((label) => (
+              >
+                <Tag
+                  color={chatIds.length > 0 ? '#dbeafe' : undefined}
+                  style={{
+                    alignItems: 'center',
+                    borderRadius: 8,
+                    color: chatIds.length > 0 ? '#1D4ED8' : undefined,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    fontSize: 12,
+                    gap: 4,
+                    padding: '4px 12px',
+                  }}
+                >
+                  {activeChatLabel}
+                  {chatIds.length > 0 ? (
+                    <span
+                      className="material-symbols-outlined"
+                      style={{ fontSize: 14 }}
+                      onClick={handleClearChat}
+                    >
+                      close
+                    </span>
+                  ) : (
+                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                      expand_more
+                    </span>
+                  )}
+                </Tag>
+              </Dropdown>
+            )}
+            {showLarkSearchFilterWiki && (
               <Tag
-                key={label}
                 style={{
                   borderRadius: 8,
                   cursor: 'pointer',
@@ -539,9 +588,21 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
                   padding: '4px 12px',
                 }}
               >
-                {label}
+                {t('lark.filter.inWiki')}
               </Tag>
-            ))}
+            )}
+            {showLarkSearchFilterFormat && (
+              <Tag
+                style={{
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  padding: '4px 12px',
+                }}
+              >
+                {t('lark.filter.format')}
+              </Tag>
+            )}
           </Space>
         </Flex>
       </div>
@@ -554,141 +615,91 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
         }}
       >
         <Spin spinning={isLoading}>
-          <List
-            dataSource={formattedData}
-            locale={{ emptyText: query ? t('lark.noDocsFound') : t('lark.typeToSearch') }}
-            rowKey="key"
-            pagination={{
-              current: page,
-              onChange: (p) => setPage(p),
-              pageSize: 15,
-              showSizeChanger: false,
-              total: dataObj?.total || (dataObj?.has_more ? page * 15 + 1 : page * 15),
-            }}
-            renderItem={(item) => (
-              <List.Item
+          <Flex vertical gap={4} style={{ marginBottom: 16 }}>
+            {formattedData.length > 0 ? (
+              formattedData.map((item) => (
+                <div
+                  key={item.key}
+                  style={{
+                    borderRadius: 12,
+                    cursor: 'pointer',
+                    padding: 12,
+                    transition: 'background 0.2s',
+                  }}
+                  onClick={() => handleSelect(item)}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = '#f1f5f9')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <Flex align="center" gap={16} style={{ width: '100%' }}>
+                    <div
+                      style={{
+                        alignItems: 'center',
+                        background: item.iconBg,
+                        borderRadius: 10,
+                        display: 'flex',
+                        height: 40,
+                        justifyContent: 'center',
+                        width: 40,
+                      }}
+                    >
+                      <span
+                        className="material-symbols-outlined"
+                        style={{ color: item.iconColor, fontSize: 20 }}
+                      >
+                        {item.icon}
+                      </span>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <Typography.Text
+                        ellipsis={{ tooltip: item.title }}
+                        style={{ fontSize: 14, fontWeight: 600 }}
+                      >
+                        {item.title}
+                      </Typography.Text>
+                      <Typography.Paragraph
+                        ellipsis={{ tooltip: item.description }}
+                        style={{ fontSize: 11, marginBottom: 0, marginTop: 4, color: '#6b7280' }}
+                      >
+                        {item.description}
+                      </Typography.Paragraph>
+                    </div>
+                    {item.trailingIcon && (
+                      <span
+                        className="material-symbols-outlined"
+                        style={{ color: '#9ca3af', fontSize: 18 }}
+                      >
+                        {item.trailingIcon}
+                      </span>
+                    )}
+                  </Flex>
+                </div>
+              ))
+            ) : (
+              <div
                 style={{
-                  borderRadius: 12,
-                  cursor: 'pointer',
-                  padding: 12,
+                  color: '#9ca3af',
+                  fontSize: 14,
+                  padding: '40px 0',
+                  textAlign: 'center',
                 }}
               >
-                <Flex align="center" gap={16} style={{ width: '100%' }}>
-                  <div
-                    style={{
-                      alignItems: 'center',
-                      background: item.iconBg,
-                      borderRadius: 10,
-                      display: 'flex',
-                      height: 40,
-                      justifyContent: 'center',
-                      width: 40,
-                    }}
-                  >
-                    <span
-                      className="material-symbols-outlined"
-                      style={{ color: item.iconColor, fontSize: 20 }}
-                    >
-                      {item.icon}
-                    </span>
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <Typography.Text
-                      ellipsis={{ tooltip: item.title }}
-                      style={{ fontSize: 14, fontWeight: 600 }}
-                    >
-                      {item.title}
-                    </Typography.Text>
-                    <Typography.Paragraph
-                      ellipsis={{ tooltip: item.description }}
-                      style={{ fontSize: 11, marginBottom: 0, marginTop: 4, color: '#6b7280' }}
-                    >
-                      {item.description}
-                    </Typography.Paragraph>
-                  </div>
-                  {item.trailingIcon && (
-                    <span
-                      className="material-symbols-outlined"
-                      style={{ color: '#9ca3af', fontSize: 18 }}
-                    >
-                      {item.trailingIcon}
-                    </span>
-                  )}
-                </Flex>
-              </List.Item>
+                {query ? t('lark.noDocsFound') : t('lark.typeToSearch')}
+              </div>
             )}
-          />
+          </Flex>
+          {formattedData.length > 0 && (
+            <Flex justify="flex-end" style={{ padding: '8px 0' }}>
+              <Pagination
+                simple
+                current={page}
+                pageSize={15}
+                showSizeChanger={false}
+                total={dataObj?.total || (dataObj?.has_more ? (page + 1) * 15 : page * 15)}
+                onChange={(p) => setPage(p)}
+              />
+            </Flex>
+          )}
         </Spin>
-      </div>
-      <div
-        style={{
-          borderTop: '1px solid rgba(148,163,184,0.4)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          padding: '12px 24px',
-        }}
-      >
-        <Flex align="center" gap={4}>
-          <Typography.Text
-            style={{ cursor: 'pointer', fontSize: 11, color: '#6b7280' }}
-            onClick={handleClose}
-          >
-            {t('lark.helpAndFeedback')}
-          </Typography.Text>
-          <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#9ca3af' }}>
-            expand_more
-          </span>
-        </Flex>
-        <Flex align="center" gap={24}>
-          <Flex align="center" gap={8}>
-            <span
-              style={{
-                background: '#f3f4f6',
-                border: '1px solid #e5e7eb',
-                borderRadius: 4,
-                fontSize: 10,
-                padding: '2px 6px',
-              }}
-            >
-              ↑↓
-            </span>
-            <Typography.Text style={{ fontSize: 11, color: '#6b7280' }}>
-              {t('lark.toNavigate')}
-            </Typography.Text>
-          </Flex>
-          <Flex align="center" gap={8}>
-            <span
-              style={{
-                background: '#f3f4f6',
-                border: '1px solid #e5e7eb',
-                borderRadius: 4,
-                fontSize: 10,
-                padding: '2px 6px',
-              }}
-            >
-              ↵
-            </span>
-            <Typography.Text style={{ fontSize: 11, color: '#6b7280' }}>
-              {t('lark.toSelect')}
-            </Typography.Text>
-          </Flex>
-          <Flex align="center" gap={8}>
-            <span
-              style={{
-                background: '#f3f4f6',
-                border: '1px solid #e5e7eb',
-                borderRadius: 4,
-                fontSize: 10,
-                padding: '2px 6px',
-              }}
-            >
-              esc
-            </span>
-            <Typography.Text style={{ fontSize: 11, color: '#6b7280' }}>
-              {t('lark.toQuit')}
-            </Typography.Text>
-          </Flex>
-        </Flex>
       </div>
     </Modal>
   );

@@ -20,7 +20,7 @@ const NewConversationButton = memo<NewConversationButtonProps>(({ icon, label, o
         alignItems: 'center',
         backgroundColor: '#1D4ED8',
         borderColor: '#1D4ED8',
-        borderRadius: 8,
+        borderRadius: 12,
         display: 'flex',
         gap: 8,
         justifyContent: 'center',

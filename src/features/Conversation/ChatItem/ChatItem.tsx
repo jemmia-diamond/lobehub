@@ -101,6 +101,7 @@ const ChatItem = memo<ChatItemProps>(
               editing={editing}
               id={id!}
               message={message}
+              placement={placement}
               variant={isUser ? 'bubble' : undefined}
               messageExtra={
                 <>

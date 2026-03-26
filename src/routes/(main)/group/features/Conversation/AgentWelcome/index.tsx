@@ -48,7 +48,7 @@ const InboxWelcome = memo(() => {
   const message = useMemo(() => {
     if (openingMessage) return openingMessage;
     return agentSystemRoleMsg;
-  }, [openingMessage, agentSystemRoleMsg, meta.description]);
+  }, [openingMessage, agentSystemRoleMsg]);
 
   const displayTitle = groupMeta.title;
 
