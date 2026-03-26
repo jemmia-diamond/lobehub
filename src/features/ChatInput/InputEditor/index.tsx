@@ -18,6 +18,7 @@ import { larkMessageService } from '@/services/larkMessage';
 import { useAgentStore } from '@/store/agent';
 import { agentByIdSelectors, agentSelectors } from '@/store/agent/selectors';
 import { useFileStore } from '@/store/file';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useUserStore } from '@/store/user';
 import { labPreferSelectors, preferenceSelectors, settingsSelectors } from '@/store/user/selectors';
 
@@ -58,6 +59,8 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
   const { compositionProps, isComposingRef } = useIMECompositionEvent();
 
   const useCmdEnterToSend = useUserStore(preferenceSelectors.useCmdEnterToSend);
+  const enableMentionEmployee = useServerConfigStore(featureFlagsSelectors).enableMentionEmployee;
+  const enableMentionDoc = useServerConfigStore(featureFlagsSelectors).enableMentionDoc;
 
   // --- Category-based mention system ---
   const categories = useMentionCategories();
@@ -87,15 +90,19 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
 
         try {
           const [employeeRes, docRes] = (await Promise.all([
-            larkMessageService.searchEmployees({
-              pageSize: 4,
-              query: search.matchingString,
-            }),
-            larkDocService.searchDocs({
-              pageSize: 4,
-              query: search.matchingString,
-              sortBy: 1,
-            }),
+            enableMentionEmployee
+              ? larkMessageService.searchEmployees({
+                  pageSize: 4,
+                  query: search.matchingString,
+                })
+              : Promise.resolve({ success: false }),
+            enableMentionDoc
+              ? larkDocService.searchDocs({
+                  pageSize: 4,
+                  query: search.matchingString,
+                  sortBy: 1,
+                })
+              : Promise.resolve({ success: false }),
           ])) as any[];
 
           let remoteLarkItems: any[] = [];
@@ -135,7 +142,7 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
       stateRef.current = { isSearch: false, matchingString: '' };
       return [...allMentionItems];
     },
-    [allMentionItems, fuse, t],
+    [allMentionItems, fuse, t, enableMentionEmployee, enableMentionDoc],
   );
 
   const MentionMenuComp = useMemo(() => createMentionMenu(stateRef, categoriesRef), []);
