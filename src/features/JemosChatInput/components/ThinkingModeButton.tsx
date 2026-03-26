@@ -2,7 +2,7 @@
 
 import { Dropdown, type MenuProps } from 'antd';
 import { createStyles } from 'antd-style';
-import { ChevronDown, type LucideIcon, Rocket, Sparkles, Zap } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -42,14 +42,14 @@ const useStyles = createStyles(({ css }) => ({
 }));
 
 interface ModeConfig {
-  icon: LucideIcon;
+  icon: string;
   labelKey: string;
 }
 
 const modeConfigs: Record<Exclude<ThinkingMode, null>, ModeConfig> = {
-  deep: { icon: Sparkles, labelKey: 'thinkingMode.deep.title' },
-  expert: { icon: Rocket, labelKey: 'thinkingMode.expert.title' },
-  fast: { icon: Zap, labelKey: 'thinkingMode.fast.title' },
+  deep: { icon: 'psychology', labelKey: 'thinkingMode.deep.title' },
+  expert: { icon: 'school', labelKey: 'thinkingMode.expert.title' },
+  fast: { icon: 'bolt', labelKey: 'thinkingMode.fast.title' },
 };
 
 const ThinkingModeButton = memo(() => {
@@ -59,22 +59,33 @@ const ThinkingModeButton = memo(() => {
 
   const currentMode = thinkingMode || 'deep';
   const config = modeConfigs[currentMode];
-  const Icon = config.icon;
 
   const items: MenuProps['items'] = useMemo(
     () => [
       {
-        icon: <Zap size={16} />,
+        icon: (
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+            bolt
+          </span>
+        ),
         key: 'fast',
         label: t('thinkingMode.fast.title'),
       },
       {
-        icon: <Sparkles size={16} />,
+        icon: (
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+            psychology
+          </span>
+        ),
         key: 'deep',
         label: t('thinkingMode.deep.title'),
       },
       {
-        icon: <Rocket size={16} />,
+        icon: (
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+            school
+          </span>
+        ),
         key: 'expert',
         label: t('thinkingMode.expert.title'),
       },
@@ -93,7 +104,9 @@ const ThinkingModeButton = memo(() => {
     >
       <div className={styles.button}>
         <div className={styles.iconWrapper}>
-          <Icon size={16} />
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+            {config.icon}
+          </span>
         </div>
         <span className={styles.text}>{t(config.labelKey as any)}</span>
         <ChevronDown size={14} />
