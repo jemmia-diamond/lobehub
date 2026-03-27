@@ -108,12 +108,19 @@ export class ConversationLifecycleActionImpl {
     parentId: inputParentId,
     pageSelections,
     contexts,
+    metadata,
   }: SendMessageWithContextParams): Promise<SendMessageResult | undefined> => {
     let editorData = inputEditorData;
     const { internal_execAgentRuntime, mainInputEditor } = this.#get();
     const selectedSkills = parseSelectedSkillsFromEditorData(editorData);
     const selectedTools = parseSelectedToolsFromEditorData(editorData);
     const mentionedAgents = parseMentionedAgentsFromEditorData(editorData);
+
+    // Merge metadata
+    const mergedMetadata = {
+      ...metadata,
+      ...(pageSelections?.length ? { pageSelections } : undefined),
+    };
 
     // Use context from params (required)
     const { agentId } = context;
@@ -278,8 +285,8 @@ export class ConversationLifecycleActionImpl {
         threadId: operationContext.threadId ?? undefined,
         imageList: tempImages.length > 0 ? tempImages : undefined,
         videoList: tempVideos.length > 0 ? tempVideos : undefined,
-        // Pass pageSelections metadata for immediate display
-        metadata: pageSelections?.length ? { pageSelections } : undefined,
+        // Pass merged metadata (larkDocs, pageSelections, etc.) for immediate display
+        metadata: Object.keys(mergedMetadata).length > 0 ? mergedMetadata : undefined,
       },
       { operationId, tempMessageId: tempId },
     );
@@ -320,7 +327,7 @@ export class ConversationLifecycleActionImpl {
             content: message,
             editorData,
             files: fileIdList,
-            pageSelections,
+            metadata: mergedMetadata,
             parentId,
           },
           preloadMessages: preloadMessages.length > 0 ? preloadMessages : undefined,

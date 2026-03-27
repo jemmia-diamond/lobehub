@@ -50,6 +50,13 @@ export class ChatPortalActionImpl {
     }
   };
 
+  closeLarkPreview = (): void => {
+    const { portalStack } = this.#get();
+    if (getCurrentViewType(portalStack) === PortalViewType.LarkPreview) {
+      this.#get().popPortalView();
+    }
+  };
+
   closeMessageDetail = (): void => {
     const { portalStack } = this.#get();
     if (getCurrentViewType(portalStack) === PortalViewType.MessageDetail) {
@@ -96,6 +103,10 @@ export class ChatPortalActionImpl {
 
   openFilePreview = (file: PortalFile): void => {
     this.#get().pushPortalView({ file, type: PortalViewType.FilePreview });
+  };
+
+  openLarkPreview = (url: string, title: string): void => {
+    this.#get().pushPortalView({ title, type: PortalViewType.LarkPreview, url });
   };
 
   openMessageDetail = (messageId: string): void => {

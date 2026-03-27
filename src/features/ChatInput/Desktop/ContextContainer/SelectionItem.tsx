@@ -4,6 +4,8 @@ import { createStaticStyles } from 'antd-style';
 import { TextIcon } from 'lucide-react';
 import { memo, useMemo } from 'react';
 
+import FileIcon from '@/components/FileIcon';
+import { useChatStore } from '@/store/chat';
 import { useFileStore } from '@/store/file';
 
 const styles = createStaticStyles(({ css }) => ({
@@ -33,19 +35,53 @@ const getPreviewText = (content?: string, fallback?: string) => {
   return plain.length > MAX_PREVIEW_LENGTH ? `${plain.slice(0, MAX_PREVIEW_LENGTH)}...` : plain;
 };
 
-const SelectionItem = memo<ChatContextContent>(({ preview, id }) => {
-  const [removeSelection] = useFileStore((s) => [s.removeChatContextSelection]);
+const SelectionItem = memo<ChatContextContent & { fileType?: string }>(
+  ({ preview, id, fileType, url }) => {
+    const [removeSelection] = useFileStore((s) => [s.removeChatContextSelection]);
+    const [openLarkPreview] = useChatStore((s) => [s.openLarkPreview]);
 
-  const displayText = useMemo(() => getPreviewText(preview), [preview]);
+    const displayText = useMemo(() => getPreviewText(preview), [preview]);
 
-  return (
-    <Tag closable icon={<TextIcon size={16} />} size={'large'} onClose={() => removeSelection(id)}>
-      <Tooltip title={preview}>
-        <span className={styles.name}>{displayText}</span>
-      </Tooltip>
-    </Tag>
-  );
-});
+    const icon = useMemo(() => {
+      if (id.startsWith('lark-')) {
+        const ext =
+          fileType === 'sheet'
+            ? 'xlsx'
+            : fileType === 'slide'
+              ? 'pptx'
+              : fileType === 'bitable'
+                ? 'table'
+                : fileType === 'mindnote'
+                  ? 'mindmap'
+                  : fileType === 'folder'
+                    ? 'folder'
+                    : 'doc';
+        return <FileIcon fileName={`file.${ext}`} size={16} />;
+      }
+      return <TextIcon size={16} />;
+    }, [id, fileType]);
+
+    return (
+      <Tag
+        closable
+        icon={icon}
+        size={'large'}
+        onClose={() => removeSelection(id)}
+        onClick={() => {
+          if (id.startsWith('lark-')) {
+            const token = id.replace('lark-', '');
+            const larkUrl = url || `https://jemmia.larksuite.com/wiki/${token}`;
+            openLarkPreview(larkUrl, preview || '');
+          }
+        }}
+      >
+        <Tooltip title={preview}>
+          <span className={styles.name}>{displayText}</span>
+        </Tooltip>
+      </Tag>
+    );
+  },
+);
 
 SelectionItem.displayName = 'SelectionItem';
 

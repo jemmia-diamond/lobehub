@@ -6,8 +6,12 @@ import { useChatStore } from '@/store/chat';
 import { type ChatFileItem } from '@/types/index';
 import { formatSize } from '@/utils/format';
 
-const FileItem = memo<ChatFileItem>(({ id, fileType, size, name }) => {
-  const openFilePreview = useChatStore((s) => s.openFilePreview);
+const FileItem = memo<ChatFileItem>(({ id, fileType, size, name, url }) => {
+  const [openFilePreview, openLarkPreview] = useChatStore((s) => [
+    s.openFilePreview,
+    s.openLarkPreview,
+  ]);
+  const isLark = id.startsWith('lark-');
 
   return (
     <Block
@@ -20,15 +24,23 @@ const FileItem = memo<ChatFileItem>(({ id, fileType, size, name }) => {
       paddingInline={'12px 16px'}
       variant={'outlined'}
       onClick={() => {
-        openFilePreview({ fileId: id });
+        if (isLark) {
+          const token = id.replace('lark-', '');
+          const larkUrl = url || `https://jemmia.larksuite.com/wiki/${token}`;
+          openLarkPreview(larkUrl, name);
+        } else {
+          openFilePreview({ fileId: id });
+        }
       }}
     >
       <FileIcon fileName={name} fileType={fileType} size={32} />
       <Flexbox style={{ overflow: 'hidden' }}>
         <Text ellipsis>{name}</Text>
-        <Text fontSize={12} type={'secondary'}>
-          {formatSize(size)}
-        </Text>
+        {size > 0 && (
+          <Text fontSize={12} type={'secondary'}>
+            {formatSize(size)}
+          </Text>
+        )}
       </Flexbox>
     </Block>
   );

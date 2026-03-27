@@ -10,62 +10,48 @@ export interface LarkTokenRefreshResult {
   refreshToken?: string;
 }
 
-async function getAppAccessToken() {
+export async function refreshLarkUserAccessToken(
+  refreshToken: string,
+): Promise<LarkTokenRefreshResult | null> {
   const appId = authEnv.AUTH_LARK_APP_ID;
   const appSecret = authEnv.AUTH_LARK_APP_SECRET;
 
   if (!appId || !appSecret) {
-    throw new Error('[LarkAuth] Missing AUTH_LARK_APP_ID or AUTH_LARK_APP_SECRET');
+    console.error('[LarkAuth] Missing Lark App credentials for refresh');
+    return null;
   }
 
-  const res = await fetch(
-    'https://open.larksuite.com/open-apis/auth/v3/app_access_token/internal',
-    {
-      body: JSON.stringify({
-        app_id: appId,
-        app_secret: appSecret,
-      }),
-      headers: { 'Content-Type': 'application/json' },
-      method: 'POST',
-    },
-  );
-
-  const data = await res.json();
-  return data.app_access_token as string;
-}
-
-export async function refreshLarkUserAccessToken(
-  refreshToken: string,
-): Promise<LarkTokenRefreshResult | null> {
   try {
-    const appAccessToken = await getAppAccessToken();
+    console.info('[LarkAuth] Attempting to refresh user access token...');
 
-    const res = await fetch(
-      'https://open.larksuite.com/open-apis/authen/v1/oidc/refresh_access_token',
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${appAccessToken}`,
-          'Content-Type': 'application/json; charset=utf-8',
-        },
-        body: JSON.stringify({
-          grant_type: 'refresh_token',
-          refresh_token: refreshToken,
-        }),
+    const res = await fetch('https://open.larksuite.com/open-apis/authen/v2/oauth/token', {
+      body: JSON.stringify({
+        client_id: appId,
+        client_secret: appSecret,
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+      }),
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
       },
-    );
+      method: 'POST',
+    });
 
     const data = await res.json();
+    console.info('[LarkAuth] Token refresh response status:', res.status, 'code:', data.code);
 
-    if (data.code === 0) {
+    const payload = data.data ?? data;
+
+    if (res.ok && payload.access_token) {
+      console.info('[LarkAuth] Token refreshed successfully');
       return {
-        accessToken: data.data.access_token,
-        refreshToken: data.data.refresh_token,
-        expiresIn: data.data.expires_in,
+        accessToken: payload.access_token,
+        expiresIn: payload.expires_in,
+        refreshToken: payload.refresh_token,
       };
     }
 
-    console.error('[LarkAuth] Token refresh failed:', data);
+    console.error('[LarkAuth] Token refresh failed with data:', JSON.stringify(data));
     return null;
   } catch (error) {
     console.error('[LarkAuth] Token refresh error:', error);
@@ -98,9 +84,9 @@ export async function getLarkUserAccessToken(ctx: any): Promise<string | undefin
               .update(account)
               .set({
                 accessToken: newTokens.accessToken,
-                refreshToken: newTokens.refreshToken,
                 accessTokenExpiresAt: new Date(Date.now() + newTokens.expiresIn * 1000),
                 expiresAt: new Date(Date.now() + newTokens.expiresIn * 1000),
+                refreshToken: newTokens.refreshToken,
                 updatedAt: new Date(),
               })
               .where(
@@ -150,9 +136,9 @@ export async function withLarkUserAccessToken<T>(
         .update(account)
         .set({
           accessToken: null,
-          refreshToken: null,
           accessTokenExpiresAt: null,
           expiresAt: null,
+          refreshToken: null,
           updatedAt: new Date(),
         })
         .where(and(eq(account.providerId, 'lark'), eq(account.accountId, larkAccount.accountId)));
@@ -168,9 +154,9 @@ export async function withLarkUserAccessToken<T>(
       .update(account)
       .set({
         accessToken: newTokens.accessToken,
-        refreshToken: newTokens.refreshToken,
         accessTokenExpiresAt: new Date(Date.now() + newTokens.expiresIn * 1000),
         expiresAt: new Date(Date.now() + newTokens.expiresIn * 1000),
+        refreshToken: newTokens.refreshToken,
         updatedAt: new Date(),
       })
       .where(and(eq(account.providerId, 'lark'), eq(account.accountId, larkAccount.accountId)));

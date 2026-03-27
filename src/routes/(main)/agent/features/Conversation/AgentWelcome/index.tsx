@@ -26,28 +26,42 @@ import ToolAuthAlert from './ToolAuthAlert';
 
 const InboxWelcome = memo(() => {
   const { t } = useTranslation(['welcome', 'chat', 'home']);
-  const mobile = useIsMobile();
+  const activeAgentId = useAgentStore((s) => s.activeAgentId);
   const isInbox = useAgentStore(builtinAgentSelectors.isInboxAgent);
   const openingQuestions = useAgentStore(agentSelectors.openingQuestions, isEqual);
+  const mobile = useIsMobile();
+
   const fontSize = useUserStore(userGeneralSettingsSelectors.fontSize);
   const meta = useAgentStore(agentSelectors.currentAgentMeta, isEqual);
 
   const isLogin = useUserStore(authSelectors.isLogin);
-  const { enableAgent, showHomeRecentTopic, showHomeRecentPage, showHomeTopicHistory } =
-    useServerConfigStore(featureFlagsSelectors);
+  const {
+    enableAgent,
+    showHomeRecentTopic,
+    showHomeRecentPage,
+    showHomeRecentResource,
+    showHomeTopicHistory,
+  } = useServerConfigStore(featureFlagsSelectors);
 
-  const agentSystemRoleMsg = t('agentDefaultMessageWithSystemRole', {
-    name: meta.title || t('defaultAgent', { ns: 'chat' }),
-    ns: 'chat',
-  });
   const openingMessage = useAgentStore(agentSelectors.openingMessage);
 
   const { thinkingMode, handleModeChange } = useJemmiaModeSelection();
+
+  const agentSystemRoleMsg = useMemo(
+    () =>
+      t('agentDefaultMessageWithSystemRole', {
+        name: meta.title || t('defaultAgent', { ns: 'chat' }),
+        ns: 'chat',
+      }),
+    [meta.title, t],
+  );
 
   const message = useMemo(() => {
     if (openingMessage) return openingMessage;
     return agentSystemRoleMsg;
   }, [openingMessage, agentSystemRoleMsg]);
+
+  if (!activeAgentId) return null;
 
   const displayTitle = isInbox
     ? 'Trợ lý JemX'
@@ -65,7 +79,7 @@ const InboxWelcome = memo(() => {
               {showHomeRecentPage && <RecentPage />}
             </>
           )}
-          {isLogin && <RecentResource />}
+          {isLogin && showHomeRecentResource && <RecentResource />}
         </Flexbox>
         {openingQuestions.length > 0 && (
           <OpeningQuestions mobile={mobile} questions={openingQuestions} />

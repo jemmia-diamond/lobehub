@@ -18,6 +18,33 @@ const UserMessageContent = memo<UIChatMessage>(
     const pageSelections = metadata?.pageSelections;
     const displayContent = useMemo(() => (content ? cleanSpeakerTag(content) : content), [content]);
 
+    const combinedFileList = useMemo(() => {
+      const larkDocs = metadata?.larkDocs || [];
+      const larkItems = larkDocs.map((doc) => {
+        const ext =
+          doc.fileType === 'sheet'
+            ? 'xlsx'
+            : doc.fileType === 'slide'
+              ? 'pptx'
+              : doc.fileType === 'bitable'
+                ? 'table'
+                : doc.fileType === 'mindnote'
+                  ? 'mindmap'
+                  : doc.fileType === 'folder'
+                    ? 'folder'
+                    : 'docx';
+
+        return {
+          fileType: ext,
+          id: doc.id,
+          name: doc.title,
+          size: 0,
+          url: doc.url,
+        };
+      });
+      return [...(fileList || []), ...larkItems];
+    }, [fileList, metadata?.larkDocs]);
+
     const hasEditorData =
       editorData && typeof editorData === 'object' && Object.keys(editorData).length > 0;
 
@@ -33,7 +60,7 @@ const UserMessageContent = memo<UIChatMessage>(
         )}
         {imageList && imageList?.length > 0 && <ImageFileListViewer items={imageList} />}
         {videoList && videoList?.length > 0 && <VideoFileListViewer items={videoList} />}
-        {fileList && fileList?.length > 0 && <FileListViewer items={fileList} />}
+        {combinedFileList.length > 0 && <FileListViewer items={combinedFileList} />}
       </Flexbox>
     );
   },

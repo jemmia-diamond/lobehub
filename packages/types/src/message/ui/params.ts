@@ -76,9 +76,7 @@ export interface CreateNewMessageParams {
 
 export interface ChatContextContent {
   content: string;
-  /**
-   * Format of the content. Defaults to text.
-   */
+  fileType?: string;
   format?: 'xml' | 'text' | 'markdown';
   id: string;
   /**
@@ -91,6 +89,7 @@ export interface ChatContextContent {
   preview?: string;
   title?: string;
   type: 'text';
+  url?: string;
 }
 
 // Re-export PageSelection from common for backwards compatibility

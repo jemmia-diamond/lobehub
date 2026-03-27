@@ -21,6 +21,7 @@ import { LocalQueueServiceImpl } from '@/server/services/queue/impls';
 import { ToolExecutionService } from '@/server/services/toolExecution';
 import { BuiltinToolsExecutor } from '@/server/services/toolExecution/builtin';
 
+import { ModelRouterService } from '../modelRouter';
 import { hookDispatcher } from './hooks';
 import {
   type AgentExecutionParams,
@@ -541,6 +542,7 @@ export class AgentRuntimeService {
       // Use agentState.metadata which contains the full app context (topicId, agentId, etc.)
       // operationMetadata only contains basic fields (agentConfig, modelRuntimeConfig, userId)
       const { runtime } = await this.createAgentRuntime({
+        agentState,
         metadata: agentState?.metadata,
         operationId,
         stepIndex,
@@ -1449,11 +1451,37 @@ export class AgentRuntimeService {
     metadata,
     operationId,
     stepIndex,
+    agentState,
   }: {
+    agentState?: AgentState;
     metadata?: any;
     operationId: string;
     stepIndex: number;
   }) {
+    let modelRuntimeConfig = metadata?.modelRuntimeConfig;
+
+    // Resolve "auto" model if necessary
+    if (modelRuntimeConfig?.model === 'auto' && agentState) {
+      const resolved = ModelRouterService.resolve({
+        agentConfig: metadata?.agentConfig,
+        messages: agentState.messages,
+        tools: agentState.tools || [],
+      });
+
+      modelRuntimeConfig = {
+        ...modelRuntimeConfig,
+        ...resolved,
+      };
+
+      log(
+        '[%s][%d] Resolved "auto" model to %s/%s',
+        operationId,
+        stepIndex,
+        modelRuntimeConfig.provider,
+        modelRuntimeConfig.model,
+      );
+    }
+
     // Create Durable Agent instance
     const agent = new GeneralChatAgent({
       agentConfig: metadata?.agentConfig,
@@ -1461,7 +1489,7 @@ export class AgentRuntimeService {
         enabled: metadata?.agentConfig?.chatConfig?.enableContextCompression ?? true,
       },
       dynamicInterventionAudits,
-      modelRuntimeConfig: metadata?.modelRuntimeConfig,
+      modelRuntimeConfig,
       operationId,
       userId: metadata?.userId,
     });

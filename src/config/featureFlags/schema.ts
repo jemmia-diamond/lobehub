@@ -78,6 +78,7 @@ export const FeatureFlagsSchema = z.object({
   auth_email_password: FeatureFlagValue.optional(),
 
   home_recent_page: FeatureFlagValue.optional(),
+  home_recent_resource: FeatureFlagValue.optional(),
   home_recent_topic: FeatureFlagValue.optional(),
   home_suggestion: FeatureFlagValue.optional(),
   home_profile: FeatureFlagValue.optional(),
@@ -179,6 +180,7 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   auth_email_password: false,
 
   home_recent_page: false,
+  home_recent_resource: false,
   home_recent_topic: false,
   home_suggestion: false,
   home_profile: false,
@@ -258,6 +260,7 @@ export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string
 
     showHomeRecentTopic: evaluateFeatureFlag(config.home_recent_topic, userId),
     showHomeRecentPage: evaluateFeatureFlag(config.home_recent_page, userId),
+    showHomeRecentResource: evaluateFeatureFlag(config.home_recent_resource, userId),
     showHomeSuggestion: evaluateFeatureFlag(config.home_suggestion, userId),
     showHomeTopicHistory: evaluateFeatureFlag(config.show_home_topic_history, userId),
     showHomeProfile: evaluateFeatureFlag(config.home_profile, userId),
