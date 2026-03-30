@@ -7,7 +7,12 @@ import { memo, Suspense, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import ChatMiniMap from '@/features/ChatMiniMap';
-import { ChatList, ConversationProvider, useConversationStore } from '@/features/Conversation';
+import {
+  ChatList,
+  ConversationProvider,
+  TodoProgress,
+  useConversationStore,
+} from '@/features/Conversation';
 import { dataSelectors } from '@/features/Conversation/store';
 import JemChatInput from '@/features/JemChatInput';
 import WideScreenContainer from '@/features/WideScreenContainer';
@@ -59,6 +64,8 @@ const ConversationMain = memo(() => {
           >
             <ChatList welcome={<WelcomeChatItem />} />
           </Flexbox>
+
+          <TodoProgress />
 
           <motion.div
             layout

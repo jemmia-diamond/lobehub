@@ -73,7 +73,14 @@ const Body = memo(() => {
               <SectionLabel>{t('sidebar.history')}</SectionLabel>
               <Flexbox gap={1} paddingBlock={1}>
                 {recentTopics?.map((item: any) => (
-                  <RecentTopicItem id={item.id} key={item.id} title={item.title} />
+                  <RecentTopicItem
+                    agent={item.agent}
+                    group={item.group}
+                    id={item.id}
+                    key={item.id}
+                    title={item.title}
+                    type={item.type}
+                  />
                 ))}
               </Flexbox>
             </>

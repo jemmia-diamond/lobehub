@@ -24,7 +24,7 @@
   "modeSelection.fast.examples.3": "\"Viết lời cảm ơn khách hàng\"",
   "modeSelection.fast.examples.title": "Ví dụ câu lệnh:",
   "modeSelection.fast.subtitle": "Fast Response",
-  "modeSelection.fast.title": "Làm Nhanh",
+  "modeSelection.fast.title": "Nhanh",
   "modeSelection.title": "Chào mừng bạn đến với Jemmora. Hãy chọn chế độ xử lý phù hợp với yêu cầu của bạn",
   "project.create": "Dự án mới",
   "project.deleteConfirm": "Dự án này sẽ bị xóa và không thể khôi phục. Xác nhận để tiếp tục.",
@@ -49,5 +49,5 @@
   "thinkingMode.expert.title": "Chuyên Gia",
   "thinkingMode.fast.description": "Trả lời ngay lập tức. Dành cho các vụ đơn giản, không yêu cầu tính toán, logic.",
   "thinkingMode.fast.subtitle": "Fast Response",
-  "thinkingMode.fast.title": "Làm Nhanh"
+  "thinkingMode.fast.title": "Nhanh"
 }

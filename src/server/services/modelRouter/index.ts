@@ -30,9 +30,15 @@ export class ModelRouterService {
       (m) => typeof m.content === 'string' && m.content.includes('Lark Document ID'),
     );
     const hasLarkTool = tools.some((t) => t.identifier === 'lobe-lark-doc');
+    const hasLocalFilesOrImages = messages.some((m) => {
+      if (Array.isArray(m.content)) {
+        return m.content.some((c: any) => c.type === 'image_url' || c.type === 'file_url');
+      }
+      return false;
+    });
 
-    if (hasLarkDocInContext || hasLarkTool) {
-      log('Routing to PRO model due to Lark integration');
+    if (hasLarkDocInContext || hasLarkTool || hasLocalFilesOrImages) {
+      log('Routing to PRO model due to file/image manipulation or Lark integration');
       return this.DEFAULT_PRO_MODEL;
     }
 

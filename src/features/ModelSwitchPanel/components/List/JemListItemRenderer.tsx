@@ -50,12 +50,22 @@ export const JemListItemRenderer = memo<JemListItemRendererProps>(
         </Flexbox>
 
         {isActive && (
-          <span
-            className="material-symbols-outlined"
-            style={{ color: '#0A0A0A', fontSize: 20, marginInlineStart: 'auto' }}
+          <svg
+            fill="none"
+            height="20"
+            style={{ marginInlineStart: 'auto' }}
+            viewBox="0 0 20 20"
+            width="20"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            check
-          </span>
+            <path
+              d="M4.16667 9.99992L8.33333 14.1666L16.6667 5.83325"
+              stroke="#171717"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+            />
+          </svg>
         )}
       </button>
     );

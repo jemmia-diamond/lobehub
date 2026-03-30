@@ -5,8 +5,11 @@ import { ChevronDown } from 'lucide-react';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useAgentId } from '@/features/ChatInput/hooks/useAgentId';
 import ModelSwitchPanel from '@/features/ModelSwitchPanel';
 import { useJemModeSelection } from '@/hooks/useJemModeSelection';
+import { useAgentStore } from '@/store/agent';
+import { builtinAgentSelectors } from '@/store/agent/selectors';
 
 const useStyles = createStyles(({ css }) => ({
   button: css`
@@ -42,6 +45,9 @@ const ThinkingModeButton = memo(() => {
   const { styles } = useStyles();
   const { t } = useTranslation('home');
   const { thinkingMode, jemmiaList, model, provider } = useJemModeSelection();
+  const updateAgentConfigById = useAgentStore((s) => s.updateAgentConfigById);
+  const inboxAgentId = useAgentStore(builtinAgentSelectors.inboxAgentId);
+  const targetId = useAgentId() || inboxAgentId;
 
   return (
     <ModelSwitchPanel
@@ -51,6 +57,10 @@ const ThinkingModeButton = memo(() => {
       placement="bottomRight"
       provider={provider}
       variant="jemmia"
+      onModelChange={async ({ model: newModel, provider: newProvider }) => {
+        if (!targetId) return;
+        updateAgentConfigById(targetId, { model: newModel, provider: newProvider });
+      }}
     >
       <div className={styles.button}>
         <span className={styles.text}>

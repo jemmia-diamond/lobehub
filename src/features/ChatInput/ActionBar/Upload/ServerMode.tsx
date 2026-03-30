@@ -46,6 +46,7 @@ const FileUpload = memo(() => {
     showUploadImage,
     showUploadFolder,
     enableViewMoreUploadFile,
+    showRelatedFileInSelectionModal,
   } = useServerConfigStore(featureFlagsSelectors);
 
   const agentId = useAgentId();
@@ -96,8 +97,10 @@ const FileUpload = memo(() => {
                   if (
                     !canUploadImage &&
                     (file.type.startsWith('image') || file.type.startsWith('video'))
-                  )
+                  ) {
+                    message.error(t('upload.action.imageDisabled'));
                     return false;
+                  }
 
                   const validation = validateVideoFileSize(file);
                   if (!validation.isValid) {
@@ -209,8 +212,10 @@ const FileUpload = memo(() => {
                   if (
                     !canUploadImage &&
                     (file.type.startsWith('image') || file.type.startsWith('video'))
-                  )
+                  ) {
+                    message.error(t('upload.action.imageDisabled'));
                     return false;
+                  }
 
                   const validation = validateVideoFileSize(file);
                   if (!validation.isValid) {
@@ -243,7 +248,7 @@ const FileUpload = memo(() => {
   const knowledgeItems: ItemType[] = [];
 
   // Only add knowledge base items if there are files or knowledge bases
-  if (files.length > 0 || knowledgeBases.length > 0) {
+  if (showRelatedFileInSelectionModal && (files.length > 0 || knowledgeBases.length > 0)) {
     knowledgeItems.push({
       children: [
         // first the files

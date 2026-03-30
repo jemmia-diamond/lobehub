@@ -1,5 +1,6 @@
 'use client';
 
+import { type RecentTopicAgent, type RecentTopicGroup } from '@lobechat/types';
 import { ActionIcon, DropdownMenu } from '@lobehub/ui';
 import { MoreHorizontalIcon } from 'lucide-react';
 import { memo, useState } from 'react';
@@ -11,11 +12,14 @@ import { useTopicItemDropdownMenu } from '../../../agent/_layout/Sidebar/Topic/L
 
 interface RecentTopicItemProps {
   active?: boolean;
+  agent: RecentTopicAgent | null;
+  group: RecentTopicGroup | null;
   id: string;
   title: string;
+  type: 'agent' | 'group';
 }
 
-const RecentTopicItem = memo<RecentTopicItemProps>(({ id, title, active }) => {
+const RecentTopicItem = memo<RecentTopicItemProps>(({ id, title, active, type, agent, group }) => {
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
 
@@ -27,6 +31,13 @@ const RecentTopicItem = memo<RecentTopicItemProps>(({ id, title, active }) => {
     id,
     toggleEditing,
   });
+
+  const topicUrl =
+    type === 'group' && group
+      ? `/group/${group.id}?topic=${id}`
+      : `/agent/${agent?.id}?topic=${id}`;
+
+  const displayTitle = title || group?.title || agent?.title || '';
 
   return (
     <NavItem
@@ -50,11 +61,11 @@ const RecentTopicItem = memo<RecentTopicItemProps>(({ id, title, active }) => {
             lineHeight: '20px',
           }}
         >
-          {title}
+          {displayTitle}
         </span>
       }
       onClick={() => {
-        navigate(`/agent/inbox?topic=${id}`);
+        navigate(topicUrl);
       }}
     />
   );
