@@ -21,8 +21,13 @@ export const ScrollableContent = memo(() => {
   useTranslation();
   const isLogin = useUserStore(authSelectors.isLogin);
   const inputActiveMode = useHomeStore((s) => s.inputActiveMode);
-  const { enableAgent, showHomeRecentTopic, showHomeRecentPage, showHomeTopicHistory } =
-    useServerConfigStore(featureFlagsSelectors);
+  const {
+    enableAgent,
+    showHomeRecentTopic,
+    showHomeRecentPage,
+    showHomeRecentResource,
+    showHomeTopicHistory,
+  } = useServerConfigStore(featureFlagsSelectors);
   const { handleModeChange, thinkingMode } = useJemmiaModeSelection();
 
   const hideOtherModules = inputActiveMode && ['agent', 'group', 'write'].includes(inputActiveMode);
@@ -38,7 +43,7 @@ export const ScrollableContent = memo(() => {
             {showHomeRecentPage && <RecentPage />}
           </>
         )}
-        {isLogin && <RecentResource />}
+        {isLogin && showHomeRecentResource && <RecentResource />}
       </Flexbox>
     </Flexbox>
   );

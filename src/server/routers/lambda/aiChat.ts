@@ -148,10 +148,12 @@ export const aiChatRouter = router({
       // create user message
       log('creating user message with content length: %d', input.newUserMessage.content.length);
 
-      // Build user message metadata with pageSelections if present
-      const userMessageMetadata = input.newUserMessage.pageSelections?.length
-        ? { pageSelections: input.newUserMessage.pageSelections }
-        : undefined;
+      // Build user message metadata: prioritize input metadata (which contains merged larkDocs and pageSelections)
+      const userMessageMetadata =
+        input.newUserMessage.metadata ||
+        (input.newUserMessage.pageSelections?.length
+          ? { pageSelections: input.newUserMessage.pageSelections }
+          : undefined);
 
       const userMessageItem = await ctx.messageModel.create({
         agentId: input.agentId,

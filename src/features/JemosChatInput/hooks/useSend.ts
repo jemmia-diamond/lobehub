@@ -24,14 +24,29 @@ export const useSend = ({ agentId, threadId, topicId }: UseSendProps = {}) => {
 
   const send = useCallback(async () => {
     const { inputMessage, mainInputEditor } = useChatStore.getState();
-    const fileList = fileChatSelectors.chatUploadFileList(useFileStore.getState());
-    const contextList = fileChatSelectors.chatContextSelections(useFileStore.getState());
+    const fileStore = useFileStore.getState();
+    const fileList = fileChatSelectors.chatUploadFileList(fileStore);
+    const contextList = fileChatSelectors.chatContextSelections(fileStore);
 
     const { sendAsAgent, sendAsGroup, sendAsWrite, sendAsResearch, inputActiveMode } =
       useHomeStore.getState();
 
     // Require input content (except for default inbox which can have files/context)
     if (!inputMessage && fileList.length === 0 && contextList.length === 0) return;
+
+    // Clear input and files immediately for responsive UX
+    clearChatUploadFileList();
+    clearChatContextSelections();
+    mainInputEditor?.clearContent();
+
+    const larkDocs = contextList
+      .filter((c) => c.id.startsWith('lark-'))
+      .map((c) => ({
+        fileType: c.fileType,
+        id: c.id,
+        title: c.title || c.preview,
+        url: c.url,
+      }));
 
     try {
       // If we have an explicit agentId (Agent route), just send the message to that agent
@@ -41,6 +56,7 @@ export const useSend = ({ agentId, threadId, topicId }: UseSendProps = {}) => {
           contexts: contextList,
           files: fileList,
           message: inputMessage,
+          metadata: larkDocs.length > 0 ? { larkDocs } : undefined,
         });
         return;
       }
@@ -80,14 +96,12 @@ export const useSend = ({ agentId, threadId, topicId }: UseSendProps = {}) => {
             contexts: contextList,
             files: fileList,
             message: inputMessage,
+            metadata: larkDocs.length > 0 ? { larkDocs } : undefined,
           });
         }
       }
-    } finally {
-      // Clear input and files after send
-      clearChatUploadFileList();
-      clearChatContextSelections();
-      mainInputEditor?.clearContent();
+    } catch (e) {
+      console.error(e);
     }
   }, [
     agentId,

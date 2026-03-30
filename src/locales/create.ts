@@ -9,6 +9,10 @@ import { isRtlLang } from 'rtl-detect';
 import chat from '@/../locales/vi-VN/chat.json';
 import common from '@/../locales/vi-VN/common.json';
 import error from '@/../locales/vi-VN/error.json';
+import file from '@/../locales/vi-VN/file.json';
+import home from '@/../locales/vi-VN/home.json';
+import topic from '@/../locales/vi-VN/topic.json';
+import welcome from '@/../locales/vi-VN/welcome.json';
 import { DEFAULT_LANG } from '@/const/locale';
 import { getDebugConfig } from '@/envs/debug';
 import { normalizeLocale } from '@/locales/resources';
@@ -21,6 +25,10 @@ const createBundledResources = () => ({
   chat: { ...chat },
   common: { ...common },
   error: { ...error },
+  file: { ...file },
+  home: { ...home },
+  topic: { ...topic },
+  welcome: { ...welcome },
 });
 
 const defaultResources = createBundledResources();

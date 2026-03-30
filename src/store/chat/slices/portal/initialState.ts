@@ -13,6 +13,7 @@ export enum PortalViewType {
   FilePreview = 'filePreview',
   GroupThread = 'groupThread',
   Home = 'home',
+  LarkPreview = 'larkPreview',
   MessageDetail = 'messageDetail',
   Notebook = 'notebook',
   Thread = 'thread',
@@ -34,7 +35,8 @@ export type PortalViewData =
   | { messageId: string; type: PortalViewType.MessageDetail }
   | { identifier: string; messageId: string; type: PortalViewType.ToolUI }
   | { startMessageId?: string; threadId?: string; type: PortalViewType.Thread }
-  | { agentId: string; type: PortalViewType.GroupThread };
+  | { agentId: string; type: PortalViewType.GroupThread }
+  | { title: string; type: PortalViewType.LarkPreview; url: string };
 
 // ============== Portal State ==============
 

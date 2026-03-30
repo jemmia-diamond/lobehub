@@ -96,11 +96,26 @@ export const EmojiReactionSchema = z.object({
   users: z.array(z.string()),
 });
 
+export const LarkDocMetadataSchema = z.object({
+  fileType: z.string().optional(),
+  id: z.string(),
+  title: z.string(),
+  url: z.string().optional(),
+});
+
+export interface LarkDocMetadata {
+  fileType?: string;
+  id: string;
+  title: string;
+  url?: string;
+}
+
 export const MessageMetadataSchema = ModelUsageSchema.merge(ModelPerformanceSchema).extend({
   collapsed: z.boolean().optional(),
   inspectExpanded: z.boolean().optional(),
   isMultimodal: z.boolean().optional(),
   isSupervisor: z.boolean().optional(),
+  larkDocs: z.array(LarkDocMetadataSchema).optional(),
   pageSelections: z.array(PageSelectionSchema).optional(),
   reactions: z.array(EmojiReactionSchema).optional(),
   scope: z.string().optional(),
@@ -168,6 +183,7 @@ export interface MessageMetadata extends ModelUsage, ModelPerformance {
    * Page selections attached to user message
    * Used for Ask AI functionality to persist selection context
    */
+  larkDocs?: LarkDocMetadata[];
   pageSelections?: PageSelection[];
   performance?: ModelPerformance;
   /**

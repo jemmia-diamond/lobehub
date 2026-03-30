@@ -23,7 +23,6 @@ import {
 import { useUserStore } from '@/store/user';
 import { userGeneralSettingsSelectors } from '@/store/user/selectors';
 
-import FileChatChips from './components/FileChatChips';
 import SkillInstallBanner from './components/SkillInstallBanner';
 import StarterList from './components/StarterList';
 import ThinkingModeButton from './components/ThinkingModeButton';
@@ -195,7 +194,6 @@ const JemosChatInput = memo<JemosChatInputProps>(({ agentId, showStarters, threa
           >
             <div className={styles.chatInputWrapper}>
               <DesktopChatInput
-                dropdownPlacement="bottomLeft"
                 showRuntimeConfig={false}
                 actionBarStyle={{
                   borderTop: '1px solid rgba(169, 180, 185, 0.1)',
@@ -205,7 +203,6 @@ const JemosChatInput = memo<JemosChatInputProps>(({ agentId, showStarters, threa
                   paddingRight: 8,
                   paddingTop: 4,
                 }}
-                extentHeaderContent={<FileChatChips onAdd={() => setSearchDocsModalOpen(true)} />}
                 inputContainerProps={{
                   ...inputContainerProps,
                   minHeight: 88,

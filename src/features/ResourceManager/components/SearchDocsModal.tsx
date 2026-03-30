@@ -36,7 +36,7 @@ interface FormattedDoc {
   iconColor: string;
   key: string;
   title: string;
-  trailingIcon?: string;
+  url: string;
 }
 
 const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
@@ -198,8 +198,28 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
         iconBg = '#fefce8';
       }
 
+      const token = doc.token || doc.docs_token || doc.file_token || '';
+      let url = doc.url || doc.link || doc.external_url || '';
+
       const rawTitle = getLarkName(doc.title || doc.name);
       const owner = getLarkName(doc.owner_id || doc.owner || doc.owner_name);
+
+      if (!url && token) {
+        const domain = 'jemmia.larksuite.com';
+        const path =
+          rawType === 'docx'
+            ? 'docx'
+            : rawType === 'sheet'
+              ? 'sheets'
+              : rawType === 'bitable'
+                ? 'base'
+                : rawType === 'mindnote'
+                  ? 'mindnotes'
+                  : rawType === 'wiki'
+                    ? 'wiki'
+                    : 'docs';
+        url = `https://${domain}/${path}/${token}`;
+      }
 
       return {
         description: t('lark.docDetail', {
@@ -209,9 +229,9 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
         icon,
         iconBg,
         iconColor,
-        key: doc.token || doc.docs_token || doc.file_token || Math.random().toString(),
+        key: token || Math.random().toString(),
         title: rawTitle?.replaceAll(/<[^>]*>?/g, '') || t('lark.untitledDoc'), // Remove any tags like <em> inside title
-        trailingIcon: 'link',
+        url,
       };
     });
   }, [dataObj, t]);
@@ -220,12 +240,25 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
     // 1. Add to chat context
     addChatContextSelection({
       content: `Lark Document ID: ${item.key}`,
+      fileType:
+        item.icon === 'table_chart'
+          ? 'sheet'
+          : item.icon === 'slideshow'
+            ? 'slide'
+            : item.icon === 'view_list'
+              ? 'bitable'
+              : item.icon === 'account_tree'
+                ? 'mindnote'
+                : item.icon === 'folder'
+                  ? 'folder'
+                  : 'doc',
       format: 'text',
       id: `lark-${item.key}`,
       preview: item.title,
       title: item.title,
       type: 'text',
-    });
+      url: item.url,
+    } as any);
 
     // 2. Enable Lark Doc tool if not enabled
     const agentStore = useAgentStore.getState();
@@ -663,14 +696,6 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
                         {item.description}
                       </Typography.Paragraph>
                     </div>
-                    {item.trailingIcon && (
-                      <span
-                        className="material-symbols-outlined"
-                        style={{ color: '#9ca3af', fontSize: 18 }}
-                      >
-                        {item.trailingIcon}
-                      </span>
-                    )}
                   </Flex>
                 </div>
               ))

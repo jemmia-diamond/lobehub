@@ -5,12 +5,13 @@ import { createStyles } from 'antd-style';
 import { FileText, Image as ImageIcon, X } from 'lucide-react';
 import { memo } from 'react';
 
+import { useChatStore } from '@/store/chat';
 import { useFileStore } from '@/store/file';
 import { fileChatSelectors } from '@/store/file/slices/chat/selectors';
 
 const useStyles = createStyles(({ css, token }) => ({
   chip: css`
-    cursor: default;
+    cursor: pointer;
     user-select: none;
 
     padding-block: 6px;
@@ -73,6 +74,10 @@ const FileChatChips = memo<FileChatChipsProps>(({ onAdd }) => {
     s.removeChatUploadFile,
     s.removeChatContextSelection,
   ]);
+  const [openFilePreview, openLarkPreview] = useChatStore((s) => [
+    s.openFilePreview,
+    s.openLarkPreview,
+  ]);
 
   if (fileList.length === 0 && contextSelections.length === 0) return null;
 
@@ -96,7 +101,14 @@ const FileChatChips = memo<FileChatChipsProps>(({ onAdd }) => {
     <div className={styles.container}>
       {/* Uploaded Files */}
       {fileList.map((item) => (
-        <Flexbox horizontal align="center" className={styles.chip} gap={8} key={item.id}>
+        <Flexbox
+          horizontal
+          align="center"
+          className={styles.chip}
+          gap={8}
+          key={item.id}
+          onClick={() => openFilePreview({ fileId: item.id })}
+        >
           <div className={styles.iconWrapper}>{renderIcon(item.file.type, item.file.name)}</div>
           <span className={styles.text}>{item.file.name}</span>
           <ActionIcon
@@ -110,7 +122,17 @@ const FileChatChips = memo<FileChatChipsProps>(({ onAdd }) => {
 
       {/* Selected Knowledge Base / Lark Docs */}
       {contextSelections.map((item) => (
-        <Flexbox horizontal align="center" className={styles.chip} gap={8} key={item.id}>
+        <Flexbox
+          horizontal
+          align="center"
+          className={styles.chip}
+          gap={8}
+          key={item.id}
+          onClick={() => {
+            const token = item.id.replace('lark-', '');
+            openLarkPreview(`https://jemmia.larksuite.com/wiki/${token}`, item.preview || '');
+          }}
+        >
           <div className={styles.iconWrapper}>
             <FileText size={14} style={{ color: '#22c55e' }} />
           </div>

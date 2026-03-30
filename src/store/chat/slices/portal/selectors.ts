@@ -35,6 +35,7 @@ const showNotebook = (s: ChatStoreState) => currentViewType(s) === PortalViewTyp
 const showFilePreview = (s: ChatStoreState) => currentViewType(s) === PortalViewType.FilePreview;
 const showMessageDetail = (s: ChatStoreState) =>
   currentViewType(s) === PortalViewType.MessageDetail;
+const showLarkPreview = (s: ChatStoreState) => currentViewType(s) === PortalViewType.LarkPreview;
 const showPluginUI = (s: ChatStoreState) => currentViewType(s) === PortalViewType.ToolUI;
 
 // ============== Data Extractors ==============
@@ -101,6 +102,11 @@ const currentFile = (s: ChatStoreState): PortalFile | undefined => {
 const previewFileId = (s: ChatStoreState) => currentFile(s)?.fileId;
 const chunkText = (s: ChatStoreState) => currentFile(s)?.chunkText;
 
+// Lark Preview selectors
+const larkPreview = (s: ChatStoreState) => getViewData(s, PortalViewType.LarkPreview);
+const larkPreviewUrl = (s: ChatStoreState) => larkPreview(s)?.url;
+const larkPreviewTitle = (s: ChatStoreState) => larkPreview(s)?.title;
+
 // Message Detail selectors
 const messageDetailId = (s: ChatStoreState): string | undefined => {
   const view = getViewData(s, PortalViewType.MessageDetail);
@@ -136,6 +142,7 @@ export const chatPortalSelectors = {
   showDocument,
   showNotebook,
   showFilePreview,
+  showLarkPreview,
   showMessageDetail,
   showPluginUI,
 
@@ -157,6 +164,10 @@ export const chatPortalSelectors = {
   currentFile,
   previewFileId,
   chunkText,
+
+  // Lark preview data
+  larkPreviewUrl,
+  larkPreviewTitle,
 
   // Message detail data
   messageDetailId,
