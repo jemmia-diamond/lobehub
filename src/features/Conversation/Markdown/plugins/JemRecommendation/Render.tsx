@@ -36,7 +36,7 @@ const useStyles = createStyles(({ css, token }) => ({
   `,
 }));
 
-const JemosRecommendation = memo<MarkdownElementProps>(({ children }) => {
+const JemRecommendation = memo<MarkdownElementProps>(({ children }) => {
   const { styles } = useStyles();
 
   return (
@@ -50,4 +50,4 @@ const JemosRecommendation = memo<MarkdownElementProps>(({ children }) => {
   );
 });
 
-export default JemosRecommendation;
+export default JemRecommendation;

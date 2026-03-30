@@ -52,7 +52,7 @@ const styles = createStaticStyles(({ css, cssVar }) => ({
       background: ${cssVar.colorFillTertiary};
     }
   `,
-  jemmiaButton: css`
+  jemButton: css`
     cursor: pointer;
     user-select: none;
 
@@ -119,7 +119,7 @@ const ModelSwitch = memo(() => {
         onModelChange={handleModelChange}
       >
         {provider === 'jemmia' && JEMMIA_MODEL_IDS.includes(model) ? (
-          <button className={styles.jemmiaButton} type="button">
+          <button className={styles.jemButton} type="button">
             <span className={`material-symbols-outlined`} style={{ fontSize: 18 }}>
               {model === 'gemini-2.5-flash'
                 ? 'psychology'

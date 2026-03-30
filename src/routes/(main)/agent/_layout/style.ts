@@ -4,6 +4,8 @@ export const styles = createStaticStyles(({ css, cssVar }) => ({
   absoluteContainer: css`
     position: absolute;
     inset: 0;
+    overflow: hidden;
+    background: ${cssVar.colorBgLayout};
   `,
 
   contentDark: css`
@@ -17,6 +19,11 @@ export const styles = createStaticStyles(({ css, cssVar }) => ({
 
   contentLight: css`
     overflow: hidden;
-    background: var(--content-bg-secondary, ${cssVar.colorBgContainer});
+    flex: 1;
+
+    width: 100%;
+    height: 100%;
+
+    background: ${cssVar.colorBgContainer};
   `,
 }));

@@ -16,7 +16,7 @@ import { type GroupMode } from '../../types';
 import { menuKey } from '../../utils';
 import type { PricingMode } from '../ModelDetailPanel';
 import GenerationListItemRenderer from './GenerationListItemRenderer';
-import { JemmiaListItemRenderer } from './JemmiaListItemRenderer';
+import { JemListItemRenderer } from './JemListItemRenderer';
 import { ListItemRenderer } from './ListItemRenderer';
 
 interface ListProps {
@@ -131,7 +131,7 @@ export const List: FC<ListProps> = ({
         const renderItem = (key?: string) => {
           if (variant === 'jemmia') {
             return (
-              <JemmiaListItemRenderer
+              <JemListItemRenderer
                 activeKey={activeKey}
                 item={item}
                 key={key}

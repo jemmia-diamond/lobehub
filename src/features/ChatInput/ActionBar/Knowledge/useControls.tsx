@@ -8,6 +8,7 @@ import FileIcon from '@/components/FileIcon';
 import RepoIcon from '@/components/LibIcon';
 import { useAgentStore } from '@/store/agent';
 import { agentByIdSelectors } from '@/store/agent/selectors';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 import { useAgentId } from '../../hooks/useAgentId';
 import CheckboxItem from '../components/CheckboxWithLoading';
@@ -33,8 +34,10 @@ export const useControls = ({
     s.toggleKnowledgeBase,
   ]);
 
+  const { showRelatedFileInSelectionModal } = useServerConfigStore(featureFlagsSelectors);
+
   const items: ItemType[] = [
-    {
+    showRelatedFileInSelectionModal && {
       children: [
         // first the files
         ...files.map((item) => ({
@@ -76,7 +79,7 @@ export const useControls = ({
       label: t('knowledgeBase.relativeFilesOrLibraries'),
       type: 'group',
     },
-    {
+    showRelatedFileInSelectionModal && {
       type: 'divider',
     },
     {
@@ -88,7 +91,7 @@ export const useControls = ({
         setModalOpen(true);
       },
     },
-  ];
+  ].filter(Boolean) as ItemType[];
 
   return items;
 };

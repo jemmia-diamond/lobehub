@@ -39,7 +39,7 @@ const UserMessageContent = memo<UIChatMessage>(
           id: doc.id,
           name: doc.title,
           size: 0,
-          url: doc.url,
+          url: doc.url || '',
         };
       });
       return [...(fileList || []), ...larkItems];

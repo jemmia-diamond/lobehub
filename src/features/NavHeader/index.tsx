@@ -20,7 +20,7 @@ export interface NavHeaderProps extends Omit<FlexboxProps, 'children'> {
 }
 
 const NavHeader = memo<NavHeaderProps>(
-  ({ showTogglePanelButton = true, style, children, left, right, styles, ...rest }) => {
+  ({ showTogglePanelButton = false, style, children, left, right, styles, ...rest }) => {
     const expand = useGlobalStore(systemStatusSelectors.showLeftPanel);
 
     const noContent = !left && !right;

@@ -14,8 +14,8 @@ export default {
   'starter.imageGeneration': 'Image Generation',
   'starter.videoGeneration': 'Video Generation',
   'starter.write': 'Write',
-  'home.footer': 'JEMOS V{{version}} ARCHITECTURAL ALPHA — PROFESSIONAL AI WORKSPACE',
-  'modeSelection.title': 'Welcome to JemOS. Choose the mode that fits your task.',
+  'home.footer': 'Jemmora may make mistakes. Please check important information.',
+  'modeSelection.title': 'Welcome to Jemmora. Choose the mode that fits your task.',
   'modeSelection.fast.title': 'Fast',
   'modeSelection.fast.subtitle': 'Fast Response',
   'modeSelection.fast.desc':
@@ -42,12 +42,19 @@ export default {
   'modeSelection.expert.examples.3': '"Consultation on expansion strategy"',
   'thinkingMode.fast.title': 'Fast',
   'thinkingMode.fast.subtitle': 'Fast Response',
+  'thinkingMode.fast.description':
+    'Instant responses for simple tasks, quick answers to basic questions like summarization, translation...',
   'thinkingMode.deep.title': 'Deep',
   'thinkingMode.deep.subtitle': 'Deep Reasoning',
+  'thinkingMode.deep.description':
+    'Thorough analysis for complex tasks requiring careful consideration like detailed planning, comparison, and solution proposals...',
   'thinkingMode.expert.title': 'Expert',
   'thinkingMode.expert.subtitle': 'Expert Level',
+  'thinkingMode.expert.description':
+    'Logical processing and in-depth research for demanding tasks. Will take more time to reason and process.',
   'sidebar.yourAssistants': 'Your Assistants',
-  'sidebar.history': 'History',
+  'sidebar.history': 'Chat History',
   'sidebar.version': 'Version {{version}}',
   'sidebar.defaultBadge': 'DEFAULT',
+  'sidebar.noHistory': 'No conversations yet',
 };

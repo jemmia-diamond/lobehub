@@ -20,11 +20,12 @@ interface ToggleLeftPanelButtonProps {
   icon?: ActionIconProps['icon'];
   showActive?: boolean;
   size?: ActionIconProps['size'];
+  style?: React.CSSProperties;
   title?: ReactNode;
 }
 
 const ToggleLeftPanelButton = memo<ToggleLeftPanelButtonProps>(
-  ({ title, showActive, icon, size }) => {
+  ({ title, showActive, icon, size, style }) => {
     const [expand, togglePanel] = useGlobalStore((s) => [
       systemStatusSelectors.showLeftPanel(s),
       s.toggleLeftPanel,
@@ -39,6 +40,7 @@ const ToggleLeftPanelButton = memo<ToggleLeftPanelButtonProps>(
         icon={icon || (expand ? PanelLeftClose : PanelLeftOpen)}
         id={TOGGLE_BUTTON_ID}
         size={size || DESKTOP_HEADER_ICON_SIZE}
+        style={style}
         title={title || t('toggleLeftPanel.title', { ns: 'hotkey' })}
         tooltipProps={{
           hotkey,

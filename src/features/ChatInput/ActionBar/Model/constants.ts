@@ -7,7 +7,13 @@ export const JEMMIA_MODEL_ICON_MAP: Record<string, string> = {
 };
 
 export const JEMMIA_MODEL_LABEL_KEYS: Record<string, string> = {
-  'gemini-2.5-flash': 'jemmia.model.flash',
-  'gemini-2.5-flash-lite': 'jemmia.model.lite',
-  'gemini-2.5-pro': 'jemmia.model.pro',
+  'gemini-2.5-flash': 'thinkingMode.deep.title',
+  'gemini-2.5-flash-lite': 'thinkingMode.fast.title',
+  'gemini-2.5-pro': 'thinkingMode.expert.title',
+};
+
+export const JEMMIA_MODEL_DESC_KEYS: Record<string, string> = {
+  'gemini-2.5-flash': 'thinkingMode.deep.description',
+  'gemini-2.5-flash-lite': 'thinkingMode.fast.description',
+  'gemini-2.5-pro': 'thinkingMode.expert.description',
 };

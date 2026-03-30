@@ -4,7 +4,6 @@ import { Flexbox } from '@lobehub/ui';
 import { memo } from 'react';
 
 import MainInterfaceTracker from '@/components/Analytics/MainInterfaceTracker';
-import JemosHeader from '@/features/JemosHeader';
 
 import Conversation from './features/Conversation';
 import PageTitle from './features/PageTitle';
@@ -15,7 +14,6 @@ const ChatPage = memo(() => {
   return (
     <>
       <PageTitle />
-      <JemosHeader />
       <Flexbox
         horizontal
         height={'100%'}

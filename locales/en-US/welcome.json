@@ -256,8 +256,10 @@
     }
   ],
   "guide.groupTemplates.writing.title": "Writers' Circle",
+  "guide.intro": "I'm Jemmora - your AI assistant",
   "guide.questions.moreBtn": "Learn More",
   "guide.questions.title": "Try asking:",
+  "guide.welcome": "Welcome, {{name}}!",
   "guide.welcome.afternoon": "Good afternoon",
   "guide.welcome.morning": "Good morning",
   "guide.welcome.night": "Good evening",

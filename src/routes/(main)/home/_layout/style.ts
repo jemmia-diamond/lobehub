@@ -5,21 +5,45 @@ export const styles = createStaticStyles(({ css, cssVar }) => ({
   absoluteContainer: css`
     position: absolute;
     inset: 0;
+    overflow: hidden;
+    background: ${cssVar.colorBgLayout};
   `,
 
-  // 内容区域 - 深色模式
-  contentDark: css`
+  absoluteContainerDark: css`
+    position: absolute;
+    inset: 0;
     overflow: hidden;
-    background: linear-gradient(
-      to bottom,
-      ${cssVar.colorBgContainer},
-      var(--content-bg-secondary, ${cssVar.colorBgContainer})
-    );
+    background: #171717;
   `,
 
-  // 内容区域 - 浅色模式
-  contentLight: css`
+  // Inner Card layout
+  card: css`
     overflow: hidden;
-    background: var(--content-bg-secondary, ${cssVar.colorBgContainer});
+    flex: 1;
+
+    width: 100%;
+    height: 100%;
+
+    background: ${cssVar.colorBgContainer};
+  `,
+
+  cardDark: css`
+    overflow: hidden;
+    flex: 1;
+
+    height: calc(100% - 16px);
+    margin-block: 8px;
+    margin-inline: 0 8px;
+    border: 1px solid #404040;
+    border-radius: 14px;
+
+    background: #262626;
+  `,
+
+  main: css`
+    display: flex;
+    flex: 1;
+    width: 100%;
+    height: 100%;
   `,
 }));

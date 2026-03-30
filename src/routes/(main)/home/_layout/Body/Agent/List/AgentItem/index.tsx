@@ -113,6 +113,7 @@ const AgentItem = memo<AgentItemProps>(({ item, style, className }) => {
         icon={avatarIcon}
         key={id}
         loading={isLoading}
+        paddingInline={8}
         style={style}
         title={displayTitle}
         onDoubleClick={handleDoubleClick}

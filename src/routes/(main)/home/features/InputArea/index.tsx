@@ -7,9 +7,11 @@ import { useTranslation } from 'react-i18next';
 import DragUploadZone, { useUploadFiles } from '@/components/DragUploadZone';
 import { type ActionKeys } from '@/features/ChatInput';
 import { ChatInputProvider, DesktopChatInput } from '@/features/ChatInput';
+import ThinkingModeButton from '@/features/JemChatInput/components/ThinkingModeButton';
 import { useAgentStore } from '@/store/agent';
 import { agentByIdSelectors } from '@/store/agent/selectors';
 import { useChatStore } from '@/store/chat';
+import { fileChatSelectors, useFileStore } from '@/store/file';
 import { useHomeStore } from '@/store/home';
 import {
   featureFlagsSelectors,
@@ -34,19 +36,20 @@ const useStyles = createStyles(({ css }) => ({
       width: 36px !important;
       height: 36px !important;
       border: none !important;
-      border-radius: 14px !important;
+      border-radius: 50% !important;
 
       box-shadow: none !important;
     }
 
     .ant-btn-primary[disabled] {
-      color: #a1a1aa !important;
-      background: #f1f5f9 !important;
+      color: #fff !important;
+      opacity: 0.3 !important;
+      background: #171717 !important;
     }
 
     .ant-btn-primary:not([disabled]) {
       color: #fff !important;
-      background: #111827 !important;
+      background: #171717 !important;
     }
 
     .ant-btn-primary:not(.ant-btn-loading) svg,
@@ -181,6 +184,14 @@ const InputArea = () => {
       : defaultItems;
   }, [inputActiveMode, t]);
 
+  const inputMessage = useChatStore((s) => s.inputMessage);
+  const hasFiles = useFileStore(fileChatSelectors.chatUploadFileListHasItem);
+  const hasContext = useFileStore(fileChatSelectors.chatContextSelectionHasItem);
+  const isUploading = useFileStore(fileChatSelectors.isUploadingFiles);
+
+  const isSendDisabled =
+    loading || isUploading || (!inputMessage?.trim() && !hasFiles && !hasContext);
+
   return (
     <Flexbox gap={16} style={{ marginBottom: 16 }}>
       <Flexbox
@@ -209,7 +220,7 @@ const InputArea = () => {
               ] as ActionKeys[]
             }
             sendButtonProps={{
-              disabled: loading,
+              disabled: isSendDisabled,
               generating: loading,
               onStop: () => {},
               shape: 'default',
@@ -247,6 +258,11 @@ const InputArea = () => {
                     padding: 4,
                   },
                 }}
+                sendAreaPrefix={
+                  <Flexbox style={{ marginRight: 10 }}>
+                    <ThinkingModeButton />
+                  </Flexbox>
+                }
               />
             </div>
           </ChatInputProvider>

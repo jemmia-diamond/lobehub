@@ -64,11 +64,11 @@ const AskAgentCommands = memo(() => {
         <Command.Item
           value="@lobe-ai"
           onMouseDown={preventDefault}
-          onSelect={() => handleAgentSelect(inboxAgentId, 'Trợ lý JemX', DEFAULT_INBOX_AVATAR)}
+          onSelect={() => handleAgentSelect(inboxAgentId, 'Trợ lý Jemmora', DEFAULT_INBOX_AVATAR)}
         >
           <Avatar emojiScaleWithBackground avatar={DEFAULT_INBOX_AVATAR} shape="square" size={18} />
           <div className={styles.itemContent}>
-            <div className={styles.itemLabel}>@Trợ lý JemX</div>
+            <div className={styles.itemLabel}>@Trợ lý Jemmora</div>
           </div>
         </Command.Item>
       )}

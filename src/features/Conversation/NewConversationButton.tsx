@@ -3,6 +3,10 @@
 import { Button } from 'antd';
 import { Plus } from 'lucide-react';
 import { memo, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import { useGlobalStore } from '@/store/global';
+import { systemStatusSelectors } from '@/store/global/selectors';
 
 interface NewConversationButtonProps {
   icon?: ReactNode;
@@ -11,33 +15,41 @@ interface NewConversationButtonProps {
 }
 
 const NewConversationButton = memo<NewConversationButtonProps>(({ icon, label, onClick }) => {
+  const { t } = useTranslation('chat');
+  const expand = useGlobalStore((s) => systemStatusSelectors.showLeftPanel(s));
+
   return (
     <Button
       block
-      size="large"
-      type="primary"
       style={{
         alignItems: 'center',
-        backgroundColor: '#1D4ED8',
-        borderColor: '#1D4ED8',
-        borderRadius: 12,
+        backgroundColor: '#171717',
+        border: 'none',
+        borderRadius: 10,
+        boxShadow: '0px 1px 2px 0px #0000001A',
+        color: '#fff',
         display: 'flex',
-        gap: 8,
+        gap: expand ? 6 : 0,
+        height: 40,
         justifyContent: 'center',
-        paddingBlock: 10,
-        paddingInline: 16,
+        marginInline: 'auto',
+        paddingBlock: 0,
+        paddingInline: expand ? 10 : 0,
+        width: expand ? '100%' : 40,
       }}
       onClick={onClick}
     >
-      {icon ?? <Plus size={20} />}
-      <span
-        style={{
-          fontSize: 14,
-          fontWeight: 600,
-        }}
-      >
-        {label ?? 'Tạo hội thoại mới'}
-      </span>
+      {icon ?? <Plus size={expand ? 16 : 20} />}
+      {expand && (
+        <span
+          style={{
+            fontSize: 14,
+            fontWeight: 600,
+          }}
+        >
+          {label ?? t('newChat')}
+        </span>
+      )}
     </Button>
   );
 });

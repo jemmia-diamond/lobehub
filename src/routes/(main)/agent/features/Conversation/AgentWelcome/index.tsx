@@ -5,22 +5,18 @@ import isEqual from 'fast-deep-equal';
 import React, { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import JemosAvatar from '@/components/JemosAvatar';
+import JemAvatar from '@/components/JemAvatar';
 import { DEFAULT_AVATAR } from '@/const/meta';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { useJemmiaModeSelection } from '@/hooks/useJemmiaModeSelection';
+import { useJemModeSelection } from '@/hooks/useJemModeSelection';
 import { useAgentStore } from '@/store/agent';
 import { agentSelectors, builtinAgentSelectors } from '@/store/agent/selectors';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useUserStore } from '@/store/user';
 import { userGeneralSettingsSelectors } from '@/store/user/selectors';
-import { authSelectors } from '@/store/user/slices/auth/selectors';
 
 import HomeHeader from '../../../../home/features/HomeHeader';
 import ModeSelection from '../../../../home/features/ModeSelection';
-import RecentPage from '../../../../home/features/RecentPage';
-import RecentResource from '../../../../home/features/RecentResource';
-import RecentTopic from '../../../../home/features/RecentTopic';
 import OpeningQuestions from './OpeningQuestions';
 import ToolAuthAlert from './ToolAuthAlert';
 
@@ -34,18 +30,11 @@ const InboxWelcome = memo(() => {
   const fontSize = useUserStore(userGeneralSettingsSelectors.fontSize);
   const meta = useAgentStore(agentSelectors.currentAgentMeta, isEqual);
 
-  const isLogin = useUserStore(authSelectors.isLogin);
-  const {
-    enableAgent,
-    showHomeRecentTopic,
-    showHomeRecentPage,
-    showHomeRecentResource,
-    showHomeTopicHistory,
-  } = useServerConfigStore(featureFlagsSelectors);
+  const { showHomeModeSelection } = useServerConfigStore(featureFlagsSelectors);
 
   const openingMessage = useAgentStore(agentSelectors.openingMessage);
 
-  const { thinkingMode, handleModeChange } = useJemmiaModeSelection();
+  const { thinkingMode, handleModeChange } = useJemModeSelection();
 
   const agentSystemRoleMsg = useMemo(
     () =>
@@ -63,24 +52,15 @@ const InboxWelcome = memo(() => {
 
   if (!activeAgentId) return null;
 
-  const displayTitle = isInbox
-    ? 'Trợ lý JemX'
-    : meta.title || t('defaultSession', { ns: 'common' });
+  const displayTitle = isInbox ? 'Jemmora' : meta.title || t('defaultSession', { ns: 'common' });
 
   if (isInbox) {
     return (
-      <Flexbox gap={40} width="100%">
+      <Flexbox align="center" gap={36} justify="center" width="100%">
         <HomeHeader />
-        <ModeSelection activeMode={thinkingMode} onChangeMode={handleModeChange} />
-        <Flexbox gap={40}>
-          {showHomeTopicHistory && enableAgent && isLogin && (
-            <>
-              {showHomeRecentTopic && <RecentTopic />}
-              {showHomeRecentPage && <RecentPage />}
-            </>
-          )}
-          {isLogin && showHomeRecentResource && <RecentResource />}
-        </Flexbox>
+        {showHomeModeSelection && (
+          <ModeSelection activeMode={thinkingMode} onChangeMode={handleModeChange} />
+        )}
         {openingQuestions.length > 0 && (
           <OpeningQuestions mobile={mobile} questions={openingQuestions} />
         )}
@@ -91,16 +71,17 @@ const InboxWelcome = memo(() => {
 
   return (
     <>
-      <Flexbox flex={1} />
       <Flexbox
+        align="center"
         gap={12}
+        justify="center"
         width={'100%'}
         style={{
-          paddingBottom: 'max(10vh, 32px)',
+          paddingBottom: 48,
         }}
       >
         {isInbox ? (
-          <JemosAvatar size={78} />
+          <JemAvatar size={78} />
         ) : (
           <Avatar
             avatar={meta.avatar || DEFAULT_AVATAR}
@@ -114,7 +95,7 @@ const InboxWelcome = memo(() => {
         </Text>
         <Flexbox width={'min(100%, 640px)'}>
           <Markdown fontSize={fontSize} variant={'chat'}>
-            {isInbox ? t('guide.defaultMessageWithoutCreate', { appName: 'Trợ lý JemX' }) : message}
+            {isInbox ? t('guide.defaultMessageWithoutCreate', { appName: 'Jemmora' }) : message}
           </Markdown>
         </Flexbox>
         {openingQuestions.length > 0 && (

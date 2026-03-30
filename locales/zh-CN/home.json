@@ -3,6 +3,12 @@
   "agentSelection.noAvailable": "当前没有可添加的助理",
   "agentSelection.noSelected": "还未选择助理",
   "agentSelection.search": "未找到匹配的助理",
+  "modeSelection.deep.desc": "权衡时间以更深入地思考。适用于复杂的推理逻辑任务。",
+  "modeSelection.deep.title": "思考",
+  "modeSelection.expert.desc": "专家级的复杂任务处理。将花费更多时间进行推理和处理。",
+  "modeSelection.expert.title": "专家",
+  "modeSelection.fast.desc": "立即回答。适用于简单任务，不需要计算或逻辑。",
+  "modeSelection.fast.title": "快速",
   "project.create": "新建项目",
   "project.deleteConfirm": "即将删除该项目，删除后将无法找回，请确认你的操作",
   "starter.createAgent": "创建助理",
@@ -12,5 +18,11 @@
   "starter.image": "绘画",
   "starter.imageGeneration": "图像生成",
   "starter.videoGeneration": "视频生成",
-  "starter.write": "写作"
+  "starter.write": "写作",
+  "thinkingMode.deep.description": "权衡时间以更深入地思考。适用于复杂的推理逻辑任务。",
+  "thinkingMode.deep.title": "思考",
+  "thinkingMode.expert.description": "专家级的复杂任务处理。",
+  "thinkingMode.expert.title": "专家",
+  "thinkingMode.fast.description": "立即回答。适用于简单任务，不需要计算或逻辑。",
+  "thinkingMode.fast.title": "快速"
 }

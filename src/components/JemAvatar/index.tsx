@@ -13,11 +13,11 @@ const useStyles = createStyles(({ css }) => ({
   `,
 }));
 
-interface JemosAvatarProps {
+interface JemAvatarProps {
   size?: number;
 }
 
-const JemosAvatar = memo<JemosAvatarProps>(({ size = 32 }) => {
+const JemAvatar = memo<JemAvatarProps>(({ size = 32 }) => {
   const { styles } = useStyles();
 
   return (
@@ -35,6 +35,6 @@ const JemosAvatar = memo<JemosAvatarProps>(({ size = 32 }) => {
   );
 });
 
-JemosAvatar.displayName = 'JemosAvatar';
+JemAvatar.displayName = 'JemAvatar';
 
-export default JemosAvatar;
+export default JemAvatar;
