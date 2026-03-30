@@ -33,11 +33,11 @@ export const styles = createStaticStyles(({ css, cssVar }) => {
       max-width: 100%;
     `,
     userBubble: css`
-      color: #fff !important;
-      background-color: #1d4ed8 !important;
+      color: #171717 !important;
+      background-color: #f0eee6 !important;
 
       article * {
-        color: #fff !important;
+        color: #171717 !important;
       }
     `,
   };

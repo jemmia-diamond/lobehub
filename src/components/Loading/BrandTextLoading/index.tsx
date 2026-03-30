@@ -8,7 +8,7 @@ import styles from './index.module.css';
 const JemLogo = () => (
   <span
     style={{
-      color: '#1D4ED8',
+      color: '#171717',
       fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
       fontSize: 32,
       fontWeight: 800,

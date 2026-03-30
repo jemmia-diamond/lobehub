@@ -25,7 +25,7 @@ const JemAvatar = memo<JemAvatarProps>(({ size = 32 }) => {
       <span
         className="material-symbols-outlined"
         style={{
-          color: '#1d4ed8',
+          color: '#171717',
           fontSize: Math.round(size * 0.6),
         }}
       >

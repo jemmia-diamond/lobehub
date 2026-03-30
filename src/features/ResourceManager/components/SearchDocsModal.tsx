@@ -373,7 +373,7 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
                 color="#dbeafe"
                 style={{
                   alignItems: 'center',
-                  color: '#1D4ED8',
+                  color: '#171717',
                   display: 'inline-flex',
                   fontSize: 12,
                   fontWeight: 700,
@@ -424,7 +424,7 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
                   style={{
                     alignItems: 'center',
                     borderRadius: 8,
-                    color: sortBy !== 1 ? '#1D4ED8' : undefined,
+                    color: sortBy !== 1 ? '#171717' : undefined,
                     cursor: 'pointer',
                     display: 'inline-flex',
                     fontSize: 12,
@@ -496,7 +496,7 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
                   style={{
                     alignItems: 'center',
                     borderRadius: 8,
-                    color: ownerIds.length > 0 ? '#1D4ED8' : undefined,
+                    color: ownerIds.length > 0 ? '#171717' : undefined,
                     cursor: 'pointer',
                     display: 'inline-flex',
                     fontSize: 12,
@@ -587,7 +587,7 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
                   style={{
                     alignItems: 'center',
                     borderRadius: 8,
-                    color: chatIds.length > 0 ? '#1D4ED8' : undefined,
+                    color: chatIds.length > 0 ? '#171717' : undefined,
                     cursor: 'pointer',
                     display: 'inline-flex',
                     fontSize: 12,

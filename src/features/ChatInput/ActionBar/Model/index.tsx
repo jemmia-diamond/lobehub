@@ -74,7 +74,7 @@ const styles = createStaticStyles(({ css, cssVar }) => ({
 
     && {
       color: white;
-      background: #1d4ed8;
+      background: #171717;
       outline: none;
     }
 

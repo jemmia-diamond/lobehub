@@ -20,7 +20,7 @@ const SmartToyIcon = memo(() => (
   <span
     className="material-symbols-outlined"
     style={{
-      color: '#1D4ED8',
+      color: '#171717',
       fontSize: 18,
     }}
   >
@@ -48,7 +48,7 @@ const InboxItem = memo<InboxItemProps>(({ className, style }) => {
             style={{
               backgroundColor: '#dbeafe',
               borderRadius: 4,
-              color: '#1D4ED8',
+              color: '#171717',
               fontSize: 10,
               fontWeight: 700,
               lineHeight: '18px',
@@ -65,10 +65,10 @@ const InboxItem = memo<InboxItemProps>(({ className, style }) => {
           backgroundColor: '#fff',
           borderRadius: 6,
           boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)',
-          color: '#1D4ED8',
+          color: '#171717',
         }}
         title={
-          <span style={{ color: '#1D4ED8', fontSize: 12, fontWeight: 700 }}>{inboxAgentTitle}</span>
+          <span style={{ color: '#171717', fontSize: 12, fontWeight: 700 }}>{inboxAgentTitle}</span>
         }
       />
     </Link>

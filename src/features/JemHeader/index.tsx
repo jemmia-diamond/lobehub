@@ -17,7 +17,7 @@ const JemHeader = memo<JemHeaderProps>(({ left, right, children }) => {
           <span
             style={{
               paddingLeft: 16,
-              color: '#1D4ED8',
+              color: '#171717',
               fontSize: 16,
               fontWeight: 800,
             }}

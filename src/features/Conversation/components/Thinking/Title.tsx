@@ -22,7 +22,7 @@ const ThinkingTitle = memo<ThinkingTitleProps>(({ showDetail, thinking, duration
         <span
           className={shinyTextStyles.shinyText}
           style={{
-            color: '#1D4ED8',
+            color: '#171717',
             fontSize: 12,
             fontWeight: 800,
             letterSpacing: '0.05em',

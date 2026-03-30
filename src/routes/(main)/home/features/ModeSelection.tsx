@@ -41,7 +41,7 @@ const styles = createStaticStyles(({ css, cssVar }) => ({
     }
   `,
   cardActive: css`
-    border-color: #1d4ed8 !important;
+    border-color: #171717 !important;
     background: #fff !important;
     box-shadow: 0 4px 16px rgb(29 78 216 / 8%) !important;
   `,
@@ -209,7 +209,7 @@ const ModeSelection = memo<ModeSelectionProps>(({ activeMode = 'deep', onChangeM
                   height: 44,
                   borderRadius: 12,
                   background: '#f3f4f6',
-                  color: '#1d4ed8',
+                  color: '#171717',
                 }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 24 }}>

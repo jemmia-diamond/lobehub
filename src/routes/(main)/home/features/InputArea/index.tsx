@@ -140,7 +140,7 @@ const InputArea = () => {
               style={{
                 position: 'relative',
                 background: '#dbeafe',
-                color: '#1d4ed8',
+                color: '#171717',
                 fontSize: 12,
                 fontWeight: 700,
                 borderRadius: 8,
