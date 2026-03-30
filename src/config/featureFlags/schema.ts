@@ -90,6 +90,8 @@ export const FeatureFlagsSchema = z.object({
   enable_view_more_upload_file: FeatureFlagValue.optional(),
   show_message_edit: FeatureFlagValue.optional(),
   show_agent_list_sidebar: FeatureFlagValue.optional(),
+  home_mode_selection: FeatureFlagValue.optional(),
+  show_related_file_in_selection_modal: FeatureFlagValue.optional(),
 });
 
 export type IFeatureFlags = z.infer<typeof FeatureFlagsSchema>;
@@ -192,6 +194,8 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   enable_view_more_upload_file: false,
   show_message_edit: false,
   show_agent_list_sidebar: false,
+  home_mode_selection: false,
+  show_related_file_in_selection_modal: false,
 };
 
 export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string) => {
@@ -271,6 +275,11 @@ export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string
     enableViewMoreUploadFile: evaluateFeatureFlag(config.enable_view_more_upload_file, userId),
     showMessageEdit: evaluateFeatureFlag(config.show_message_edit, userId),
     showAgentListSidebar: evaluateFeatureFlag(config.show_agent_list_sidebar, userId),
+    showHomeModeSelection: evaluateFeatureFlag(config.home_mode_selection, userId),
+    showRelatedFileInSelectionModal: evaluateFeatureFlag(
+      config.show_related_file_in_selection_modal,
+      userId,
+    ),
   };
 };
 

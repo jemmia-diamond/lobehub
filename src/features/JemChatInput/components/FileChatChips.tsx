@@ -5,6 +5,7 @@ import { createStyles } from 'antd-style';
 import { FileText, Image as ImageIcon, X } from 'lucide-react';
 import { memo } from 'react';
 
+import { LARK_BASE_URL } from '@/const/url';
 import { useChatStore } from '@/store/chat';
 import { useFileStore } from '@/store/file';
 import { fileChatSelectors } from '@/store/file/slices/chat/selectors';
@@ -130,7 +131,7 @@ const FileChatChips = memo<FileChatChipsProps>(({ onAdd }) => {
           key={item.id}
           onClick={() => {
             const token = item.id.replace('lark-', '');
-            openLarkPreview(`https://jemmia.larksuite.com/wiki/${token}`, item.preview || '');
+            openLarkPreview(`${LARK_BASE_URL}/wiki/${token}`, item.preview || '');
           }}
         >
           <div className={styles.iconWrapper}>

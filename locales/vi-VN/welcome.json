@@ -256,8 +256,10 @@
     }
   ],
   "guide.groupTemplates.writing.title": "Vòng Tròn Viết Lách",
+  "guide.intro": "Tôi là Jemmora - Trợ lý AI của bạn",
   "guide.questions.moreBtn": "Tìm hiểu thêm",
   "guide.questions.title": "Hãy thử hỏi:",
+  "guide.welcome": "Chào {{name}}!",
   "guide.welcome.afternoon": "Chào buổi chiều",
   "guide.welcome.morning": "Chào buổi sáng",
   "guide.welcome.night": "Chào buổi tối",

@@ -5,7 +5,7 @@ import { isCustomBranding } from '@/const/version';
 import CircleLoading from '../CircleLoading';
 import styles from './index.module.css';
 
-const JemOSLogo = () => (
+const JemLogo = () => (
   <span
     style={{
       color: '#1D4ED8',
@@ -15,7 +15,7 @@ const JemOSLogo = () => (
       letterSpacing: '-0.05em',
     }}
   >
-    JemOS
+    Jemmora
   </span>
 );
 
@@ -36,7 +36,7 @@ const BrandTextLoading = ({ debugId }: BrandTextLoadingProps) => {
   return (
     <div className={styles.container}>
       <div aria-label="Loading" className={styles.brand} role="status">
-        <BrandLoading size={40} text={JemOSLogo} />
+        <BrandLoading size={40} text={JemLogo} />
       </div>
       {showDebug && (
         <div className={styles.debug}>

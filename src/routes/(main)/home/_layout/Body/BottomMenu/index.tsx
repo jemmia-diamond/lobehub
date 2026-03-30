@@ -32,7 +32,12 @@ const BottomMenu = memo(() => {
               navigate(item.url!);
             }}
           >
-            <NavItem active={tab === item.key} icon={item.icon} title={item.title} />
+            <NavItem
+              active={tab === item.key}
+              icon={item.icon}
+              paddingInline={8}
+              title={item.title}
+            />
           </Link>
         );
       })}

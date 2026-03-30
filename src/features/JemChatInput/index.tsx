@@ -14,6 +14,7 @@ import SuggestQuestions from '@/routes/(main)/home/features/SuggestQuestions';
 import { useAgentStore } from '@/store/agent';
 import { agentByIdSelectors } from '@/store/agent/selectors';
 import { useChatStore } from '@/store/chat';
+import { fileChatSelectors, useFileStore } from '@/store/file';
 import { useHomeStore } from '@/store/home';
 import {
   featureFlagsSelectors,
@@ -41,19 +42,20 @@ const useStyles = createStyles(({ css }) => ({
       height: 36px !important;
       padding: 0 !important;
       border: none !important;
-      border-radius: 0.75rem !important;
+      border-radius: 50% !important;
 
       box-shadow: none !important;
     }
 
     .ant-btn-primary[disabled] {
-      color: #a1a1aa !important;
-      background: #f1f5f9 !important;
+      color: #fff !important;
+      opacity: 0.3 !important;
+      background: #171717 !important;
     }
 
     .ant-btn-primary:not([disabled]) {
       color: #fff !important;
-      background: #1d4ed8 !important;
+      background: #171717 !important;
     }
 
     .ant-btn-primary:not(.ant-btn-loading) svg,
@@ -76,9 +78,9 @@ const useStyles = createStyles(({ css }) => ({
       background: currentcolor;
     }
 
-    /* Send Icon (Paper Plane) */
+    /* Send Icon (Arrow Up) */
     .ant-btn-primary:not(.ant-btn-loading, [ant-click-animating-without-extra-node='true'])::after {
-      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m22 2-7 20-4-9-9-4Z'/%3E%3Cpath d='M22 2 11 13'/%3E%3C/svg%3E")
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z'/%3E%3C/svg%3E")
         no-repeat center / contain;
     }
 
@@ -91,14 +93,14 @@ const useStyles = createStyles(({ css }) => ({
   `,
 }));
 
-interface JemosChatInputProps {
+interface JemChatInputProps {
   agentId?: string;
   showStarters?: boolean;
   threadId?: string | null;
   topicId?: string | null;
 }
 
-const JemosChatInput = memo<JemosChatInputProps>(({ agentId, showStarters, threadId, topicId }) => {
+const JemChatInput = memo<JemChatInputProps>(({ agentId, showStarters, threadId, topicId }) => {
   const { styles } = useStyles();
   const { loading, send, inboxAgentId } = useSend({ agentId, threadId, topicId });
   const inputActiveMode = useHomeStore((s) => s.inputActiveMode);
@@ -151,6 +153,14 @@ const JemosChatInput = memo<JemosChatInputProps>(({ agentId, showStarters, threa
     showHomeSuggestion &&
     (!inputActiveMode || ['agent', 'group', 'write'].includes(inputActiveMode));
 
+  const inputMessage = useChatStore((s) => s.inputMessage);
+  const hasFiles = useFileStore(fileChatSelectors.chatUploadFileListHasItem);
+  const hasContext = useFileStore(fileChatSelectors.chatContextSelectionHasItem);
+  const isUploading = useFileStore(fileChatSelectors.isUploadingFiles);
+
+  const isSendDisabled =
+    loading || isUploading || (!inputMessage?.trim() && !hasFiles && !hasContext);
+
   return (
     <Flexbox gap={16} style={{ marginBottom: 16 }}>
       <Flexbox
@@ -182,7 +192,7 @@ const JemosChatInput = memo<JemosChatInputProps>(({ agentId, showStarters, threa
               ] as ActionKeys[]
             }
             sendButtonProps={{
-              disabled: loading,
+              disabled: isSendDisabled,
               generating: loading,
               onStop: () => {},
               shape: 'default',
@@ -220,8 +230,12 @@ const JemosChatInput = memo<JemosChatInputProps>(({ agentId, showStarters, threa
                 }}
                 leftContent={
                   <Flexbox horizontal align="center" gap={8} paddingInline={8}>
-                    <ThinkingModeButton />
                     {enableFileUpload && <ServerMode />}
+                  </Flexbox>
+                }
+                sendAreaPrefix={
+                  <Flexbox style={{ marginRight: 10 }}>
+                    <ThinkingModeButton />
                   </Flexbox>
                 }
               />
@@ -262,4 +276,6 @@ const JemosChatInput = memo<JemosChatInputProps>(({ agentId, showStarters, threa
   );
 });
 
-export default JemosChatInput;
+JemChatInput.displayName = 'JemChatInput';
+
+export default JemChatInput;

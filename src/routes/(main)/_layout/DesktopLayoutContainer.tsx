@@ -21,7 +21,7 @@ const DesktopLayoutContainer: FC<PropsWithChildren> = ({ children }) => {
       '--container-padding-left': expand ? '0px' : '8px',
       '--container-padding-top': isDesktop ? '0px' : '8px',
     }),
-    [expand, isDesktop],
+    [expand],
   );
 
   const innerCssVariables = useMemo<Record<string, string>>(() => {

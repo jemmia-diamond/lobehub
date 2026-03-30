@@ -1,25 +1,43 @@
-'use client';
-
+import { Flexbox } from '@lobehub/ui';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import JemLogo from '@/components/Branding/JemLogo';
+import { useUserStore } from '@/store/user';
+import { userProfileSelectors } from '@/store/user/selectors';
+
 const HomeHeader = memo(() => {
-  const { t } = useTranslation('home');
+  const { t } = useTranslation('welcome');
+  const userName = useUserStore(userProfileSelectors.nickName) || '';
+
   return (
-    <h1
-      style={{
-        color: '#111827',
-        fontSize: 36,
-        fontWeight: 800,
-        letterSpacing: '-0.02em',
-        lineHeight: 1.25,
-        margin: 0,
-        maxWidth: '100%',
-        textAlign: 'left',
-      }}
-    >
-      {t('modeSelection.title')}
-    </h1>
+    <Flexbox align="center" gap={8} style={{ width: '100%' }}>
+      <Flexbox horizontal align="center" gap={8}>
+        <JemLogo size={24} />
+        <h2
+          style={{
+            color: 'inherit',
+            fontSize: 18,
+            fontWeight: 300,
+            margin: 0,
+            textAlign: 'center',
+          }}
+        >
+          {(t as any)('guide.welcome', { name: userName })}
+        </h2>
+      </Flexbox>
+      <h1
+        style={{
+          color: 'inherit',
+          fontSize: 24,
+          fontWeight: 300,
+          margin: 0,
+          textAlign: 'center',
+        }}
+      >
+        {(t as any)('guide.intro')}
+      </h1>
+    </Flexbox>
   );
 });
 

@@ -1,9 +1,7 @@
 import { memo } from 'react';
 
-import JemosHeader from '@/features/JemosHeader';
-
 const ChatHeader = memo(() => {
-  return <JemosHeader />;
+  return null;
 });
 
 export default ChatHeader;

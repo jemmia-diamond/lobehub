@@ -22,7 +22,7 @@ export const getResetPasswordEmailTemplate = (params: { url: string }) => {
     <div style="text-align: center; margin-bottom: 32px;">
       <div style="display: inline-flex; align-items: center; justify-content: center; background-color: #ffffff; border-radius: 12px; padding: 8px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
         <span style="font-size: 24px; line-height: 1; margin-right: 10px;">🤯</span>
-        <span style="font-size: 18px; font-weight: 700; color: #000000; letter-spacing: -0.5px;">JemOS</span>
+        <span style="font-size: 18px; font-weight: 700; color: #000000; letter-spacing: -0.5px;">Jemmora</span>
       </div>
     </div>
 
@@ -42,7 +42,7 @@ export const getResetPasswordEmailTemplate = (params: { url: string }) => {
       <!-- Content -->
       <div style="color: #374151; font-size: 16px; line-height: 1.6;">
         <p style="margin: 0 0 24px 0; text-align: center;">
-          You recently requested to reset your password for your JemOS account. Click the button below to proceed.
+          You recently requested to reset your password for your Jemmora account. Click the button below to proceed.
         </p>
 
         <!-- Button -->
@@ -85,7 +85,7 @@ export const getResetPasswordEmailTemplate = (params: { url: string }) => {
 </body>
 </html>
     `,
-    subject: 'Reset Your Password - JemOS',
+    subject: 'Reset Your Password - Jemmora',
     text: `Reset your password by clicking this link: ${url}`,
   };
 };

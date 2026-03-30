@@ -6,7 +6,6 @@ import { AnimatePresence, motion, useIsPresent } from 'motion/react';
 import { type ReactNode } from 'react';
 import { memo, Suspense, useLayoutEffect, useMemo, useRef } from 'react';
 
-import { TOGGLE_BUTTON_ID } from '@/features/NavPanel/ToggleLeftPanelButton';
 import Footer from '@/routes/(main)/home/_layout/Footer';
 import { USER_DROPDOWN_ICON_ID } from '@/routes/(main)/home/_layout/Header/components/User';
 import { useGlobalStore } from '@/store/global';
@@ -14,7 +13,7 @@ import { systemStatusSelectors } from '@/store/global/selectors';
 import { useUserStore } from '@/store/user';
 import { userGeneralSettingsSelectors } from '@/store/user/selectors';
 
-import { useNavPanelSizeChangeHandler } from '../hooks/useNavPanel';
+// import { useNavPanelSizeChangeHandler } from '../hooks/useNavPanel';
 import { BACK_BUTTON_ID } from './BackButton';
 
 type MotionDirection = -1 | 0 | 1;
@@ -64,7 +63,6 @@ const draggableStyles = createStaticStyles(({ css, cssVar }) => ({
     overflow: hidden;
     flex: 1;
 
-    min-width: 240px;
     max-width: 100%;
     min-height: 0;
   `,
@@ -78,7 +76,6 @@ const draggableStyles = createStaticStyles(({ css, cssVar }) => ({
     display: flex;
     flex-direction: column;
 
-    min-width: 240px;
     max-width: 100%;
     min-height: 100%;
     max-height: 100%;
@@ -87,18 +84,15 @@ const draggableStyles = createStaticStyles(({ css, cssVar }) => ({
     user-select: none;
     height: 100%;
     color: ${cssVar.colorTextSecondary};
-    background: rgb(241 245 249 / var(--tw-bg-opacity, 1));
+    background: #f2f0ec;
+
+    .dark & {
+      border-inline-end: 1px solid #404040;
+      background: #171717;
+    }
 
     * {
       user-select: none;
-    }
-
-    #${TOGGLE_BUTTON_ID} {
-      width: 0 !important;
-      opacity: 0;
-      transition:
-        opacity,
-        width 0.2s ${cssVar.motionEaseOut};
     }
 
     #${USER_DROPDOWN_ICON_ID} {
@@ -113,11 +107,6 @@ const draggableStyles = createStaticStyles(({ css, cssVar }) => ({
     }
 
     &:hover {
-      #${TOGGLE_BUTTON_ID} {
-        width: 32px !important;
-        opacity: 1;
-      }
-
       #${USER_DROPDOWN_ICON_ID} {
         width: 14px !important;
         opacity: 1;
@@ -156,7 +145,7 @@ export const NavPanelDraggable = memo<NavPanelDraggableProps>(({ activeContent }
   ]);
   const animationMode = useUserStore(userGeneralSettingsSelectors.animationMode);
   const shouldUseMotion = !isMotionDisabled(animationMode);
-  const handleSizeChange = useNavPanelSizeChangeHandler();
+  // const handleSizeChange = useNavPanelSizeChangeHandler();
 
   const defaultWidthRef = useRef(0);
   if (defaultWidthRef.current === 0) {
@@ -172,7 +161,6 @@ export const NavPanelDraggable = memo<NavPanelDraggableProps>(({ activeContent }
   );
   const styles = useMemo(
     () => ({
-      background: 'rgb(241 245 249 / var(--tw-bg-opacity, 1))',
       zIndex: 11,
     }),
     [],
@@ -206,47 +194,51 @@ export const NavPanelDraggable = memo<NavPanelDraggableProps>(({ activeContent }
   }, [activeContent.key, shouldUseMotion]);
 
   const motionDirection = shouldUseMotion ? directionRef.current : 0;
+  const sidebarWidth = expand ? 255 : 56;
 
   return (
-    <DraggablePanel
-      className={draggableStyles.panel}
-      classNames={classNames}
-      defaultSize={defaultSize}
-      expand={expand}
-      expandable={false}
-      maxWidth={400}
-      minWidth={240}
-      placement="left"
-      showBorder={false}
-      style={styles}
-      onExpandChange={togglePanel}
-      onSizeDragging={handleSizeChange}
-    >
-      <div className={draggableStyles.inner}>
-        {shouldUseMotion ? (
-          <AnimatePresence custom={motionDirection} initial={false} mode="sync">
-            <motion.div
-              animate="animate"
-              className={draggableStyles.layer}
-              custom={motionDirection}
-              exit="exit"
-              initial="initial"
-              key={activeContent.key}
-              transition={motionVariants.transition}
-              variants={motionVariants}
-            >
-              <ExitingFrozenContent>{activeContent.node}</ExitingFrozenContent>
-            </motion.div>
-          </AnimatePresence>
-        ) : (
-          <div className={draggableStyles.layer} key={activeContent.key}>
-            {activeContent.node}
-          </div>
-        )}
-      </div>
-      <Suspense>
-        <Footer />
-      </Suspense>
-    </DraggablePanel>
+    <>
+      <DraggablePanel
+        className={draggableStyles.panel}
+        classNames={classNames}
+        defaultSize={defaultSize}
+        expand={true}
+        expandable={false}
+        maxWidth={sidebarWidth}
+        minWidth={sidebarWidth}
+        mode="fixed"
+        placement="left"
+        showBorder={false}
+        size={{ height: '100%', width: sidebarWidth }}
+        style={{ ...styles, overflow: 'visible' }}
+        onExpandChange={togglePanel}
+      >
+        <div className={draggableStyles.inner}>
+          {shouldUseMotion ? (
+            <AnimatePresence custom={motionDirection} initial={false} mode="sync">
+              <motion.div
+                animate="animate"
+                className={draggableStyles.layer}
+                custom={motionDirection}
+                exit="exit"
+                initial="initial"
+                key={activeContent.key}
+                transition={motionVariants.transition}
+                variants={motionVariants}
+              >
+                <ExitingFrozenContent>{activeContent.node}</ExitingFrozenContent>
+              </motion.div>
+            </AnimatePresence>
+          ) : (
+            <div className={draggableStyles.layer} key={activeContent.key}>
+              {activeContent.node}
+            </div>
+          )}
+        </div>
+        <Suspense>
+          <Footer />
+        </Suspense>
+      </DraggablePanel>
+    </>
   );
 });

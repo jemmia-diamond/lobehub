@@ -1,5 +1,5 @@
 import ImageSearchRef from './ImageSearchRef';
-import JemosRecommendation from './JemosRecommendation';
+import JemRecommendation from './JemRecommendation';
 import LobeArtifact from './LobeArtifact';
 import LobeThinking from './LobeThinking';
 import LocalFile from './LocalFile';
@@ -16,5 +16,5 @@ export const markdownElements: MarkdownElement[] = [
   LocalFile,
   Mention,
   ImageSearchRef,
-  JemosRecommendation,
+  JemRecommendation,
 ];

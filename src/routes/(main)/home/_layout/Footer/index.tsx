@@ -23,7 +23,6 @@ import { Link, useLocation } from 'react-router-dom';
 import ChangelogModal from '@/components/ChangelogModal';
 import HighlightNotification from '@/components/HighlightNotification';
 import { DOCUMENTS_REFER_URL, GITHUB } from '@/const/url';
-import ThemeButton from '@/features/User/UserPanel/ThemeButton';
 import { useFeedbackModal } from '@/hooks/useFeedbackModal';
 import { useNavLayout } from '@/hooks/useNavLayout';
 import { useGlobalStore } from '@/store/global';
@@ -237,7 +236,6 @@ const Footer = memo(() => {
               <ActionIcon icon={FlaskConical} size={16} title="Evaluation Lab" />
             </Link>
           </Flexbox>
-          <ThemeButton placement={'topCenter'} size={16} />
         </Flexbox>
       ) : (
         <Flexbox horizontal align={'center'} gap={2} padding={8}>

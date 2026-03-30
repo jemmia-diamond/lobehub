@@ -57,7 +57,7 @@
   "response.520": "Chúng tôi xin lỗi, máy chủ gặp sự cố bất ngờ khiến không thể hoàn tất yêu cầu của bạn. Vui lòng thử lại sau, chúng tôi đang khắc phục sự cố.",
   "response.522": "Chúng tôi xin lỗi, kết nối máy chủ đã hết thời gian chờ và không thể phản hồi kịp thời. Có thể do mạng không ổn định hoặc máy chủ tạm thời không truy cập được. Vui lòng thử lại sau.",
   "response.524": "Chúng tôi xin lỗi, máy chủ đã hết thời gian chờ trong khi đợi phản hồi. Có thể do phản hồi chậm. Vui lòng thử lại sau.",
-  "response.AgentRuntimeError": "Lỗi thực thi mô hình ngôn ngữ JemX. Vui lòng kiểm tra và thử lại dựa trên thông tin sau.",
+  "response.AgentRuntimeError": "Lỗi thực thi mô hình ngôn ngữ Jemmora. Vui lòng kiểm tra và thử lại dựa trên thông tin sau.",
   "response.ComfyUIBizError": "Đã xảy ra lỗi khi yêu cầu dịch vụ ComfyUI. Vui lòng kiểm tra thông tin bên dưới hoặc thử lại.",
   "response.ComfyUIEmptyResult": "Không có hình ảnh nào được tạo bởi ComfyUI. Vui lòng kiểm tra cấu hình mô hình hoặc thử lại.",
   "response.ComfyUIModelError": "Không thể tải mô hình ComfyUI. Vui lòng đảm bảo tệp mô hình tồn tại.",

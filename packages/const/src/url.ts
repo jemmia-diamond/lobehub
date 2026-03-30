@@ -6,6 +6,8 @@ export const OFFICIAL_URL = 'https://lobehub.jemmia.vn';
 export const OFFICIAL_SITE = 'https://jemmia.vn';
 export const OFFICIAL_DOMAIN = 'jemmia.vn';
 
+export const LARK_BASE_URL = 'https://jemmia.larksuite.com';
+
 export const OG_URL = '/og/og.webp?v=1';
 
 export const GITHUB = 'https://github.com/jemmia-diamond/lobehub';

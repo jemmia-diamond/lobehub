@@ -2,11 +2,11 @@ import { createRemarkCustomTagPlugin } from '../remarkPlugins/createRemarkCustom
 import { type MarkdownElement } from '../type';
 import Component from './Render';
 
-const JemosRecommendation: MarkdownElement = {
+const JemRecommendation: MarkdownElement = {
   Component,
   remarkPlugin: createRemarkCustomTagPlugin('jemos-recommendation'),
   scope: 'assistant',
   tag: 'jemos-recommendation',
 };
 
-export default JemosRecommendation;
+export default JemRecommendation;

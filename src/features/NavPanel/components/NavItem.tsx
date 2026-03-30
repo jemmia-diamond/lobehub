@@ -103,7 +103,7 @@ const NavItem = memo<NavItemProps>(
         clickable={!disabled}
         gap={8}
         height={36}
-        paddingInline={4}
+        paddingInline={0}
         variant={variant}
         onClick={(e) => {
           if (disabled || loading) return;

@@ -14,8 +14,8 @@ const manifest = async (): Promise<MetadataRoute.Manifest> => {
           type: 'image/png',
         },
       ],
-      name: 'JemOS',
-      short_name: 'JemOS',
+      name: 'Jemmora',
+      short_name: 'Jemmora',
       start_url: '/',
       theme_color: '#000000',
     };

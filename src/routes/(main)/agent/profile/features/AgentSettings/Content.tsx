@@ -15,7 +15,7 @@ import { memo, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
 
-import JemosAvatar from '@/components/JemosAvatar';
+import JemAvatar from '@/components/JemAvatar';
 import Menu from '@/components/Menu';
 import { DEFAULT_AVATAR } from '@/const/meta';
 import { AgentSettings as Settings } from '@/features/AgentSetting';
@@ -80,9 +80,7 @@ const Content = memo(() => {
     [t, isInbox],
   );
 
-  const displayTitle = isInbox
-    ? 'Trợ lý JemX'
-    : meta.title || t('defaultSession', { ns: 'common' });
+  const displayTitle = isInbox ? 'Jemmora' : meta.title || t('defaultSession', { ns: 'common' });
 
   return (
     <Flexbox
@@ -115,7 +113,7 @@ const Content = memo(() => {
           }}
         >
           {isInbox ? (
-            <JemosAvatar size={28} />
+            <JemAvatar size={28} />
           ) : (
             <Avatar
               avatar={meta.avatar || DEFAULT_AVATAR}

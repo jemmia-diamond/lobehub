@@ -2,95 +2,66 @@ import { createStaticStyles } from 'antd-style';
 
 export const styles = createStaticStyles(({ css, cssVar }) => ({
   container: css`
-    pointer-events: auto;
-    user-select: none;
     overflow: hidden;
-    padding: 0 !important;
+    display: flex;
+    flex-direction: column;
+
+    min-width: 256px;
+    max-height: 500px;
+    border-radius: ${cssVar.borderRadiusLG};
+
+    background: ${cssVar.colorBgElevated};
+    box-shadow: ${cssVar.boxShadowSecondary};
   `,
   detailPopup: css`
-    user-select: none;
-    overscroll-behavior: contain;
-    width: 400px;
-  `,
-  dropdownMenu: css`
-    user-select: none;
-
-    [role='menuitem'] {
-      margin-block: 1px;
-      margin-inline: 4px;
-      padding-block: 8px;
-      padding-inline: 8px;
-      border-radius: ${cssVar.borderRadiusSM};
-    }
-  `,
-  groupHeader: css`
-    width: 100%;
-    color: ${cssVar.colorTextSecondary};
-  `,
-  list: css`
-    position: relative;
-    overflow: hidden auto;
-    overscroll-behavior: contain;
-    width: 100%;
-  `,
-  menuItem: css`
-    cursor: pointer;
-
-    position: relative;
-
-    gap: 8px;
-    align-items: center;
-
-    margin-block: 1px;
-    margin-inline: 4px;
-    padding-block: 8px;
-    padding-inline: 8px;
-    border-radius: ${cssVar.borderRadiusSM};
-  `,
-  menuItemActive: css`
-    background: ${cssVar.colorFillTertiary};
+    width: 320px;
+    border-radius: ${cssVar.borderRadiusLG};
+    background: ${cssVar.colorBgElevated};
+    box-shadow: ${cssVar.boxShadowSecondary};
   `,
   footer: css`
     border-block-start: 1px solid ${cssVar.colorBorderSecondary};
   `,
-  toolbar: css`
-    border-block-end: 1px solid ${cssVar.colorBorderSecondary};
-  `,
-  trigger: css`
-    display: inline-flex;
-    outline: none;
-
-    svg:focus {
-      outline: none;
-    }
+  groupHeader: css`
+    font-size: 12px;
+    font-weight: 500;
+    color: ${cssVar.colorTextDescription};
   `,
   jemmiaContainer: css`
-    pointer-events: auto;
-    user-select: none;
+    position: relative;
 
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 
-    width: 192px;
-    padding: 0 !important;
-    border: 1px solid rgb(0 0 0 / 5%);
-    border-radius: 12px;
+    width: 327px;
+    padding: 8px !important;
+    border: 1px solid ${cssVar.colorBorder};
+    border-radius: ${cssVar.borderRadiusLG};
 
-    background: white;
+    background: ${cssVar.colorBgElevated};
+    box-shadow:
+      0 4px 6px -1px rgb(0 0 0 / 10%),
+      0 2px 4px -2px rgb(0 0 0 / 10%);
   `,
-  jemmiaMenuItem: css`
+  jemMenuDesc: css`
+    font-size: 12px;
+    line-height: 16px;
+    color: #737373;
+  `,
+  jemMenuItem: css`
     cursor: pointer;
 
     display: flex;
-    gap: 12px;
+    gap: 10px;
     align-items: center;
 
     width: 100%;
-    padding-block: 10px;
-    padding-inline: 16px;
+    padding-block: 8px;
+    padding-inline: 10px;
     border: none;
-
-    font-size: 14px;
-    color: #374151;
+    border-radius: 6px;
 
     background: transparent;
     outline: none;
@@ -98,21 +69,45 @@ export const styles = createStaticStyles(({ css, cssVar }) => ({
     transition: background 0.2s;
 
     &:hover {
-      background: rgb(29 78 216 / 5%);
+      background: ${cssVar.colorFillTertiary};
     }
 
     &:focus,
-    &:focus-visible {
+    &:active {
       outline: none;
-      box-shadow: none;
     }
   `,
-  jemmiaMenuItemActive: css`
-    font-weight: 500;
-    color: #1d4ed8;
-
-    background: rgb(29 78 216 / 5%);
+  jemMenuItemActive: css`
+    background: ${cssVar.colorFillTertiary};
     outline: none;
     box-shadow: none;
+  `,
+  jemMenuTitle: css`
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    color: #0a0a0a;
+  `,
+  list: css`
+    overflow-y: auto;
+  `,
+  menuItem: css`
+    cursor: pointer;
+
+    &:hover {
+      background: ${cssVar.colorFillTertiary};
+    }
+  `,
+  menuItemActive: css`
+    background: ${cssVar.colorFillTertiary};
+  `,
+  toolbar: css`
+    border-block-end: 1px solid ${cssVar.colorBorderSecondary};
+  `,
+  dropdownMenu: css`
+    z-index: ${cssVar.zIndexPopupBase + 50};
+  `,
+  trigger: css`
+    cursor: pointer;
   `,
 }));

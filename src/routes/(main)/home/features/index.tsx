@@ -4,7 +4,7 @@ import { Flexbox } from '@lobehub/ui';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useJemmiaModeSelection } from '@/hooks/useJemmiaModeSelection';
+import { useJemModeSelection } from '@/hooks/useJemModeSelection';
 import { useHomeStore } from '@/store/home';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useUserStore } from '@/store/user';
@@ -27,15 +27,18 @@ export const ScrollableContent = memo(() => {
     showHomeRecentPage,
     showHomeRecentResource,
     showHomeTopicHistory,
+    showHomeModeSelection,
   } = useServerConfigStore(featureFlagsSelectors);
-  const { handleModeChange, thinkingMode } = useJemmiaModeSelection();
+  const { handleModeChange, thinkingMode } = useJemModeSelection();
 
   const hideOtherModules = inputActiveMode && ['agent', 'group', 'write'].includes(inputActiveMode);
 
   return (
     <Flexbox gap={40} width="100%">
       <HomeHeader />
-      <ModeSelection activeMode={thinkingMode} onChangeMode={handleModeChange} />
+      {showHomeModeSelection && (
+        <ModeSelection activeMode={thinkingMode} onChangeMode={handleModeChange} />
+      )}
       <Flexbox gap={40} style={{ display: hideOtherModules ? 'none' : undefined }}>
         {showHomeTopicHistory && enableAgent && isLogin && (
           <>

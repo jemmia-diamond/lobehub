@@ -3,13 +3,13 @@ import { memo } from 'react';
 
 import NavHeader from '@/features/NavHeader';
 
-interface JemosHeaderProps {
+interface JemHeaderProps {
   children?: React.ReactNode;
   left?: React.ReactNode;
   right?: React.ReactNode;
 }
 
-const JemosHeader = memo<JemosHeaderProps>(({ left, right, children }) => {
+const JemHeader = memo<JemHeaderProps>(({ left, right, children }) => {
   return (
     <NavHeader
       left={
@@ -22,7 +22,7 @@ const JemosHeader = memo<JemosHeaderProps>(({ left, right, children }) => {
               fontWeight: 800,
             }}
           >
-            Trợ lý JemX
+            Jemmora
           </span>
         )
       }
@@ -44,6 +44,6 @@ const JemosHeader = memo<JemosHeaderProps>(({ left, right, children }) => {
   );
 });
 
-JemosHeader.displayName = 'JemosHeader';
+JemHeader.displayName = 'JemHeader';
 
-export default JemosHeader;
+export default JemHeader;

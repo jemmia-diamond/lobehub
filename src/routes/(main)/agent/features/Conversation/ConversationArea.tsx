@@ -2,13 +2,14 @@
 
 import { Flexbox } from '@lobehub/ui';
 import debug from 'debug';
+import { m as motion } from 'motion/react';
 import { memo, Suspense, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { CURRENT_VERSION } from '@/const/version';
 import ChatMiniMap from '@/features/ChatMiniMap';
-import { ChatList, ConversationProvider, TodoProgress } from '@/features/Conversation';
-import JemosChatInput from '@/features/JemosChatInput';
+import { ChatList, ConversationProvider, useConversationStore } from '@/features/Conversation';
+import { dataSelectors } from '@/features/Conversation/store';
+import JemChatInput from '@/features/JemChatInput';
 import WideScreenContainer from '@/features/WideScreenContainer';
 import ZenModeToast from '@/features/ZenModeToast';
 import { useOperationState } from '@/hooks/useOperationState';
@@ -28,10 +29,88 @@ const log = debug('lobe-render:agent:ConversationArea');
  * ConversationArea
  *
  * Main conversation area component using the new ConversationStore architecture.
- * Uses ChatList from @/features/Conversation and JemosChatInput for custom features.
+ * Uses ChatList from @/features/Conversation and JemChatInput for custom features.
  */
-const Conversation = memo(() => {
+const ConversationMain = memo(() => {
   const { t } = useTranslation('home');
+  const context = useAgentContext();
+
+  const displayMessageIds = useConversationStore(dataSelectors.displayMessageIds);
+  const isWelcome = displayMessageIds.length === 0;
+
+  return (
+    <>
+      <ZenModeToast />
+      <Flexbox flex={1} height={'100%'} style={{ position: 'relative' }} width={'100%'}>
+        <Flexbox
+          flex={1}
+          gap={isWelcome ? 36 : undefined}
+          justify={isWelcome ? 'center' : 'flex-start'}
+          width={'100%'}
+        >
+          <Flexbox
+            flex={isWelcome ? 'none' : 1}
+            width={'100%'}
+            style={{
+              overflowX: isWelcome ? 'visible' : 'hidden',
+              overflowY: isWelcome ? 'visible' : 'auto',
+              paddingInline: 24,
+            }}
+          >
+            <ChatList welcome={<WelcomeChatItem />} />
+          </Flexbox>
+
+          <motion.div
+            layout
+            initial={false}
+            transition={{ damping: 25, stiffness: 200, type: 'spring' }}
+            style={{
+              width: '100%',
+              zIndex: 10,
+            }}
+          >
+            <Flexbox flex={'none'} width={'100%'}>
+              <WideScreenContainer>
+                <JemChatInput
+                  agentId={context.agentId}
+                  threadId={context.threadId}
+                  topicId={context.topicId}
+                />
+              </WideScreenContainer>
+            </Flexbox>
+          </motion.div>
+        </Flexbox>
+
+        <Flexbox
+          align="center"
+          flex={'none'}
+          width={'100%'}
+          style={{
+            color: '#737373',
+            fontFamily: 'Inter, system-ui, sans-serif',
+            fontSize: 12,
+            fontStyle: 'normal',
+            fontWeight: 400,
+            letterSpacing: 'normal',
+            lineHeight: '16px',
+            paddingBlock: 12,
+            textAlign: 'center',
+          }}
+        >
+          {t('home.footer')}
+        </Flexbox>
+      </Flexbox>
+      <ChatHydration />
+      <ThreadHydration />
+      <ChatMiniMap />
+      <Suspense>
+        <MessageFromUrl />
+      </Suspense>
+    </>
+  );
+});
+
+const Conversation = memo(() => {
   const context = useAgentContext();
 
   // Get raw dbMessages from ChatStore for this context
@@ -41,11 +120,11 @@ const Conversation = memo(() => {
   const messages = useChatStore((s) => s.dbMessagesMap[chatKey]);
   log('contextKey %s: %o', chatKey, messages);
 
-  // Get operation state from ChatStore for reactive updates
-  const operationState = useOperationState(context);
-
   // Get actionsBar config with branching support from ChatStore
   const actionsBarConfig = useActionsBarConfig();
+
+  // Get operation state from ChatStore for reactive updates
+  const operationState = useOperationState(context);
 
   return (
     <ConversationProvider
@@ -58,53 +137,7 @@ const Conversation = memo(() => {
         replaceMessages(messages, { context: ctx });
       }}
     >
-      <ZenModeToast />
-      <Flexbox
-        flex={1}
-        width={'100%'}
-        style={{
-          overflowX: 'hidden',
-          overflowY: 'auto',
-          position: 'relative',
-          paddingInline: 24,
-        }}
-      >
-        <ChatList welcome={<WelcomeChatItem />} />
-      </Flexbox>
-      <TodoProgress />
-
-      <Flexbox flex={'none'} width={'100%'}>
-        <WideScreenContainer>
-          <JemosChatInput
-            agentId={context.agentId}
-            threadId={context.threadId}
-            topicId={context.topicId}
-          />
-        </WideScreenContainer>
-      </Flexbox>
-
-      <Flexbox
-        align="center"
-        flex={'none'}
-        width={'100%'}
-        style={{
-          paddingBlock: 12,
-          fontSize: 11,
-          fontWeight: 500,
-          letterSpacing: '0.05em',
-          color: '#9ca3af',
-          textTransform: 'uppercase',
-        }}
-      >
-        {t('home.footer', { version: CURRENT_VERSION })}
-      </Flexbox>
-
-      <ChatHydration />
-      <ThreadHydration />
-      <ChatMiniMap />
-      <Suspense>
-        <MessageFromUrl />
-      </Suspense>
+      <ConversationMain />
     </ConversationProvider>
   );
 });
