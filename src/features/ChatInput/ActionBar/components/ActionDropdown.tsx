@@ -33,6 +33,8 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 
 const styles = createStaticStyles(({ css }) => ({
   dropdownMenu: css`
+    padding: 4px;
+
     .ant-avatar {
       margin-inline-end: var(--ant-margin-xs);
     }
@@ -188,7 +190,7 @@ const ActionDropdown = memo<ActionDropdownProps>(
       menuItemsRef.current = nextItems;
 
       return nextItems;
-    }, [decorateMenuItems, isOpen, menu.items, prefetch]);
+    }, [decorateMenuItems, isOpen, menu, prefetch]);
 
     const menuContent = useMemo(() => {
       if (!popupRender) return renderedItems;
@@ -209,8 +211,8 @@ const ActionDropdown = memo<ActionDropdownProps>(
         maxWidth: isMobile ? undefined : maxWidth,
         minHeight,
         minWidth: isMobile ? undefined : minWidth,
-        overflowX: 'hidden',
-        overflowY: 'scroll',
+        overflowX: 'auto',
+        overflowY: 'auto',
         width: isMobile ? '100vw' : undefined,
       };
       const popupStyle = popupProps?.style;
@@ -276,6 +278,7 @@ const ActionDropdown = memo<ActionDropdownProps>(
         <DropdownMenuPortal container={resolvedPortalContainer} {...restPortalProps}>
           <DropdownMenuPositioner
             {...positionerProps}
+            align="center"
             hoverTrigger={Boolean(resolvedTriggerProps?.openOnHover)}
             placement={isMobile ? 'top' : placement}
           >
