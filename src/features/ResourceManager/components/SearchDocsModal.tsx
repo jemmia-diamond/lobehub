@@ -17,6 +17,7 @@ import { memo, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useSWR from 'swr';
 
+import { LARK_BASE_URL } from '@/const/url';
 import { larkDocService } from '@/services/larkDoc';
 import { larkMessageService } from '@/services/larkMessage';
 import { agentSelectors } from '@/store/agent/selectors';
@@ -205,7 +206,6 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
       const owner = getLarkName(doc.owner_id || doc.owner || doc.owner_name);
 
       if (!url && token) {
-        const domain = 'jemmia.larksuite.com';
         const path =
           rawType === 'docx'
             ? 'docx'
@@ -218,7 +218,7 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
                   : rawType === 'wiki'
                     ? 'wiki'
                     : 'docs';
-        url = `https://${domain}/${path}/${token}`;
+        url = `${LARK_BASE_URL}/${path}/${token}`;
       }
 
       return {
@@ -258,7 +258,7 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
       title: item.title,
       type: 'text',
       url: item.url,
-    } as any);
+    });
 
     // 2. Enable Lark Doc tool if not enabled
     const agentStore = useAgentStore.getState();

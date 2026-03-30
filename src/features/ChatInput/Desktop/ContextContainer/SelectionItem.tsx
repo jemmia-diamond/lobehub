@@ -5,6 +5,7 @@ import { TextIcon } from 'lucide-react';
 import { memo, useMemo } from 'react';
 
 import FileIcon from '@/components/FileIcon';
+import { LARK_BASE_URL } from '@/const/url';
 import { useChatStore } from '@/store/chat';
 import { useFileStore } from '@/store/file';
 
@@ -70,7 +71,7 @@ const SelectionItem = memo<ChatContextContent & { fileType?: string }>(
         onClick={() => {
           if (id.startsWith('lark-')) {
             const token = id.replace('lark-', '');
-            const larkUrl = url || `https://jemmia.larksuite.com/wiki/${token}`;
+            const larkUrl = url || `${LARK_BASE_URL}/wiki/${token}`;
             openLarkPreview(larkUrl, preview || '');
           }
         }}
