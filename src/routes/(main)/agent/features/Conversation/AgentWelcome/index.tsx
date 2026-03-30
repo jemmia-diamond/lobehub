@@ -14,9 +14,13 @@ import { agentSelectors, builtinAgentSelectors } from '@/store/agent/selectors';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useUserStore } from '@/store/user';
 import { userGeneralSettingsSelectors } from '@/store/user/selectors';
+import { authSelectors } from '@/store/user/slices/auth/selectors';
 
 import HomeHeader from '../../../../home/features/HomeHeader';
 import ModeSelection from '../../../../home/features/ModeSelection';
+import RecentPage from '../../../../home/features/RecentPage';
+import RecentResource from '../../../../home/features/RecentResource';
+import RecentTopic from '../../../../home/features/RecentTopic';
 import OpeningQuestions from './OpeningQuestions';
 import ToolAuthAlert from './ToolAuthAlert';
 
@@ -30,7 +34,15 @@ const InboxWelcome = memo(() => {
   const fontSize = useUserStore(userGeneralSettingsSelectors.fontSize);
   const meta = useAgentStore(agentSelectors.currentAgentMeta, isEqual);
 
-  const { showHomeModeSelection } = useServerConfigStore(featureFlagsSelectors);
+  const isLogin = useUserStore(authSelectors.isLogin);
+  const {
+    enableAgent,
+    showHomeRecentTopic,
+    showHomeRecentPage,
+    showHomeRecentResource,
+    showHomeTopicHistory,
+    showHomeModeSelection,
+  } = useServerConfigStore(featureFlagsSelectors);
 
   const openingMessage = useAgentStore(agentSelectors.openingMessage);
 
@@ -60,6 +72,18 @@ const InboxWelcome = memo(() => {
         <HomeHeader />
         {showHomeModeSelection && (
           <ModeSelection activeMode={thinkingMode} onChangeMode={handleModeChange} />
+        )}
+        {((showHomeTopicHistory && enableAgent && isLogin) ||
+          (isLogin && showHomeRecentResource)) && (
+          <Flexbox gap={40}>
+            {showHomeTopicHistory && enableAgent && isLogin && (
+              <>
+                {showHomeRecentTopic && <RecentTopic />}
+                {showHomeRecentPage && <RecentPage />}
+              </>
+            )}
+            {isLogin && showHomeRecentResource && <RecentResource />}
+          </Flexbox>
         )}
         {openingQuestions.length > 0 && (
           <OpeningQuestions mobile={mobile} questions={openingQuestions} />
