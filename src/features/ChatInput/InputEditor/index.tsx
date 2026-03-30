@@ -147,7 +147,7 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
 
   const MentionMenuComp = useMemo(() => createMentionMenu(stateRef, categoriesRef), []);
 
-  const enableMention = true;
+  const enableMention = enableMentionEmployee || enableMentionDoc;
 
   // Get agent's model info for vision support check and handle paste upload
   const agentId = useAgentId();
