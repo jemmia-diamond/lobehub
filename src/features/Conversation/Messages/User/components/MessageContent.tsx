@@ -3,7 +3,7 @@ import { memo, useMemo } from 'react';
 
 import MarkdownMessage from '@/features/Conversation/Markdown';
 import { cleanSpeakerTag } from '@/store/chat/utils/cleanSpeakerTag';
-import { type UIChatMessage } from '@/types/index';
+import { type ChatFileItem, type UIChatMessage } from '@/types/index';
 
 import { useMarkdown } from '../useMarkdown';
 import FileListViewer from './FileListViewer';
@@ -18,9 +18,9 @@ const UserMessageContent = memo<UIChatMessage>(
     const pageSelections = metadata?.pageSelections;
     const displayContent = useMemo(() => (content ? cleanSpeakerTag(content) : content), [content]);
 
-    const combinedFileList = useMemo(() => {
+    const combinedFileList = useMemo((): ChatFileItem[] => {
       const larkDocs = metadata?.larkDocs || [];
-      const larkItems = larkDocs.map((doc) => {
+      const larkItems: ChatFileItem[] = larkDocs.map((doc) => {
         const ext =
           doc.fileType === 'sheet'
             ? 'xlsx'
@@ -39,7 +39,7 @@ const UserMessageContent = memo<UIChatMessage>(
           id: doc.id,
           name: doc.title,
           size: 0,
-          url: doc.url || '',
+          url: doc.url ?? '',
         };
       });
       return [...(fileList || []), ...larkItems];
