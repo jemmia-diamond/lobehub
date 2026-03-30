@@ -4,9 +4,9 @@ import Component from './Render';
 
 const JemRecommendation: MarkdownElement = {
   Component,
-  remarkPlugin: createRemarkCustomTagPlugin('jem-recommendation'),
+  remarkPlugin: createRemarkCustomTagPlugin('jemos-recommendation'),
   scope: 'assistant',
-  tag: 'jem-recommendation',
+  tag: 'jemos-recommendation',
 };
 
 export default JemRecommendation;
