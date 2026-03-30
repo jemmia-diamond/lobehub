@@ -34,7 +34,7 @@ const InboxItem = memo<InboxItemProps>(({ className, style }) => {
   const { t } = useTranslation('home');
   const inboxAgentId = useAgentStore(builtinAgentSelectors.inboxAgentId);
   const isLoading = useChatStore(operationSelectors.isAgentRuntimeRunning);
-  const inboxAgentTitle = 'Trợ lý Jemmora';
+  const inboxAgentTitle = 'Jemmora';
 
   return (
     <Link aria-label={inboxAgentTitle} to={SESSION_CHAT_URL(inboxAgentId, false)}>

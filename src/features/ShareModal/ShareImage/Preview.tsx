@@ -34,7 +34,7 @@ const Preview = memo<PreviewProps>(
       agentSelectors.currentAgentBackgroundColor(s),
     ]);
 
-    const displayTitle = isInbox ? 'Trợ lý Jemmora' : title;
+    const displayTitle = isInbox ? 'Jemmora' : title;
 
     return (
       <div

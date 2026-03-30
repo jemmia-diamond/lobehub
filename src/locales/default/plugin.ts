@@ -553,7 +553,7 @@ export default {
   'skillDetail.tools': 'Tools',
   'skillDetail.trustWarning':
     "Only use connectors from developers you trust. Jemmora does not control which tools developers make available and cannot verify that they will work as intended or that they won't change.",
-  'skillInstallBanner.title': 'Add skills to Trợ lý Jemmora',
+  'skillInstallBanner.title': 'Add skills to Jemmora',
   'store.actions.cancel': 'Cancel',
   'store.actions.configure': 'Configure',
   'store.actions.confirmUninstall': 'Uninstalling will clear Skill config. Continue?',

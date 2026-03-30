@@ -80,9 +80,7 @@ const Content = memo(() => {
     [t, isInbox],
   );
 
-  const displayTitle = isInbox
-    ? 'Trợ lý Jemmora'
-    : meta.title || t('defaultSession', { ns: 'common' });
+  const displayTitle = isInbox ? 'Jemmora' : meta.title || t('defaultSession', { ns: 'common' });
 
   return (
     <Flexbox
