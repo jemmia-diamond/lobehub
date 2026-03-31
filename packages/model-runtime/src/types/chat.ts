@@ -38,11 +38,19 @@ interface UserMessageContentPartVideo {
   video_url: { url: string };
 }
 
+interface UserMessageContentPartFile {
+  file_url: {
+    url: string;
+  };
+  type: 'file_url';
+}
+
 export type UserMessageContentPart =
   | UserMessageContentPartText
   | UserMessageContentPartImage
   | UserMessageContentPartVideo
-  | UserMessageContentPartThinking;
+  | UserMessageContentPartThinking
+  | UserMessageContentPartFile;
 
 export interface OpenAIChatMessage {
   content: string | UserMessageContentPart[];

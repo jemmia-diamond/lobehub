@@ -6,14 +6,22 @@ import { disableStreamModels, systemToUserModels } from '../../const/models';
 import type { ChatStreamPayload, OpenAIChatMessage, UserMessageContentPart } from '../../types';
 import { parseDataUri } from '../../utils/uriParser';
 
-export type ExtendedChatCompletionContentPart = {
-  type: 'video_url';
-  video_url: {
-    url: string;
-  };
-};
+export type ExtendedChatCompletionContentPart =
+  | {
+      type: 'video_url';
+      video_url: {
+        url: string;
+      };
+    }
+  | {
+      file_url: {
+        url: string;
+      };
+      type: 'file_url';
+    };
 
 type ConvertMessageContentOptions = {
+  forceFileBase64?: boolean;
   forceImageBase64?: boolean;
   forceVideoBase64?: boolean;
   strictToolPairing?: boolean;
@@ -69,6 +77,32 @@ export const convertMessageContent = async (
     }
   }
 
+  if (content.type === 'file_url') {
+    const { type } = parseDataUri(content.file_url.url);
+    const shouldUseBase64 =
+      options?.forceFileBase64 || process.env.LLM_VISION_FILE_USE_BASE64 === '1';
+
+    if (type === 'url' && shouldUseBase64) {
+      try {
+        const { base64, mimeType } = await imageUrlToBase64(content.file_url.url);
+
+        return {
+          image_url: { url: `data:${mimeType};base64,${base64}` },
+          type: 'image_url',
+        } as OpenAI.ChatCompletionContentPartImage;
+      } catch (error) {
+        console.warn('Failed to convert file to base64:', error);
+      }
+    }
+
+    // In OpenAI-compatible protocol, there is no native 'file_url' type.
+    // We map it to 'image_url' hoping the downstream Gemini-compatible proxy handles the PDF mimeType.
+    return {
+      image_url: { url: content.file_url.url },
+      type: 'image_url',
+    } as OpenAI.ChatCompletionContentPartImage;
+  }
+
   return content;
 };
 
@@ -76,23 +110,36 @@ export const convertOpenAIMessages = async (
   messages: OpenAI.ChatCompletionMessageParam[],
   options?: ConvertMessageContentOptions,
 ) => {
+  // Check if any message contains a file_url
+  const hasFileUrl = messages.some((message) => {
+    if (typeof message.content === 'string') return false;
+    return (message.content || []).some((c) => (c as any).type === 'file_url');
+  });
+
   return (await Promise.all(
     messages.map(async (message) => {
       const msg = message as any;
 
+      let content =
+        typeof message.content === 'string'
+          ? message.content
+          : await Promise.all(
+              (message.content || [])
+                .filter((c) => !isInternalThinkingContentPart(c as OpenAICompatibleContentPart))
+                .map((c) => convertMessageContent(c as OpenAI.ChatCompletionContentPart, options)),
+            );
+
+      // Inject vision instruction if file_url is present and this is a system/developer message
+      if (hasFileUrl && (msg.role === 'system' || msg.role === 'developer')) {
+        const visionInstruction =
+          '\n\n[Vision/PDF Instruction]\nYou have been provided with one or more PDF files as multimodal binary input. IMPORTANT:\n1. If a file (like a scanned PDF) has no text extraction in the <files_info> context, you MUST use your native multimodal vision engine to read and summarize it.\n2. Prioritize the content of the PDF provided in the CURRENT user message over any unrelated files found in history or memory.\n3. Rely on your visual reasoning/OCR for all binary file content provided.';
+        content = typeof content === 'string' ? content + visionInstruction : content;
+      }
+
       // Explicitly map only valid ChatCompletionMessageParam fields
       // Exclude reasoning and reasoning_content fields as they should not be sent in requests
       const result: any = {
-        content:
-          typeof message.content === 'string'
-            ? message.content
-            : await Promise.all(
-                (message.content || [])
-                  .filter((c) => !isInternalThinkingContentPart(c as OpenAICompatibleContentPart))
-                  .map((c) =>
-                    convertMessageContent(c as OpenAI.ChatCompletionContentPart, options),
-                  ),
-              ),
+        content,
         role: msg.role,
       };
 
