@@ -89,8 +89,22 @@ export class MessagesEngine {
    * Process messages and return OpenAI-compatible format
    */
   async process(): Promise<MessagesEngineResult> {
+    const { messages } = this.params;
+
+    const latestUserMessage = [...messages].reverse().find((m) => m.role === 'user');
+
+    // Detect if the latest user message has multimodal attachments (PDF/Image)
+    const hasCurrentMultimodalAttachments =
+      Array.isArray(latestUserMessage?.content) &&
+      latestUserMessage.content.some((c: any) => c.type === 'file_url' || c.type === 'image_url');
+
     const pipeline = this.buildPipeline();
-    const result = await pipeline.process({ messages: this.params.messages });
+    const result = await pipeline.process({
+      messages: [...this.params.messages],
+      metadata: {
+        hasCurrentMultimodalAttachments,
+      },
+    });
 
     return {
       messages: result.messages as OpenAIChatMessage[],
@@ -180,11 +194,13 @@ export class MessagesEngine {
     const hasDateAwareTools =
       toolIds.includes('lobe-web-browsing') || toolIds.includes('lobe-user-memory');
     const isSystemDateEnabled = enableSystemDate !== false && !hasDateAwareTools;
-    const currentUserMessage = [...messages]
-      .reverse()
-      .find((m) => m.role === 'user' && typeof m.content === 'string')?.content as
-      | string
-      | undefined;
+
+    const latestUserMessage = [...messages].reverse().find((m) => m.role === 'user');
+    const currentUserMessage =
+      typeof latestUserMessage?.content === 'string'
+        ? latestUserMessage.content
+        : (latestUserMessage?.content as any[] | undefined)?.find((c: any) => c.type === 'text')
+            ?.text;
 
     return [
       // =============================================

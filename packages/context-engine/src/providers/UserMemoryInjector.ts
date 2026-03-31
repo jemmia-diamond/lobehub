@@ -37,15 +37,30 @@ export class UserMemoryInjector extends BaseFirstUserContentProvider {
     super(options);
   }
 
-  protected buildContent(_context: PipelineContext): string | null {
+  protected buildContent(context: PipelineContext): string | null {
     const { memories } = this.config;
     if (!memories) return null;
 
-    const content = promptUserMemory({ memories });
+    let content = promptUserMemory({ memories });
 
     if (!content) {
       log('No user memories to inject');
       return null;
+    }
+
+    // [New Logic] Smart Filtering for Multimodal Context
+    // If a new physical file is attached, old memories should be deprioritized.
+    if (context.metadata.hasCurrentMultimodalAttachments) {
+      log('Current message has attachments, wrapping user memory in suppression tags');
+      content = `
+<user_background_memory>
+The following information is retrieved from your past memories. 
+IMPORTANT: If the user has provided a NEW file or image in this message, that file is the PRIMARY context.
+Be careful not to confuse historical memories with the specific document the user is currently referencing.
+
+${content}
+</user_background_memory>
+`.trim();
     }
 
     const hasPersona = !!(memories.persona?.narrative || memories.persona?.tagline);

@@ -10,7 +10,9 @@ import type { UIChatMessage } from '@lobechat/types';
  *   }
  * }
  */
-export interface PipelineContextMetadataOverrides {}
+export interface PipelineContextMetadataOverrides {
+  hasCurrentMultimodalAttachments?: boolean;
+}
 
 /**
  * Agent state - inferred from original project types
