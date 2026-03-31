@@ -316,7 +316,39 @@ const FileUpload = memo(() => {
     ...(knowledgeItems.length > 0 ? knowledgeItems : []),
   ];
 
-  const content = (
+  const handleUpload = async (file: File) => {
+    if (!canUploadImage && (file.type.startsWith('image') || file.type.startsWith('video'))) {
+      message.error(t('upload.action.imageDisabled'));
+      return false;
+    }
+
+    const validation = validateVideoFileSize(file);
+    if (!validation.isValid) {
+      message.error(
+        t('upload.validation.videoSizeExceeded', {
+          actualSize: validation.actualSize,
+        }),
+      );
+      return false;
+    }
+
+    setDropdownOpen(false);
+    await upload([file]);
+
+    return false;
+  };
+
+  const isDirectUpload =
+    items.length === 1 &&
+    items[0]?.key === 'upload-file' &&
+    enableFileUpload &&
+    showUploadFile &&
+    !showUploadFolder &&
+    !showUploadImage &&
+    !showUploadLark &&
+    knowledgeItems.length === 0;
+
+  const actionNode = (
     <Action
       icon={Paperclip}
       loading={updating}
@@ -324,14 +356,27 @@ const FileUpload = memo(() => {
       showTooltip={false}
       title={t('upload.action.tooltip')}
       trigger={'both'}
-      dropdown={{
-        maxHeight: 500,
-        maxWidth: 480,
-        menu: { items },
-        minWidth: 240,
-      }}
+      dropdown={
+        isDirectUpload
+          ? undefined
+          : {
+              maxHeight: 500,
+              maxWidth: 480,
+              menu: { items },
+              minWidth: 240,
+            }
+      }
+      onClick={isDirectUpload ? () => {} : undefined}
       onOpenChange={setDropdownOpen}
     />
+  );
+
+  const content = isDirectUpload ? (
+    <Upload multiple beforeUpload={handleUpload} showUploadList={false}>
+      {actionNode}
+    </Upload>
+  ) : (
+    actionNode
   );
 
   return (
