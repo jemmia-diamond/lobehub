@@ -33,7 +33,7 @@ export default {
   'next': 'Next',
   'proSettings.connectors.title': 'Connect Your Favorite Tools',
   'proSettings.devMode.title': 'Developer Mode',
-  'proSettings.model.title': 'Default Model Used by the Agent',
+  'proSettings.model.title': 'Default Model Used by Jemmora',
   'proSettings.title': 'Configure Advanced Options in Advance',
   'proSettings.title2': 'Try Connecting Some Common Tools~',
   'proSettings.title3': "Let's Get Ready for Efficient Work!",

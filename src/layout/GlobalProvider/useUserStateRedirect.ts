@@ -3,6 +3,7 @@
 import { useCallback } from 'react';
 
 import { isDesktop } from '@/const/version';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { onboardingSelectors } from '@/store/user/selectors';
 import { type UserInitializationState } from '@/types/user';
 
@@ -18,14 +19,27 @@ export const useDesktopUserStateRedirect = () => {
   return useCallback(() => {}, []);
 };
 
-export const useWebUserStateRedirect = () =>
-  useCallback((state: UserInitializationState) => {
-    const { pathname } = window.location;
+export const useWebUserStateRedirect = () => {
+  const { enableOnboarding, forceOnboarding } = useServerConfigStore(featureFlagsSelectors);
 
-    if (!onboardingSelectors.needsOnboarding(state)) return;
+  return useCallback(
+    (state: UserInitializationState) => {
+      const { pathname } = window.location;
 
-    redirectIfNotOn(pathname, '/onboarding');
-  }, []);
+      if (!enableOnboarding) return;
+
+      if (forceOnboarding) {
+        redirectIfNotOn(pathname, '/onboarding');
+        return;
+      }
+
+      if (!onboardingSelectors.needsOnboarding(state)) return;
+
+      redirectIfNotOn(pathname, '/onboarding');
+    },
+    [enableOnboarding, forceOnboarding],
+  );
+};
 
 export const useUserStateRedirect = () => {
   const desktopRedirect = useDesktopUserStateRedirect();

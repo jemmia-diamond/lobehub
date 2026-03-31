@@ -2,9 +2,11 @@
 
 import { MAX_ONBOARDING_STEPS } from '@lobechat/types';
 import { Flexbox } from '@lobehub/ui';
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import Loading from '@/components/Loading/BrandTextLoading';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useUserStore } from '@/store/user';
 import { onboardingSelectors } from '@/store/user/selectors';
 
@@ -16,6 +18,9 @@ import ResponseLanguageStep from './features/ResponseLanguageStep';
 import TelemetryStep from './features/TelemetryStep';
 
 const OnboardingPage = memo(() => {
+  const navigate = useNavigate();
+  const { enableOnboarding, forceOnboarding } = useServerConfigStore(featureFlagsSelectors);
+
   const [isUserStateInit, currentStep, goToNextStep, goToPreviousStep] = useUserStore((s) => [
     s.isUserStateInit,
     onboardingSelectors.currentStep(s),
@@ -23,7 +28,23 @@ const OnboardingPage = memo(() => {
     s.goToPreviousStep,
   ]);
 
-  if (!isUserStateInit) {
+  useEffect(() => {
+    if (!isUserStateInit) return;
+
+    if (!enableOnboarding) {
+      navigate('/');
+      return;
+    }
+
+    if (
+      !forceOnboarding &&
+      !onboardingSelectors.needsOnboarding({ onboarding: useUserStore.getState().onboarding })
+    ) {
+      navigate('/');
+    }
+  }, [isUserStateInit, enableOnboarding, forceOnboarding, navigate]);
+
+  if (!isUserStateInit || !enableOnboarding) {
     return <Loading debugId="Onboarding" />;
   }
 

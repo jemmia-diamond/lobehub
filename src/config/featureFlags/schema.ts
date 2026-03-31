@@ -64,6 +64,8 @@ export const FeatureFlagsSchema = z.object({
 
   enable_image_generation: FeatureFlagValue.optional(),
   enable_video_generation: FeatureFlagValue.optional(),
+  enable_onboarding: FeatureFlagValue.optional(),
+  force_onboarding: FeatureFlagValue.optional(),
 
   // the flags below can only be used with commercial license
   // if you want to use it in the commercial usage
@@ -169,6 +171,8 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
 
   enable_image_generation: false,
   enable_video_generation: false,
+  enable_onboarding: false,
+  force_onboarding: false,
 
   // the flags below can only be used with commercial license
   // if you want to use it in the commercial usage
@@ -253,6 +257,8 @@ export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string
 
     enableImageGeneration: evaluateFeatureFlag(config.enable_image_generation, userId),
     enableVideoGeneration: evaluateFeatureFlag(config.enable_video_generation, userId),
+    enableOnboarding: evaluateFeatureFlag(config.enable_onboarding, userId),
+    forceOnboarding: evaluateFeatureFlag(config.force_onboarding, userId),
 
     hideGitHub: evaluateFeatureFlag(config.commercial_hide_github, userId),
     hideDocs: evaluateFeatureFlag(config.commercial_hide_docs, userId),
