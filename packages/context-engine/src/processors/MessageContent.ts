@@ -56,6 +56,9 @@ export interface MessageContentConfig {
 }
 
 export interface UserMessageContentPart {
+  file_url?: {
+    url: string;
+  };
   googleThoughtSignature?: string;
   image_url?: {
     detail?: string;
@@ -64,7 +67,7 @@ export interface UserMessageContentPart {
   signature?: string;
   text?: string;
   thinking?: string;
-  type: 'text' | 'image_url' | 'thinking' | 'video_url';
+  type: 'text' | 'image_url' | 'thinking' | 'video_url' | 'file_url';
   video_url?: {
     url: string;
   };
@@ -158,9 +161,35 @@ export class MessageContentProcessor extends BaseProcessor {
 
     // Add file context (if file context is enabled and has files, images or videos)
     if ((hasFiles || hasImages || hasVideos) && this.config.fileContext?.enabled) {
+      // For files that will be handled natively (PDFs for Google/Jemmia),
+      // replace their content with a placeholder instruction to avoid confusing the model with "empty" tags.
+      const isNativeProvider =
+        this.config.provider === 'google' || this.config.provider === 'jemmia';
+      const processedFileList = isNativeProvider
+        ? message.fileList?.map((file: any) => {
+            const url = file.url?.toLowerCase() || '';
+            const name = file.name?.toLowerCase() || '';
+            const mimeType = file.fileType || file.mimeType || '';
+            const isPdf =
+              url.endsWith('.pdf') ||
+              name.endsWith('.pdf') ||
+              mimeType === 'application/pdf' ||
+              mimeType.includes('pdf');
+
+            if (isPdf) {
+              return {
+                ...file,
+                content:
+                  '[NATIVE MULTIMODAL CONTENT: Please use your visual reasoning/OCR engine to read the content from the attached binary data for this file.]',
+              };
+            }
+            return file;
+          })
+        : message.fileList;
+
       const filesContext = filesPrompts({
         addUrl: this.config.fileContext.includeFileUrl ?? true,
-        fileList: message.fileList,
+        fileList: processedFileList,
         imageList: message.imageList || [],
         videoList: message.videoList || [],
       });
@@ -190,6 +219,16 @@ export class MessageContentProcessor extends BaseProcessor {
       contentParts.push(...videoContentParts);
     }
 
+    // Process file content (Native PDF for Gemini & Jemmia)
+    let hasNativeFileContent = false;
+    if (hasFiles && (this.config.provider === 'google' || this.config.provider === 'jemmia')) {
+      const fileContentParts = await this.processFileList(message.fileList || []);
+      if (fileContentParts.length > 0) {
+        contentParts.push(...fileContentParts);
+        hasNativeFileContent = true;
+      }
+    }
+
     // Explicitly return fields, keeping only necessary message fields
     const hasFileContext = (hasFiles || hasImages || hasVideos) && this.config.fileContext?.enabled;
     const hasVisionContent =
@@ -197,13 +236,14 @@ export class MessageContentProcessor extends BaseProcessor {
     const hasVideoContent =
       hasVideos && this.config.isCanUseVideo?.(this.config.model, this.config.provider);
 
-    // If only text content and no file context added and no vision/video content, return plain text
+    // If only text content and no file context added and no vision/video/file content, return plain text
     if (
       contentParts.length === 1 &&
       contentParts[0].type === 'text' &&
       !hasFileContext &&
       !hasVisionContent &&
-      !hasVideoContent
+      !hasVideoContent &&
+      !hasNativeFileContent
     ) {
       return {
         content: contentParts[0].text,
@@ -411,6 +451,35 @@ export class MessageContentProcessor extends BaseProcessor {
   }
 
   /**
+   * Process file list
+   */
+  private async processFileList(fileList: any[]): Promise<UserMessageContentPart[]> {
+    if (!fileList || fileList.length === 0) {
+      return [];
+    }
+
+    return fileList
+      .filter((file) => {
+        const url = file.url?.toLowerCase() || '';
+        const name = file.name?.toLowerCase() || '';
+        const mimeType = file.fileType || file.mimeType || '';
+
+        return (
+          url.endsWith('.pdf') ||
+          name.endsWith('.pdf') ||
+          mimeType === 'application/pdf' ||
+          mimeType.includes('pdf')
+        );
+      })
+      .map((file) => {
+        return {
+          file_url: { url: file.url },
+          type: 'file_url',
+        } as UserMessageContentPart;
+      });
+  }
+
+  /**
    * Validate content part format
    */
   private validateContentPart(part: UserMessageContentPart): boolean {
@@ -428,6 +497,9 @@ export class MessageContentProcessor extends BaseProcessor {
       }
       case 'video_url': {
         return !!(part.video_url && part.video_url.url);
+      }
+      case 'file_url': {
+        return !!(part.file_url && part.file_url.url);
       }
       default: {
         return false;

@@ -92,6 +92,7 @@ export interface OpenAICompatibleFactoryOptions<T extends Record<string, any> = 
   baseURL?: string;
   chatCompletion?: {
     excludeUsage?: boolean;
+    forceFileBase64?: boolean;
     forceImageBase64?: boolean;
     forceVideoBase64?: boolean;
     handleError?: (
@@ -429,6 +430,7 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
         }
 
         const messages = await convertOpenAIMessages(postPayload.messages, {
+          forceFileBase64: chatCompletion?.forceFileBase64,
           forceImageBase64: chatCompletion?.forceImageBase64,
           forceVideoBase64: chatCompletion?.forceVideoBase64,
         });
@@ -475,13 +477,15 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
                 : undefined,
           };
 
-          log('sending chat completion request with %d messages', messages.length);
-
           if (debugParams?.chatCompletion?.()) {
             // eslint-disable-next-line no-console
-            console.log('[requestPayload]');
+            console.log(`[${this.id}] Sending request to: ${this.client.baseURL}`);
             // eslint-disable-next-line no-console
-            console.log(JSON.stringify(finalPayload), '\n');
+            console.log(`[${this.id}] Model: ${finalPayload.model}`);
+            // eslint-disable-next-line no-console
+            console.log(`[${this.id}] [requestPayload]`);
+            // eslint-disable-next-line no-console
+            console.log(JSON.stringify(finalPayload, null, 2), '\n');
           }
 
           response = (await this.client.chat.completions.create(finalPayload, {
@@ -1041,7 +1045,7 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
         input,
         ...(max_tokens && { max_output_tokens: max_tokens }),
         store: false,
-        stream: !isStreaming ? undefined : isStreaming,
+        stream: isStreaming ?? undefined,
         tools: tools?.map((tool) => this.convertChatCompletionToolToResponseTool(tool)),
         user: options?.user,
         // Sanitize sampling params for Responses API path

@@ -108,6 +108,32 @@ export const buildGooglePart = async (
 
       throw new TypeError(`currently we don't support video url: ${content.video_url.url}`);
     }
+
+    case 'file_url': {
+      const { mimeType, base64, type } = parseDataUri(content.file_url.url);
+
+      if (type === 'base64') {
+        if (!base64) {
+          throw new TypeError("File URL doesn't contain base64 data");
+        }
+
+        return {
+          inlineData: { data: base64, mimeType: mimeType || 'application/pdf' },
+          thoughtSignature: GEMINI_MAGIC_THOUGHT_SIGNATURE,
+        };
+      }
+
+      if (type === 'url') {
+        const { base64, mimeType } = await imageUrlToBase64(content.file_url.url);
+
+        return {
+          inlineData: { data: base64, mimeType },
+          thoughtSignature: GEMINI_MAGIC_THOUGHT_SIGNATURE,
+        };
+      }
+
+      throw new TypeError(`currently we don't support file url: ${content.file_url.url}`);
+    }
   }
 };
 

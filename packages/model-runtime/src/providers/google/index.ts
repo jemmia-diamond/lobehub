@@ -197,9 +197,23 @@ export class LobeGoogleAI implements LobeRuntimeAI {
             threshold: getThreshold(model),
           },
         ],
-        systemInstruction: modelsDisableInstuction.has(model)
-          ? undefined
-          : (payload.system as string),
+        systemInstruction: (() => {
+          let system = payload.system as string;
+          if (modelsDisableInstuction.has(model)) return undefined;
+
+          // Check if any message part contains a PDF file
+          const hasPdf = contents.some((content) =>
+            content.parts?.some((part) => part.inlineData?.mimeType === 'application/pdf'),
+          );
+
+          if (hasPdf) {
+            const visionInstruction =
+              '\n\n[Vision/PDF Instruction]\nYou have been provided with one or more PDF files as multimodal binary input. IMPORTANT:\n1. If a file (like a scanned PDF) has no text extraction in the <files_info> context, you MUST use your native multimodal vision engine to read and summarize it.\n2. Prioritize the content of the PDF provided in the CURRENT user message over any unrelated files found in history or memory.\n3. Rely on your visual reasoning/OCR for all binary file content provided.';
+            system = system ? system + visionInstruction : visionInstruction;
+          }
+
+          return system;
+        })(),
         temperature: modelsWithModalities.has(model)
           ? Math.min(payload.temperature ?? 1, 1)
           : payload.temperature,
