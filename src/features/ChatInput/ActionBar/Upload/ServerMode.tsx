@@ -316,8 +316,12 @@ const FileUpload = memo(() => {
     ...(knowledgeItems.length > 0 ? knowledgeItems : []),
   ];
 
-  const handleUpload = async (file: File) => {
-    if (!canUploadImage && (file.type.startsWith('image') || file.type.startsWith('video'))) {
+  const handleUpload = async (file: File, key?: string) => {
+    if (
+      (key === 'upload-file' || key === 'upload-folder' || !key) &&
+      !canUploadImage &&
+      (file.type.startsWith('image') || file.type.startsWith('video'))
+    ) {
       message.error(t('upload.action.imageDisabled'));
       return false;
     }
@@ -338,19 +342,46 @@ const FileUpload = memo(() => {
     return false;
   };
 
+  const singleItem = items[0];
   const isDirectUpload =
     items.length === 1 &&
-    items[0]?.key === 'upload-file' &&
-    enableFileUpload &&
-    showUploadFile &&
-    !showUploadFolder &&
-    !showUploadImage &&
-    !showUploadLark &&
-    knowledgeItems.length === 0;
+    (singleItem?.key === 'upload-file' ||
+      singleItem?.key === 'upload-image' ||
+      singleItem?.key === 'upload-folder' ||
+      singleItem?.key === 'upload-lark' ||
+      singleItem?.key === 'knowledge-base-store');
+
+  const isUploadAction =
+    isDirectUpload &&
+    (singleItem?.key === 'upload-file' ||
+      singleItem?.key === 'upload-image' ||
+      singleItem?.key === 'upload-folder');
+
+  const uploadProps = isUploadAction
+    ? {
+        accept: singleItem?.key === 'upload-image' ? 'image/*' : undefined,
+        beforeUpload: (file: File) => handleUpload(file, singleItem?.key as string),
+        directory: singleItem?.key === 'upload-folder',
+        multiple: true,
+        showUploadList: false,
+      }
+    : {};
+
+  const handleDirectClick = () => {
+    if (!isDirectUpload) return;
+
+    if (singleItem?.key === 'upload-lark') {
+      setDropdownOpen(false);
+      setSearchDocsModalOpen(true);
+    } else if (singleItem?.key === 'knowledge-base-store') {
+      setDropdownOpen(false);
+      setModalOpen(true);
+    }
+  };
 
   const actionNode = (
     <Action
-      icon={Paperclip}
+      icon={isDirectUpload ? (singleItem as any)?.icon : Paperclip}
       loading={updating}
       open={dropdownOpen}
       showTooltip={false}
@@ -366,18 +397,12 @@ const FileUpload = memo(() => {
               minWidth: 240,
             }
       }
-      onClick={isDirectUpload ? () => {} : undefined}
+      onClick={isDirectUpload ? handleDirectClick : undefined}
       onOpenChange={setDropdownOpen}
     />
   );
 
-  const content = isDirectUpload ? (
-    <Upload multiple beforeUpload={handleUpload} showUploadList={false}>
-      {actionNode}
-    </Upload>
-  ) : (
-    actionNode
-  );
+  const content = isUploadAction ? <Upload {...uploadProps}>{actionNode}</Upload> : actionNode;
 
   return (
     <Suspense fallback={<Action disabled icon={Paperclip} title={t('upload.action.tooltip')} />}>
