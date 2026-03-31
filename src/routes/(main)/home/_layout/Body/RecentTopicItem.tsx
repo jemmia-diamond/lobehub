@@ -1,8 +1,6 @@
 'use client';
 
 import { type RecentTopicAgent, type RecentTopicGroup } from '@lobechat/types';
-import { ActionIcon, DropdownMenu } from '@lobehub/ui';
-import { MoreHorizontalIcon } from 'lucide-react';
 import { memo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -44,11 +42,13 @@ const RecentTopicItem = memo<RecentTopicItemProps>(({ id, title, active, type, a
       active={active}
       contextMenuItems={dropdownMenu}
       paddingInline={8}
-      actions={
+      /**
+       actions={
         <DropdownMenu items={dropdownMenu}>
           <ActionIcon icon={MoreHorizontalIcon} size={'small'} />
         </DropdownMenu>
       }
+       */
       title={
         <span
           style={{
