@@ -37,16 +37,32 @@ export class KnowledgeInjector extends BaseFirstUserContentProvider {
     super(options);
   }
 
-  protected buildContent(_context: PipelineContext): string | null {
+  protected buildContent(context: PipelineContext): string | null {
     const fileContents = this.config.fileContents || [];
     const knowledgeBases = this.config.knowledgeBases || [];
 
     // Generate unified knowledge prompt
-    const formattedContent = promptAgentKnowledge({ fileContents, knowledgeBases });
+    let formattedContent = promptAgentKnowledge({ fileContents, knowledgeBases });
 
     if (!formattedContent) {
       log('No knowledge to inject');
       return null;
+    }
+
+    // [New Logic] Smart Filtering for Multimodal Context
+    // If the user has attached a NEW physical file (PDF/Image), we should "Whisper" the background knowledge
+    // to prevent the AI from "ghosting" old files into the current task.
+    if (context.metadata.hasCurrentMultimodalAttachments) {
+      log('Current message has attachments, wrapping background knowledge in suppression tags');
+      formattedContent = `
+<background_knowledge_memory>
+The following content is retrieved from your long-term library or knowledge base. 
+IMPORTANT: If the user has attached a NEW file or image to the current message, PRIORITIZE the attached file.
+IGNORE this background knowledge if it contradicts the current conversation or the newly attached document.
+
+${formattedContent}
+</background_knowledge_memory>
+`.trim();
     }
 
     log(

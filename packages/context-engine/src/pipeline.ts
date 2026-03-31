@@ -65,7 +65,10 @@ export class ContextEngine {
   /**
    * Execute pipeline processing
    */
-  async process(input: { messages: Array<any> }): Promise<PipelineResult> {
+  async process(input: {
+    messages: Array<any>;
+    metadata?: Record<string, any>;
+  }): Promise<PipelineResult> {
     const startTime = Date.now();
     const processorDurations: Record<string, number> = {};
 
@@ -74,7 +77,7 @@ export class ContextEngine {
       initialState: { messages: input.messages },
       isAborted: false,
       messages: [...input.messages],
-      metadata: {},
+      metadata: input.metadata || {},
     };
 
     log('Starting pipeline processing');
