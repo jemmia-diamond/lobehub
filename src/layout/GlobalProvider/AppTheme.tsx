@@ -157,17 +157,23 @@ const AppTheme = memo<AppThemeProps>(
           defaultAppearance={currentAppearence}
           defaultThemeMode={currentAppearence}
           customTheme={{
-            neutralColor: neutralColor ?? defaultNeutralColor,
-            primaryColor: primaryColor ?? defaultPrimaryColor,
+            ...((neutralColor || defaultNeutralColor) && {
+              neutralColor: neutralColor || defaultNeutralColor,
+            }),
+            ...((primaryColor || defaultPrimaryColor) && {
+              primaryColor: primaryColor || defaultPrimaryColor,
+            }),
           }}
           theme={{
             cssVar: { key: 'lobe-vars' },
             token: {
-              colorBgContainer: isDark ? undefined : '#faf8f5',
-              colorBgLayout: isDark ? undefined : '#f2f0ec',
-              fontFamily: customFontFamily
-                ? `${customFontFamily},${antdTheme.fontFamily}`
-                : undefined,
+              ...(!isDark && {
+                colorBgContainer: '#faf8f5',
+                colorBgLayout: '#f2f0ec',
+              }),
+              ...(customFontFamily && {
+                fontFamily: `${customFontFamily},${antdTheme.fontFamily}`,
+              }),
               motion: animationMode !== 'disabled',
               motionUnit: animationMode === 'agile' ? 0.05 : 0.1,
             },

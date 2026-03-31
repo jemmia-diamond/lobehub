@@ -52,7 +52,7 @@ async function rewriteViteAssetUrls(html: string): Promise<string> {
 
   document.querySelectorAll('link[href]').forEach((el: Element) => {
     const href = el.getAttribute('href');
-    if (href && href.startsWith('/')) {
+    if (href && href.startsWith('/') && !href.startsWith('/manifest.webmanifest')) {
       el.setAttribute('href', `${VITE_DEV_ORIGIN}${href}`);
     }
   });
