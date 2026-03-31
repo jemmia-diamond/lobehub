@@ -42,6 +42,7 @@ const RecentTopicItem = memo<RecentTopicItemProps>(({ id, title, active, type, a
       active={active}
       contextMenuItems={dropdownMenu}
       paddingInline={8}
+      style={active ? { backgroundColor: '#E4E2DB' } : undefined}
       /**
        actions={
         <DropdownMenu items={dropdownMenu}>
@@ -52,7 +53,7 @@ const RecentTopicItem = memo<RecentTopicItemProps>(({ id, title, active, type, a
       title={
         <span
           style={{
-            color: '#0A0A0A',
+            color: 'inherit',
             fontFamily: 'Inter, system-ui, sans-serif',
             fontSize: 14,
             fontStyle: 'normal',

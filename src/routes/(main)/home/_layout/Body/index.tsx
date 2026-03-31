@@ -4,6 +4,7 @@ import { Flexbox, Text } from '@lobehub/ui';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useChatStore } from '@/store/chat';
 import { useHomeStore } from '@/store/home';
 import { homeRecentSelectors } from '@/store/home/selectors';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
@@ -44,6 +45,8 @@ const Body = memo(() => {
   const recentTopics = useHomeStore(homeRecentSelectors.recentTopics);
   const isRecentTopicsInit = useHomeStore(homeRecentSelectors.isRecentTopicsInit);
 
+  const activeTopicId = useChatStore((s) => s.activeTopicId);
+
   const hasRecentTopics = isRecentTopicsInit && recentTopics && recentTopics.length > 0;
 
   return (
@@ -74,6 +77,7 @@ const Body = memo(() => {
               <Flexbox gap={1} paddingBlock={1}>
                 {recentTopics?.map((item: any) => (
                   <RecentTopicItem
+                    active={activeTopicId === item.id}
                     agent={item.agent}
                     group={item.group}
                     id={item.id}
