@@ -1,6 +1,6 @@
 'use client';
 
-import { ASSISTANT_TITLE } from '@lobechat/business-const';
+import { ASSISTANT_NAME, ASSISTANT_TITLE } from '@lobechat/business-const';
 import { Flexbox, Markdown, Text } from '@lobehub/ui';
 import isEqual from 'fast-deep-equal';
 import React, { memo, useMemo } from 'react';
@@ -51,7 +51,7 @@ const InboxWelcome = memo(() => {
     return agentSystemRoleMsg;
   }, [openingMessage, agentSystemRoleMsg]);
 
-  const displayTitle = groupMeta.title;
+  const displayTitle = isInbox ? ASSISTANT_NAME : groupMeta.title;
 
   return (
     <>
