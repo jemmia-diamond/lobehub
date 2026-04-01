@@ -1,4 +1,4 @@
-import { createRawModal, Flexbox, Tag, Tooltip } from '@lobehub/ui';
+import { createRawModal, Flexbox, Tag } from '@lobehub/ui';
 import { Progress } from 'antd';
 import { createStaticStyles, cssVar } from 'antd-style';
 import { memo } from 'react';
@@ -91,9 +91,9 @@ const ContextItem = memo<FileItemProps>((props) => {
           </div>
         )}
       </Flexbox>
-      <Tooltip title={file.name}>
-        <span className={styles.name}>{basename}</span>
-      </Tooltip>
+      <span className={styles.name} title={file.name}>
+        {basename}
+      </span>
     </Tag>
   );
 });

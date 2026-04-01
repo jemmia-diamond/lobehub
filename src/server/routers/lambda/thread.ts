@@ -43,7 +43,10 @@ export const threadRouter = router({
         metadata: input.metadata,
         parentThreadId: input.parentThreadId,
         sourceMessageId: input.sourceMessageId,
-        title: input.message.content.slice(0, 20),
+        title:
+          input.message.content.length >= 100
+            ? input.message.content.slice(0, 100)
+            : input.message.content,
         topicId: input.topicId,
         type: input.type,
       });

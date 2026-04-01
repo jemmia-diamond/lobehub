@@ -133,10 +133,13 @@ const NavItem = memo<NavItemProps>(
           <span
             style={{
               color: textColor,
+              display: 'block',
               flex: 1,
+              minWidth: 0,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
+              width: '100%',
             }}
           >
             {title}
