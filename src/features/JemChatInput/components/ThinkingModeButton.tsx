@@ -36,7 +36,7 @@ const useStyles = createStyles(({ css }) => ({
     }
   `,
   text: css`
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
   `,
 }));
