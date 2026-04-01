@@ -5,7 +5,8 @@
 export const LOBE_CHAT_CLOUD = 'Jemmora Cloud';
 
 export const BRANDING_NAME = 'Jemmora';
-export const BRANDING_LOGO_URL = '';
+export const BRANDING_LOGO_URL = '/images/jemmate_logo.svg';
+export const DEFAULT_AVATAR = BRANDING_LOGO_URL || '/avatars/agent-default.png';
 
 export const ORG_NAME = 'Jemmia Diamond';
 export const ASSISTANT_NAME = 'Jemmora';
