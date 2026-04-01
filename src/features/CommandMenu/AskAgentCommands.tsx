@@ -1,3 +1,4 @@
+import { ASSISTANT_NAME } from '@lobechat/business-const';
 import { DEFAULT_AVATAR, DEFAULT_INBOX_AVATAR } from '@lobechat/const';
 import { Avatar, preventDefault } from '@lobehub/ui';
 import { Command } from 'cmdk';
@@ -54,21 +55,20 @@ const AskAgentCommands = memo(() => {
   // Only show when user types "@"
   if (!isAtMention) return null;
 
-  // Check if Lobe AI matches the query
-  const showLobeAI = !mentionQuery || 'lobe ai'.includes(mentionQuery);
+  const normalizedAssistantName = ASSISTANT_NAME.toLowerCase();
+  const showAssistant = !mentionQuery || normalizedAssistantName.includes(mentionQuery);
 
   return (
     <Command.Group heading={t('cmdk.mentionAgent')}>
-      {/* @Lobe AI option */}
-      {showLobeAI && (
+      {showAssistant && (
         <Command.Item
-          value="@lobe-ai"
+          value={`@${normalizedAssistantName.replaceAll(' ', '-')}`}
           onMouseDown={preventDefault}
-          onSelect={() => handleAgentSelect(inboxAgentId, 'Jemmora', DEFAULT_INBOX_AVATAR)}
+          onSelect={() => handleAgentSelect(inboxAgentId, ASSISTANT_NAME, DEFAULT_INBOX_AVATAR)}
         >
           <Avatar emojiScaleWithBackground avatar={DEFAULT_INBOX_AVATAR} shape="square" size={18} />
           <div className={styles.itemContent}>
-            <div className={styles.itemLabel}>@Jemmora</div>
+            <div className={styles.itemLabel}>@{ASSISTANT_NAME}</div>
           </div>
         </Command.Item>
       )}
