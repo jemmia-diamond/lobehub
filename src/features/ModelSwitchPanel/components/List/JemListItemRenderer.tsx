@@ -10,7 +10,7 @@ import {
 import { styles } from '../../styles';
 import { type ListItem } from '../../types';
 import { menuKey } from '../../utils';
-import { FastIcon, ThinkingIcon } from './JemIcons';
+import { AutoIcon, FastIcon, ThinkingIcon } from './JemIcons';
 
 interface JemListItemRendererProps {
   activeKey: string;
@@ -30,7 +30,9 @@ export const JemListItemRenderer = memo<JemListItemRendererProps>(
     const labelKey = JEMMIA_MODEL_LABEL_KEYS[model.id];
     const descKey = JEMMIA_MODEL_DESC_KEYS[model.id];
 
-    const IconComponent = model.id === 'gemini-2.5-flash-lite' ? FastIcon : ThinkingIcon;
+    let IconComponent = ThinkingIcon;
+    if (model.id === 'gemini-2.5-flash-lite') IconComponent = FastIcon;
+    if (model.id === 'auto') IconComponent = AutoIcon;
 
     return (
       <button

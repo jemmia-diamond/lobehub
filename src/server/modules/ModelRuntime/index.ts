@@ -21,6 +21,7 @@ import { getLLMConfig } from '@/envs/llm';
 
 import { KeyVaultsGateKeeper } from '../KeyVaultsEncrypt';
 import apiKeyManager from './apiKeyManager';
+import { selectJemmiaModel } from './orchestrator';
 
 export * from './trace';
 
@@ -356,6 +357,24 @@ const buildVertexOptions = (
 };
 
 /**
+ * Get orchestration hooks for Jemmia provider
+ */
+const getJemOrchestrationHooks = (): ModelRuntimeHooks => ({
+  beforeChat: async (payload) => {
+    if (payload.model === 'auto') {
+      const actualModel = selectJemmiaModel(payload);
+      payload.model = actualModel;
+    }
+  },
+  beforeGenerateObject: async (payload) => {
+    if (payload.model === 'auto') {
+      const actualModel = selectJemmiaModel(payload as any);
+      payload.model = actualModel;
+    }
+  },
+});
+
+/**
  * Initializes the agent runtime with the user payload in backend
  * @param provider - The provider name.
  * @param payload - The JWT payload.
@@ -370,11 +389,26 @@ export const initModelRuntimeWithUserPayload = (
 ) => {
   const runtimeProvider = payload.runtimeProvider ?? provider;
 
+  // Merge provider-specific orchestration hooks with business hooks
+  const finalHooks: ModelRuntimeHooks = { ...hooks };
+
+  if (runtimeProvider === ModelProvider.Jemmia) {
+    const jemHooks = getJemOrchestrationHooks();
+    finalHooks.beforeChat = async (p, o) => {
+      await jemHooks.beforeChat?.(p, o);
+      await hooks?.beforeChat?.(p, o);
+    };
+    finalHooks.beforeGenerateObject = async (p, o) => {
+      await jemHooks.beforeGenerateObject?.(p, o);
+      await hooks?.beforeGenerateObject?.(p, o);
+    };
+  }
+
   if (runtimeProvider === ModelProvider.VertexAI) {
     const vertexOptions = buildVertexOptions(payload, params);
     const runtime = LobeVertexAI.initFromVertexAI(vertexOptions);
 
-    return new ModelRuntime(runtime, hooks);
+    return new ModelRuntime(runtime, finalHooks);
   }
 
   return ModelRuntime.initializeWithProvider(
@@ -383,7 +417,7 @@ export const initModelRuntimeWithUserPayload = (
       ...getParamsFromPayload(runtimeProvider, payload),
       ...params,
     },
-    hooks,
+    finalHooks,
   );
 };
 
