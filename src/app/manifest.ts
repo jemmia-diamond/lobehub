@@ -5,7 +5,7 @@ const manifest = async (): Promise<MetadataRoute.Manifest> => {
   if (process.env.NODE_ENV === 'development') {
     return {
       background_color: '#000000',
-      description: 'LobeHub Development',
+      description: 'Jemmora Development',
       display: 'standalone',
       icons: [
         {
@@ -30,7 +30,7 @@ const manifest = async (): Promise<MetadataRoute.Manifest> => {
 
   // @ts-expect-error - manifestModule.generate returns extended manifest with custom properties
   return manifestModule.generate({
-    description: `${BRANDING_NAME} is an advanced AI workspace designed for professional collaboration, agent management, and seamless productivity.`,
+    description: `${BRANDING_NAME} is an AI research and thinking partner for Jemmia Diamond, designed for better context, accuracy, privacy, and collaboration.`,
     icons: [
       {
         purpose: 'any',
