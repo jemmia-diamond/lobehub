@@ -228,7 +228,6 @@ const JemChatInput = memo<JemChatInputProps>(({ agentId, showStarters, threadId,
                   },
                 }}
                 leftContent={
-                  // TODO: tunglamphandam
                   <Flexbox horizontal align="center" gap={8}>
                     {enableFileUpload && <ServerMode />}
                   </Flexbox>
