@@ -206,7 +206,6 @@ const JemChatInput = memo<JemChatInputProps>(({ agentId, showStarters, threadId,
               <DesktopChatInput
                 showRuntimeConfig={false}
                 actionBarStyle={{
-                  borderTop: '1px solid rgba(169, 180, 185, 0.1)',
                   marginTop: 4,
                   paddingBottom: 4,
                   paddingLeft: 8,
