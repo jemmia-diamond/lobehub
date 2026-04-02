@@ -5,15 +5,9 @@
 export const LOBE_CHAT_CLOUD = 'Jemmora Cloud';
 
 export const BRANDING_NAME = 'Jemmora';
-export const BRANDING_LOGO_URL = '/images/jemmate_logo.svg';
-export const DEFAULT_AVATAR = BRANDING_LOGO_URL || '/avatars/agent-default.png';
+export const BRANDING_LOGO_URL = '';
 
 export const ORG_NAME = 'Jemmia Diamond';
-export const ASSISTANT_NAME = 'Jemmora';
-export const ASSISTANT_TAGLINE = 'A Thinking Partner';
-export const ASSISTANT_TITLE = `${ASSISTANT_NAME} - ${ASSISTANT_TAGLINE}`;
-export const ASSISTANT_PHILOSOPHY =
-  'An AI research and thinking partner that understands the Jemmia Diamond context for better accuracy and privacy.';
 
 export const BRANDING_URL = {
   help: undefined,

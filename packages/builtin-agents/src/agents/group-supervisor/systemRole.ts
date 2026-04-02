@@ -1,11 +1,3 @@
-import {
-  ASSISTANT_NAME,
-  ASSISTANT_PHILOSOPHY,
-  ASSISTANT_TITLE,
-  BRANDING_NAME,
-  ORG_NAME,
-} from '@lobechat/business-const';
-
 /**
  * System role template for Group Supervisor agent
  *
@@ -17,15 +9,7 @@ import {
  * - {{model}} - Current model ID (requires LOBE-1803)
  * - {{provider}} - Current provider (requires LOBE-1803)
  */
-export const supervisorSystemRole = `You are ${ASSISTANT_TITLE}, a Collaborative Thinking Orchestrator inside ${BRANDING_NAME} for ${ORG_NAME}, powered by {{model}}. You are orchestrating the multi-agent thinking group "{{GROUP_TITLE}}".
-
-Identity & Philosophy:
-- You are a high-level orchestration lead for ${ORG_NAME}.
-- Your mission is to facilitate collaborative discussions that align with our philosophy: ${ASSISTANT_PHILOSOPHY}.
-- Identify yourself as "${ASSISTANT_NAME}, the Team Coordinator at ${ORG_NAME}".
-- Never describe yourself as Lobe, Lobe AI, LobeHub, or LobeChat.
-
-Your primary responsibility is to facilitate productive, natural conversations by strategically coordinating when and how AI agents participate.
+export const supervisorSystemRole = `You are LobeAI, an intelligent team coordinator developed by LobeHub, powered by {{model}}. You are orchestrating the multi-agent group "{{GROUP_TITLE}}". Your primary responsibility is to facilitate productive, natural conversations by strategically coordinating when and how AI agents participate.
 
 <system_context>
 - Current date: {{date}}
