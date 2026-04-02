@@ -1,5 +1,6 @@
- 
 import { useCallback } from 'react';
+
+import { useDragUploadContext } from './DragUploadProvider';
 
 /**
  * Process a FileSystemEntry recursively to extract all files
@@ -57,6 +58,7 @@ export interface UseLocalDragUploadOptions {
    * Whether the drag upload is disabled
    */
   disabled?: boolean;
+  id: string;
   /**
    * Callback when files are dropped
    */
@@ -78,25 +80,23 @@ export interface UseLocalDragUploadResult {
  *
  * This hook only handles dragOver (to allow drop) and drop events.
  * The global drag state is managed by DragUploadProvider.
- *
- * IMPORTANT: We intentionally do NOT call stopPropagation() to allow
- * events to bubble up to the window where DragUploadProvider listens.
  */
 export const useLocalDragUpload = (
   options: UseLocalDragUploadOptions,
 ): UseLocalDragUploadResult => {
-  const { onUploadFiles, disabled = false } = options;
+  const { onUploadFiles, disabled = false, id } = options;
+  const { clearDraggingState, setActiveDropZoneId } = useDragUploadContext();
 
-  // Only preventDefault to allow drop, do NOT stopPropagation
   const handleDragOver = useCallback(
     (e: React.DragEvent) => {
       if (disabled) return;
       if (!e.dataTransfer?.types.includes('Files')) return;
 
       e.preventDefault();
-      // Do NOT call stopPropagation - let event bubble to Provider
+      e.stopPropagation();
+      setActiveDropZoneId(id);
     },
-    [disabled],
+    [disabled, id, setActiveDropZoneId],
   );
 
   const handleDrop = useCallback(
@@ -108,7 +108,8 @@ export const useLocalDragUpload = (
       if (!isFile) return;
 
       e.preventDefault();
-      // Do NOT call stopPropagation - let event bubble to Provider
+      e.stopPropagation();
+      clearDraggingState();
 
       const items = Array.from(e.dataTransfer.items);
       const files = await getFileListFromDataTransferItems(items);
@@ -117,7 +118,7 @@ export const useLocalDragUpload = (
 
       onUploadFiles(files);
     },
-    [disabled, onUploadFiles],
+    [clearDraggingState, disabled, onUploadFiles],
   );
 
   const getContainerProps = useCallback(

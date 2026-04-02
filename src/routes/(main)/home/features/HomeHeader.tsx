@@ -18,7 +18,7 @@ const HomeHeader = memo(() => {
           style={{
             color: 'inherit',
             fontSize: 18,
-            fontWeight: 300,
+            fontWeight: 200,
             margin: 0,
             textAlign: 'center',
           }}
@@ -30,7 +30,7 @@ const HomeHeader = memo(() => {
         style={{
           color: 'inherit',
           fontSize: 24,
-          fontWeight: 300,
+          fontWeight: 200,
           margin: 0,
           textAlign: 'center',
         }}

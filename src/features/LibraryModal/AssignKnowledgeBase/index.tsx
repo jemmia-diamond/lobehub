@@ -19,6 +19,7 @@ export const AttachKnowledgeModal = memo<AttachKnowledgeModalProps>(({ setOpen, 
     <Modal
       allowFullscreen
       footer={null}
+      mask={{ closable: true }}
       open={open}
       styles={{ body: { overflow: 'hidden' } }}
       title={t('knowledgeBase.library.title')}

@@ -29,7 +29,7 @@ export const generateMetadata = async (props: DynamicLayoutProps) => {
             icon: '/favicon.png?v=1',
             shortcut: '/favicon.png?v=1',
           },
-    manifest: '/manifest.json',
+    manifest: '/manifest.webmanifest',
     metadataBase: new URL(OFFICIAL_URL),
     openGraph: {
       description: t('chat.description', { appName: BRANDING_NAME }),

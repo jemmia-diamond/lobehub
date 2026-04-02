@@ -229,6 +229,7 @@ export class GlobalGeneralActionImpl {
             ...status,
             showCommandMenu: false,
             showHotkeyHelper: false,
+            showLeftPanel: window.innerWidth >= 1440,
           };
 
           this.#get().updateSystemStatus(statusWithResetTransientStates, 'initSystemStatus');

@@ -1,5 +1,5 @@
 import { type ChatContextContent } from '@lobechat/types';
-import { Tag, Tooltip } from '@lobehub/ui';
+import { Tag } from '@lobehub/ui';
 import { createStaticStyles } from 'antd-style';
 import { TextIcon } from 'lucide-react';
 import { memo, useMemo } from 'react';
@@ -76,9 +76,9 @@ const SelectionItem = memo<ChatContextContent & { fileType?: string }>(
           }
         }}
       >
-        <Tooltip title={preview}>
-          <span className={styles.name}>{displayText}</span>
-        </Tooltip>
+        <span className={styles.name} title={preview}>
+          {displayText}
+        </span>
       </Tag>
     );
   },

@@ -42,29 +42,18 @@ const RecentTopicItem = memo<RecentTopicItemProps>(({ id, title, active, type, a
       active={active}
       contextMenuItems={dropdownMenu}
       paddingInline={8}
-      style={active ? { backgroundColor: '#E4E2DB' } : undefined}
       /**
-       actions={
-        <DropdownMenu items={dropdownMenu}>
-          <ActionIcon icon={MoreHorizontalIcon} size={'small'} />
-        </DropdownMenu>
-      }
-       */
-      title={
-        <span
-          style={{
-            color: 'inherit',
-            fontFamily: 'Inter, system-ui, sans-serif',
-            fontSize: 14,
-            fontStyle: 'normal',
-            fontWeight: 400,
-            letterSpacing: 'normal',
-            lineHeight: '20px',
-          }}
-        >
-          {displayTitle}
-        </span>
-      }
+         actions={
+          <DropdownMenu items={dropdownMenu}>
+            <ActionIcon icon={MoreHorizontalIcon} size={'small'} />
+          </DropdownMenu>
+        }
+        */
+      title={displayTitle}
+      style={{
+        marginRight: 8,
+        backgroundColor: active ? '#E4E2DB' : undefined,
+      }}
       onClick={() => {
         navigate(topicUrl);
       }}

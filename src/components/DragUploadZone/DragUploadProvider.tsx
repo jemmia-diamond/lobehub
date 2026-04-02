@@ -4,14 +4,20 @@ import { type ReactNode } from 'react';
 import { createContext, memo, use, useCallback, useEffect, useRef, useState } from 'react';
 
 interface DragUploadContextValue {
+  activeDropZoneId?: string;
+  clearDraggingState: () => void;
   /**
    * Whether files are being dragged anywhere on the page
    */
   isDraggingGlobally: boolean;
+  setActiveDropZoneId: (_id?: string) => void;
 }
 
 const DragUploadContext = createContext<DragUploadContextValue>({
+  activeDropZoneId: undefined,
+  clearDraggingState: () => {},
   isDraggingGlobally: false,
+  setActiveDropZoneId: () => {},
 });
 
 /**
@@ -29,8 +35,14 @@ interface DragUploadProviderProps {
  * can highlight to show they are drop targets.
  */
 export const DragUploadProvider = memo<DragUploadProviderProps>(({ children }) => {
+  const [activeDropZoneId, setActiveDropZoneId] = useState<string | undefined>();
   const [isDraggingGlobally, setIsDraggingGlobally] = useState(false);
   const dragCounter = useRef(0);
+  const clearDraggingState = useCallback(() => {
+    setActiveDropZoneId(undefined);
+    dragCounter.current = 0;
+    setIsDraggingGlobally(false);
+  }, []);
 
   const handleDragEnter = useCallback((e: DragEvent) => {
     if (!e.dataTransfer?.types.includes('Files')) return;
@@ -59,12 +71,14 @@ export const DragUploadProvider = memo<DragUploadProviderProps>(({ children }) =
     }
   }, []);
 
-  const handleDrop = useCallback((e: DragEvent) => {
-    // Prevent browser from opening the file if dropped outside a zone
-    e.preventDefault();
-    dragCounter.current = 0;
-    setIsDraggingGlobally(false);
-  }, []);
+  const handleDrop = useCallback(
+    (e: DragEvent) => {
+      // Prevent browser from opening the file if dropped outside a zone
+      e.preventDefault();
+      clearDraggingState();
+    },
+    [clearDraggingState],
+  );
 
   useEffect(() => {
     window.addEventListener('dragenter', handleDragEnter);
@@ -80,7 +94,13 @@ export const DragUploadProvider = memo<DragUploadProviderProps>(({ children }) =
     };
   }, [handleDragEnter, handleDragOver, handleDragLeave, handleDrop]);
 
-  return <DragUploadContext value={{ isDraggingGlobally }}>{children}</DragUploadContext>;
+  return (
+    <DragUploadContext
+      value={{ activeDropZoneId, clearDraggingState, isDraggingGlobally, setActiveDropZoneId }}
+    >
+      {children}
+    </DragUploadContext>
+  );
 });
 
 DragUploadProvider.displayName = 'DragUploadProvider';

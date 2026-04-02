@@ -74,7 +74,7 @@ const Body = memo(() => {
           {hasRecentTopics ? (
             <>
               <SectionLabel>{t('sidebar.history')}</SectionLabel>
-              <Flexbox gap={1} paddingBlock={1}>
+              <Flexbox align={'stretch'} gap={1} paddingBlock={1} width={'100%'}>
                 {recentTopics?.map((item: any) => (
                   <RecentTopicItem
                     active={activeTopicId === item.id}

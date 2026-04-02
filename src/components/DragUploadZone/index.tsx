@@ -4,7 +4,7 @@ import { Center, Flexbox, Icon } from '@lobehub/ui';
 import { createStaticStyles, cssVar, cx } from 'antd-style';
 import { FileImage, FileText, FileUpIcon } from 'lucide-react';
 import { type CSSProperties, type ReactNode } from 'react';
-import { memo } from 'react';
+import { memo, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useDragUploadContext } from './DragUploadProvider';
@@ -107,18 +107,20 @@ const DragUploadZone = memo<DragUploadZoneProps>(
     style,
   }) => {
     const { t } = useTranslation('components');
+    const id = useId();
 
     // Global drag state - shows overlay when dragging anywhere on page
-    const { isDraggingGlobally } = useDragUploadContext();
+    const { activeDropZoneId, isDraggingGlobally } = useDragUploadContext();
 
     // Local drop handler - only handles drop events
     const { getContainerProps } = useLocalDragUpload({
       disabled,
+      id,
       onUploadFiles,
     });
 
     // Show overlay when files are being dragged anywhere on the page
-    const showOverlay = isDraggingGlobally && !disabled;
+    const showOverlay = isDraggingGlobally && activeDropZoneId === id && !disabled;
 
     return (
       <div className={cx(styles.container, className)} style={style} {...getContainerProps()}>
