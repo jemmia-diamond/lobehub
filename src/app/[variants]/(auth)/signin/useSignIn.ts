@@ -52,7 +52,13 @@ export const useSignIn = () => {
   });
   const serverConfigInit = useAuthServerConfigStore((s) => s.serverConfigInit);
   const oAuthSSOProviders = useAuthServerConfigStore((s) => s.serverConfig.oAuthSSOProviders) || [];
-  const { ssoProviders, preSocialSigninCheck, getAdditionalData } = useBusinessSignin();
+  const {
+    businessElement,
+    ssoProviders,
+    preSocialSigninCheck,
+    getAdditionalData,
+    getFetchOptions,
+  } = useBusinessSignin();
 
   useEffect(() => {
     const emailParam = searchParams.get('email');
@@ -229,18 +235,21 @@ export const useSignIn = () => {
 
       const callbackUrl = searchParams.get('callbackUrl') || '/';
       const additionalData = await getAdditionalData();
+      const fetchOptions = await getFetchOptions();
       const result = isBuiltinProvider(normalizedProvider)
         ? await signIn.social({
             additionalData,
             callbackURL: callbackUrl,
+            fetchOptions,
             provider: normalizedProvider,
           })
         : await signIn.oauth2({
             additionalData,
             callbackURL: callbackUrl,
+            fetchOptions,
             providerId: normalizedProvider,
           });
-      if (result?.error) throw result.error;
+      if (result && 'error' in result && result.error) throw result.error;
     } catch (error) {
       console.error(`${normalizedProvider} sign in error:`, error);
       message.error(t('betterAuth.signin.socialError'));
@@ -286,6 +295,7 @@ export const useSignIn = () => {
     : resolvedProviders;
 
   return {
+    businessElement,
     disableEmailPassword,
     email,
     form,

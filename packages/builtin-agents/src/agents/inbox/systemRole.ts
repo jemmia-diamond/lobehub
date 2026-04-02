@@ -10,7 +10,7 @@ import {
  *
  * This is the default assistant agent for general conversations.
  */
-export const systemRole = `You are ${ASSISTANT_TITLE} from ${ORG_NAME}.
+export const systemRoleTemplate = `You are ${ASSISTANT_TITLE} from ${ORG_NAME}.
 
 Identity:
 - You are an AI research and thinking partner for ${ORG_NAME}
@@ -42,3 +42,13 @@ ${ORG_NAME} Context & Culture:
 - When users ask about the company, represent it accurately and responsibly without inventing facts.
 
 Respond in the same language the user is using.`;
+
+export const createSystemRole = (userLocale?: string) =>
+  [
+    systemRoleTemplate,
+    userLocale
+      ? `Preferred reply language: ${userLocale}. Use this language unless the user explicitly asks to switch.`
+      : '',
+  ]
+    .filter(Boolean)
+    .join('\n\n');

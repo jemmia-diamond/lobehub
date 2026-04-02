@@ -1,7 +1,15 @@
 'use client';
 
 import { Flexbox, Form, FormGroup, FormItem, Tag } from '@lobehub/ui';
-import { Button, type FormInstance, InputNumber, Popconfirm, Select, Switch } from 'antd';
+import {
+  Button,
+  Form as AntdForm,
+  type FormInstance,
+  InputNumber,
+  Popconfirm,
+  Select,
+  Switch,
+} from 'antd';
 import { createStaticStyles } from 'antd-style';
 import { RotateCcw } from 'lucide-react';
 import { memo, useCallback, useMemo, useState } from 'react';
@@ -13,14 +21,16 @@ import type {
   SerializedPlatformDefinition,
 } from '@/server/services/bot/platforms/types';
 
+import { platformCredentialBodyMap } from '../platform/registry';
 import type { ChannelFormValues } from './index';
 
 const prefixCls = 'ant';
 
 const styles = createStaticStyles(({ css }) => ({
   form: css`
-    .${prefixCls}-form-item-control:has(.${prefixCls}-input, .${prefixCls}-select, .${prefixCls}-input-number) {
-      flex: none;
+    .${prefixCls}-form-item-control {
+      flex: 0 0 50% !important;
+      width: 50%;
     }
   `,
 }));
@@ -65,6 +75,12 @@ interface SchemaFieldProps {
 const SchemaField = memo<SchemaFieldProps>(({ field, parentKey, divider }) => {
   const { t: _t } = useTranslation('agent');
   const t = _t as (key: string) => string;
+
+  // Conditional visibility: watch the sibling field specified by visibleWhen
+  const watchedValue = AntdForm.useWatch(
+    field.visibleWhen ? [parentKey, field.visibleWhen.field] : [],
+  );
+  if (field.visibleWhen && watchedValue !== field.visibleWhen.value) return null;
 
   const label = field.devOnly ? (
     <Flexbox horizontal align="center" gap={8}>
@@ -188,13 +204,25 @@ const SettingsTitle = memo<{ schema: FieldSchema[] }>(({ schema }) => {
 // --------------- Body component ---------------
 
 interface BodyProps {
+  currentConfig?: {
+    applicationId: string;
+    credentials: Record<string, string>;
+    settings?: Record<string, unknown> | null;
+  };
   form: FormInstance<ChannelFormValues>;
+  hasConfig?: boolean;
+  onAuthenticated?: (params: {
+    applicationId: string;
+    credentials: Record<string, string>;
+  }) => void;
   platformDef: SerializedPlatformDefinition;
 }
 
-const Body = memo<BodyProps>(({ platformDef, form }) => {
+const Body = memo<BodyProps>(({ platformDef, form, hasConfig, currentConfig, onAuthenticated }) => {
   const { t: _t } = useTranslation('agent');
   const t = _t as (key: string) => string;
+
+  const CustomCredentialBody = platformCredentialBodyMap[platformDef.id];
 
   const applicationIdField = useMemo(
     () => platformDef.schema.find((f) => f.key === 'applicationId'),
@@ -233,15 +261,25 @@ const Body = memo<BodyProps>(({ platformDef, form }) => {
       style={{ maxWidth: 1024, padding: '16px 0', width: '100%' }}
       variant={'borderless'}
     >
-      {applicationIdField && <ApplicationIdField field={applicationIdField} />}
-      {credentialFields.map((field, i) => (
-        <SchemaField
-          divider={applicationIdField ? true : i !== 0}
-          field={field}
-          key={field.key}
-          parentKey="credentials"
+      {CustomCredentialBody ? (
+        <CustomCredentialBody
+          currentConfig={currentConfig}
+          hasConfig={hasConfig}
+          onAuthenticated={onAuthenticated}
         />
-      ))}
+      ) : (
+        <>
+          {applicationIdField && <ApplicationIdField field={applicationIdField} />}
+          {credentialFields.map((field, i) => (
+            <SchemaField
+              divider={applicationIdField ? true : i !== 0}
+              field={field}
+              key={field.key}
+              parentKey="credentials"
+            />
+          ))}
+        </>
+      )}
       {settingsFields.length > 0 && (
         <FormGroup
           collapsible
