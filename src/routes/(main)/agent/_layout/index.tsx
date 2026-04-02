@@ -36,9 +36,6 @@ const Layout: FC = () => {
       >
         <Outlet />
       </Flexbox>
-      {/* ↓ cloud slot ↓ */}
-
-      {/* ↑ cloud slot ↑ */}
       <RegisterHotkeys />
       {isDesktop && <ProtocolUrlHandler />}
       <AgentIdSync />

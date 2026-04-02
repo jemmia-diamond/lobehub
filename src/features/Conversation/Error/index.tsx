@@ -38,6 +38,11 @@ const loading = () => (
   </Block>
 );
 
+const ExceededContextWindowError = dynamic(() => import('./ExceededContextWindowError'), {
+  loading,
+  ssr: false,
+});
+
 const OllamaBizError = dynamic(() => import('./OllamaBizError'), { loading, ssr: false });
 
 const OllamaSetupGuide = dynamic(() => import('./OllamaSetupGuide'), {
@@ -116,6 +121,7 @@ interface ErrorExtraProps {
 const ErrorMessageExtra = memo<ErrorExtraProps>(({ error: alertError, data }) => {
   const error = data.error;
   const businessChatErrorMessageExtra = useRenderBusinessChatErrorMessageExtra(error, data.id);
+
   if (ENABLE_BUSINESS_FEATURES && businessChatErrorMessageExtra)
     return businessChatErrorMessageExtra;
 
@@ -130,9 +136,9 @@ const ErrorMessageExtra = memo<ErrorExtraProps>(({ error: alertError, data }) =>
       return <OllamaBizError {...data} />;
     }
 
-    /* ↓ cloud slot ↓ */
-
-    /* ↑ cloud slot ↑ */
+    case AgentRuntimeErrorType.ExceededContextWindow: {
+      return <ExceededContextWindowError id={data.id} />;
+    }
 
     case AgentRuntimeErrorType.NoOpenAIAPIKey: {
       {

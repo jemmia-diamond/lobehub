@@ -2,7 +2,7 @@ import type { ISlashMenuOption } from '@lobehub/editor';
 import { memo } from 'react';
 
 import MenuItem from './MenuItem';
-import { useStyles } from './style';
+import { styles } from './style';
 import type { MentionCategory } from './types';
 
 interface SearchViewProps {
@@ -13,8 +13,6 @@ interface SearchViewProps {
 }
 
 const SearchView = memo<SearchViewProps>(({ options, activeKey, onSelectItem, categories }) => {
-  const { styles } = useStyles();
-
   if (options.length === 0) {
     return <div className={styles.empty}>No results</div>;
   }
