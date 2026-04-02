@@ -15,7 +15,7 @@ services:
       - .env
 
   postgresql:
-    image: paradedb/paradedb:latest
+    image: paradedb/paradedb:latest-pg17
     container_name: lobe-postgres
     ports:
       - '5433:5432'
