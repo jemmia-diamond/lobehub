@@ -1,3 +1,4 @@
+import { ASSISTANT_NAME } from '@lobechat/business-const';
 import { memo } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -20,7 +21,7 @@ const Inbox = memo(() => {
 
   return (
     <Link
-      aria-label={'Lobe AI'}
+      aria-label={ASSISTANT_NAME}
       to={SESSION_CHAT_URL(inboxAgentId, mobile)}
       onClick={(e) => {
         e.preventDefault();
@@ -31,7 +32,7 @@ const Inbox = memo(() => {
         active={isInboxActive}
         avatar={DEFAULT_INBOX_AVATAR}
         key={'inbox'}
-        title={'Lobe AI'}
+        title={ASSISTANT_NAME}
         styles={{
           container: {
             gap: 12,

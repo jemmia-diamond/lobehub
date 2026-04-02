@@ -18,7 +18,12 @@ export interface AvatarProps {
 
 const Avatar = memo<AvatarProps>(
   ({ loading, avatar, unoptimized, onClick, size = 28, style, alt }) => {
-    if (avatar.avatar === DEFAULT_INBOX_AVATAR) {
+    const isDefaultAvatar =
+      avatar.avatar === DEFAULT_INBOX_AVATAR ||
+      avatar.avatar === '/avatars/lobe-ai.png' ||
+      avatar.avatar === '/avatars/agent-default.png';
+
+    if (isDefaultAvatar) {
       return <JemAvatar size={size} />;
     }
 

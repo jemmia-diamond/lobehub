@@ -19,7 +19,7 @@ const Title = memo<TitleProps>(({ showTitle, time, avatar, titleAddon }) => {
   return (
     <>
       {showTitle && (
-        <Text fontSize={14} weight={500}>
+        <Text data-testid="chat-item-title" fontSize={14} weight={500}>
           {title}
         </Text>
       )}
