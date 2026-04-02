@@ -1,4 +1,3 @@
-import { BRANDING_NAME, ORG_NAME } from '@lobechat/business-const';
 import { type MetadataRoute } from 'next';
 
 const manifest = async (): Promise<MetadataRoute.Manifest> => {
@@ -6,7 +5,7 @@ const manifest = async (): Promise<MetadataRoute.Manifest> => {
   if (process.env.NODE_ENV === 'development') {
     return {
       background_color: '#000000',
-      description: `${BRANDING_NAME} Development`,
+      description: 'LobeHub Development',
       display: 'standalone',
       icons: [
         {
@@ -15,22 +14,23 @@ const manifest = async (): Promise<MetadataRoute.Manifest> => {
           type: 'image/png',
         },
       ],
-      name: BRANDING_NAME,
-      short_name: BRANDING_NAME,
+      name: 'Jemmora',
+      short_name: 'Jemmora',
       start_url: '/',
       theme_color: '#000000',
     };
   }
 
-  const [{ BRANDING_LOGO_URL }, { kebabCase }, { manifestModule }] = await Promise.all([
-    import('@lobechat/business-const'),
-    import('es-toolkit/compat'),
-    import('@/server/manifest'),
-  ]);
+  const [{ BRANDING_LOGO_URL, BRANDING_NAME }, { kebabCase }, { manifestModule }] =
+    await Promise.all([
+      import('@lobechat/business-const'),
+      import('es-toolkit/compat'),
+      import('@/server/manifest'),
+    ]);
 
   // @ts-expect-error - manifestModule.generate returns extended manifest with custom properties
   return manifestModule.generate({
-    description: `${BRANDING_NAME} is an AI research and thinking partner for ${ORG_NAME}, designed for better context, accuracy, privacy, and collaboration.`,
+    description: `${BRANDING_NAME} is an advanced AI workspace designed for professional collaboration, agent management, and seamless productivity.`,
     icons: [
       {
         purpose: 'any',

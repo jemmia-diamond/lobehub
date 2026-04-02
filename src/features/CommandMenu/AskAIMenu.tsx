@@ -1,4 +1,3 @@
-import { ASSISTANT_NAME } from '@lobechat/business-const';
 import { DEFAULT_AVATAR, DEFAULT_INBOX_AVATAR } from '@lobechat/const';
 import { Avatar } from '@lobehub/ui';
 import { GroupBotSquareIcon } from '@lobehub/ui/icons';
@@ -63,7 +62,7 @@ const AskAIMenu = memo(() => {
       <Command.Item value="lobe-ai" onSelect={handleAskLobeAI}>
         <Avatar emojiScaleWithBackground avatar={DEFAULT_INBOX_AVATAR} shape="square" size={18} />
         <div className={styles.itemContent}>
-          <div className={styles.itemLabel}>{ASSISTANT_NAME}</div>
+          <div className={styles.itemLabel}>Jemmora</div>
         </div>
       </Command.Item>
       <Command.Item value="agent-builder" onSelect={handleAgentBuilder}>

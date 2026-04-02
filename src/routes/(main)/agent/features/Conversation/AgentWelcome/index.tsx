@@ -1,6 +1,5 @@
 'use client';
 
-import { ASSISTANT_NAME, ASSISTANT_TITLE } from '@lobechat/business-const';
 import { Avatar, Flexbox, Markdown, Text } from '@lobehub/ui';
 import isEqual from 'fast-deep-equal';
 import React, { memo, useMemo } from 'react';
@@ -65,9 +64,7 @@ const InboxWelcome = memo(() => {
 
   if (!activeAgentId) return null;
 
-  const displayTitle = isInbox
-    ? ASSISTANT_NAME
-    : meta.title || t('defaultSession', { ns: 'common' });
+  const displayTitle = isInbox ? 'Jemmora' : meta.title || t('defaultSession', { ns: 'common' });
 
   if (isInbox) {
     return (
@@ -122,9 +119,7 @@ const InboxWelcome = memo(() => {
         </Text>
         <Flexbox width={'min(100%, 640px)'}>
           <Markdown fontSize={fontSize} variant={'chat'}>
-            {isInbox
-              ? t('guide.defaultMessageWithoutCreate', { appName: ASSISTANT_TITLE })
-              : message}
+            {isInbox ? t('guide.defaultMessageWithoutCreate', { appName: 'Jemmora' }) : message}
           </Markdown>
         </Flexbox>
         {openingQuestions.length > 0 && (

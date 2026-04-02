@@ -1,5 +1,3 @@
-import { BRANDING_LOGO_URL } from '@lobechat/business-const';
-
 import type { BuiltinAgentDefinition } from '../../types';
 import { BUILTIN_AGENT_SLUGS } from '../../types';
 import { systemRole } from './systemRole';
@@ -10,7 +8,7 @@ import { systemRole } from './systemRole';
  * Note: model and provider are intentionally undefined to use user's default settings
  */
 export const INBOX: BuiltinAgentDefinition = {
-  avatar: BRANDING_LOGO_URL || '/icons/icon-192x192.png',
+  avatar: '/avatars/lobe-ai.png',
   runtime: (ctx) => ({
     plugins: ctx.plugins || [],
     systemRole,
