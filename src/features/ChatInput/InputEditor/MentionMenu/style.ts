@@ -1,6 +1,6 @@
-import { createStaticStyles } from 'antd-style';
+import { createStaticStyles, cssVar } from 'antd-style';
 
-export const styles = createStaticStyles(({ css, cssVar }) => ({
+export const styles = createStaticStyles(({ css }) => ({
   backHeader: css`
     cursor: pointer;
 
@@ -105,7 +105,7 @@ export const styles = createStaticStyles(({ css, cssVar }) => ({
     font-size: 14px;
     font-weight: 600;
     line-height: 1.2;
-    color: ${token.colorText};
+    color: ${cssVar.colorText};
     text-overflow: ellipsis;
     white-space: nowrap;
   `,
@@ -114,7 +114,7 @@ export const styles = createStaticStyles(({ css, cssVar }) => ({
 
     font-size: 11px;
     line-height: 1.2;
-    color: ${token.colorTextDescription};
+    color: ${cssVar.colorTextDescription};
     text-overflow: ellipsis;
     white-space: nowrap;
   `,
