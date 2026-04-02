@@ -22,6 +22,7 @@ import { ToolExecutionService } from '@/server/services/toolExecution';
 import { BuiltinToolsExecutor } from '@/server/services/toolExecution/builtin';
 
 import { ModelRouterService } from '../modelRouter';
+import { isAbortError, throwIfAborted } from './abort';
 import { hookDispatcher } from './hooks';
 import {
   type AgentExecutionParams,
@@ -184,12 +185,7 @@ export class AgentRuntimeService {
     if (impl instanceof LocalQueueServiceImpl) {
       log('Setting up local execution callback');
       impl.setExecutionCallback(async (operationId, stepIndex, context) => {
-        log('[%s][%d] Local step executing...', operationId, stepIndex);
-        await this.executeStep({
-          context,
-          operationId,
-          stepIndex,
-        });
+        await this.executeStep({ context, operationId, stepIndex });
       });
     }
   }
@@ -273,19 +269,28 @@ export class AgentRuntimeService {
       userInterventionConfig,
       completionWebhook,
       stepWebhook,
+      queueRetries,
+      queueRetryDelay,
       webhookDelivery,
+      botPlatformContext,
       discordContext,
       evalContext,
       maxSteps,
       userMemory,
       deviceSystemInfo,
-      skillMetas,
+      operationSkillSet,
+      signal,
       userTimezone,
     } = params;
 
     const operationToolSet = toolSet;
+    let operationCreated = false;
+    let stepCallbacksRegistered = false;
+    let hooksRegistered = false;
 
     try {
+      throwIfAborted(signal, 'Agent execution aborted before operation startup');
+
       const memories = userMemory?.memories;
       log(
         '[%s] Creating new operation (autoStart: %s) with params: model=%s, provider=%s, tools=%d, messages=%d, manifests=%d, memory=%s',
@@ -312,15 +317,18 @@ export class AgentRuntimeService {
         metadata: {
           activeDeviceId,
           agentConfig,
+          botPlatformContext,
           completionWebhook,
           deviceSystemInfo,
           discordContext,
           evalContext,
           // need be removed
           modelRuntimeConfig,
+          queueRetries,
+          queueRetryDelay,
           stepWebhook,
           stream,
-          skillMetas,
+          operationSkillSet,
           userId,
           userMemory,
           userTimezone,
@@ -349,6 +357,7 @@ export class AgentRuntimeService {
         modelRuntimeConfig,
         userId,
       });
+      operationCreated = true;
 
       // Save initial state
       await this.coordinator.saveAgentState(operationId, initialState as any);
@@ -356,11 +365,13 @@ export class AgentRuntimeService {
       // Register step lifecycle callbacks
       if (stepCallbacks) {
         this.registerStepCallbacks(operationId, stepCallbacks);
+        stepCallbacksRegistered = true;
       }
 
       // Register external hooks
       if (hooks && hooks.length > 0) {
         hookDispatcher.register(operationId, hooks);
+        hooksRegistered = true;
 
         // Persist webhook configs to state metadata for production mode
         const serializedHooks = hookDispatcher.getSerializedHooks(operationId);
@@ -378,6 +389,8 @@ export class AgentRuntimeService {
         }
       }
 
+      throwIfAborted(signal, 'Agent execution aborted before first step scheduling');
+
       let messageId: string | undefined;
       let autoStarted = false;
 
@@ -391,6 +404,8 @@ export class AgentRuntimeService {
           endpoint: `${this.baseURL}/run`,
           operationId,
           priority: 'high',
+          retryDelay: queueRetryDelay,
+          retries: queueRetries,
           stepIndex: 0,
         });
         autoStarted = true;
@@ -403,6 +418,27 @@ export class AgentRuntimeService {
 
       return { autoStarted, messageId, operationId, success: true };
     } catch (error) {
+      if (isAbortError(error)) {
+        if (stepCallbacksRegistered) {
+          this.unregisterStepCallbacks(operationId);
+        }
+
+        if (hooksRegistered) {
+          hookDispatcher.unregister(operationId);
+        }
+
+        if (operationCreated) {
+          try {
+            await this.coordinator.deleteAgentOperation(operationId);
+          } catch (cleanupError) {
+            console.error('Failed to cleanup aborted operation %s: %O', operationId, cleanupError);
+          }
+        }
+
+        log('[%s] Operation creation aborted before scheduling', operationId);
+        throw error;
+      }
+
       console.error('Failed to create operation %s: %O', operationId, error);
       throw error;
     }
@@ -412,8 +448,15 @@ export class AgentRuntimeService {
    * Execute Agent step
    */
   async executeStep(params: AgentExecutionParams): Promise<AgentExecutionResult> {
-    const { operationId, stepIndex, context, humanInput, approvedToolCall, rejectionReason } =
-      params;
+    const {
+      operationId,
+      stepIndex,
+      context,
+      humanInput,
+      approvedToolCall,
+      rejectionReason,
+      externalRetryCount = 0,
+    } = params;
 
     const callbacks = this.getStepCallbacks(operationId);
 
@@ -449,6 +492,11 @@ export class AgentRuntimeService {
       if (!agentState) {
         throw new Error(`Agent state not found for operation ${operationId}`);
       }
+
+      agentState.metadata = {
+        ...agentState.metadata,
+        externalRetryCount,
+      };
 
       // Layer 2 defense: catch extremely delayed retries that arrive after lock TTL expired
       if (agentState.stepCount > stepIndex) {
@@ -896,6 +944,7 @@ export class AgentRuntimeService {
               stepContext: currentContext?.stepContext,
             },
             events: snapshotEvents,
+            externalRetryCount,
             executionTimeMs: stepPresentationData.executionTimeMs,
             inputTokens: stepPresentationData.stepInputTokens,
             isCompressionReset: isCompression || undefined,
@@ -961,6 +1010,14 @@ export class AgentRuntimeService {
           endpoint: `${this.baseURL}/run`,
           operationId,
           priority,
+          retryDelay:
+            typeof stepResult.newState.metadata?.queueRetryDelay === 'string'
+              ? stepResult.newState.metadata.queueRetryDelay
+              : undefined,
+          retries:
+            typeof stepResult.newState.metadata?.queueRetries === 'number'
+              ? stepResult.newState.metadata.queueRetries
+              : undefined,
           stepIndex: nextStepIndex,
         });
         nextStepScheduled = true;
@@ -1015,6 +1072,10 @@ export class AgentRuntimeService {
                 model: partial.model,
                 operationId,
                 provider: partial.provider,
+                retryDelayExpression:
+                  typeof metadata?.queueRetryDelay === 'string'
+                    ? metadata.queueRetryDelay
+                    : undefined,
                 startedAt: partial.startedAt ?? Date.now(),
                 steps: (partial.steps ?? []).sort((a, b) => a.stepIndex - b.stepIndex),
                 totalCost: stepResult.newState.cost?.total ?? 0,
@@ -1023,6 +1084,10 @@ export class AgentRuntimeService {
                 topicId: metadata?.topicId,
                 traceId: operationId,
                 userId: metadata?.userId,
+                externalRetryCount:
+                  typeof metadata?.externalRetryCount === 'number'
+                    ? metadata.externalRetryCount
+                    : undefined,
               };
 
               await this.snapshotStore.save(snapshot as any);
@@ -1072,6 +1137,10 @@ export class AgentRuntimeService {
         finalStateWithError = {
           ...errorState!,
           error: formattedError,
+          metadata: {
+            ...errorState?.metadata,
+            externalRetryCount,
+          },
           status: 'error' as const,
           stepCount: errorState?.stepCount ?? stepIndex,
         };
@@ -1080,6 +1149,7 @@ export class AgentRuntimeService {
         // Fallback: construct a minimal error state so callbacks still receive useful info
         finalStateWithError = {
           error: formattedError,
+          metadata: { externalRetryCount },
           status: 'error' as const,
           stepCount: stepIndex,
         };
@@ -1497,9 +1567,11 @@ export class AgentRuntimeService {
     // Create streaming executor context
     const executorContext: RuntimeExecutorContext = {
       agentConfig: metadata?.agentConfig,
+      botPlatformContext: metadata?.botPlatformContext,
       discordContext: metadata?.discordContext,
       userTimezone: metadata?.userTimezone,
       evalContext: metadata?.evalContext,
+      loadAgentState: this.coordinator.loadAgentState.bind(this.coordinator),
       messageModel: this.messageModel,
       operationId,
       serverDB: this.serverDB,

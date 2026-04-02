@@ -3,7 +3,8 @@
 import 'antd/dist/reset.css';
 
 import { ConfigProvider, ThemeProvider } from '@lobehub/ui';
-import * as motion from 'motion/react-m';
+import { App } from 'antd';
+import * as m from 'motion/react-m';
 import Link from 'next/link';
 import { type PropsWithChildren, useEffect, useState } from 'react';
 import { memo } from 'react';
@@ -37,18 +38,20 @@ const AuthThemeLite = memo<AuthThemeLiteProps>(({ children, globalCDN }) => {
         cssVar: { key: 'lobe-vars' },
       }}
     >
-      <AntdStaticMethods />
-      <ConfigProvider
-        motion={motion}
-        config={{
-          aAs: Link,
-          imgAs: Image,
-          imgUnoptimized: true,
-          proxy: globalCDN ? 'unpkg' : undefined,
-        }}
-      >
-        {children}
-      </ConfigProvider>
+      <App style={{ height: '100%' }}>
+        <AntdStaticMethods />
+        <ConfigProvider
+          motion={m}
+          config={{
+            aAs: Link,
+            imgAs: Image,
+            imgUnoptimized: true,
+            proxy: globalCDN ? 'unpkg' : undefined,
+          }}
+        >
+          {children}
+        </ConfigProvider>
+      </App>
     </ThemeProvider>
   );
 });

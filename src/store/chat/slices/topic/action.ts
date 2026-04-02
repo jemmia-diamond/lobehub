@@ -17,7 +17,6 @@ import { topicService } from '@/services/topic';
 import { type ChatStore } from '@/store/chat';
 import { topicMapKey } from '@/store/chat/utils/topicMapKey';
 import { useGlobalStore } from '@/store/global';
-import { globalHelpers } from '@/store/global/helpers';
 import { FETCH_RECENT_TOPICS_KEY } from '@/store/home/slices/recent';
 import { type StoreSetter } from '@/store/types';
 import { useUserStore } from '@/store/user';
@@ -228,8 +227,7 @@ export class ChatTopicActionImpl {
         topicConfig,
         chainSummaryTitle(
           messages,
-          userGeneralSettingsSelectors.responseLanguage(useUserStore.getState()) ||
-            globalHelpers.getCurrentLanguage(),
+          userGeneralSettingsSelectors.currentResponseLanguage(useUserStore.getState()),
         ),
       ),
       trace: this.#get().getCurrentTracePayload({
