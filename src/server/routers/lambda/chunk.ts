@@ -261,7 +261,11 @@ export const chunkRouter = router({
           { metadata: { trigger: RequestTrigger.SemanticSearch }, user: ctx.userId },
         );
 
-        const embedding = embeddings![0];
+        if (!embeddings || embeddings.length === 0) {
+          throw new Error(`Embedding provider ${provider} returned no results for model ${model}`);
+        }
+
+        const embedding = embeddings[0];
 
         let finalFileIds = input.fileIds ?? [];
 

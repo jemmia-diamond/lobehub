@@ -20,6 +20,7 @@ import { type LobeChatDatabase } from '@/database/type';
 import { getLLMConfig } from '@/envs/llm';
 
 import { KeyVaultsGateKeeper } from '../KeyVaultsEncrypt';
+import { KnowledgeBootstrapService } from '../KnowledgeBootstrap';
 import apiKeyManager from './apiKeyManager';
 import { selectJemmiaModel } from './orchestrator';
 
@@ -183,19 +184,6 @@ const getParamsFromPayload = (provider: string, payload: ClientSecretPayload) =>
       return baseURL ? { apiKey, baseURL } : { apiKey };
     }
 
-    default: {
-      let upperProvider = provider.toUpperCase();
-
-      if (!(`${upperProvider}_API_KEY` in llmConfig)) {
-        upperProvider = ModelProvider.OpenAI.toUpperCase(); // Use OpenAI options as default
-      }
-
-      const apiKey = apiKeyManager.pick(payload?.apiKey || llmConfig[`${upperProvider}_API_KEY`]);
-      const baseURL = payload?.baseURL || process.env[`${upperProvider}_PROXY_URL`];
-
-      return baseURL ? { apiKey, baseURL } : { apiKey };
-    }
-
     case ModelProvider.Ollama: {
       const baseURL = payload?.baseURL || process.env.OLLAMA_PROXY_URL;
 
@@ -321,6 +309,28 @@ const getParamsFromPayload = (provider: string, payload: ClientSecretPayload) =>
 
       return { apiKey };
     }
+
+    default: {
+      let upperProvider = provider.toUpperCase();
+
+      // Special case for Jemmia if it hits the default case (e.g. via OpenAI SDK compatibility)
+      if (provider === 'jemmia' || provider === ModelProvider.Jemmia) {
+        const { JEMMIA_MODEL_PROXY_URL, JEMMIA_MODEL_TOKEN } = llmConfig;
+        const baseURL = payload?.baseURL || JEMMIA_MODEL_PROXY_URL;
+        const apiKey = apiKeyManager.pick(payload?.apiKey || JEMMIA_MODEL_TOKEN);
+
+        return baseURL ? { apiKey, baseURL } : { apiKey };
+      }
+
+      if (!(`${upperProvider}_API_KEY` in llmConfig)) {
+        upperProvider = ModelProvider.OpenAI.toUpperCase(); // Use OpenAI options as default
+      }
+
+      const apiKey = apiKeyManager.pick(payload?.apiKey || llmConfig[`${upperProvider}_API_KEY`]);
+      const baseURL = payload?.baseURL || process.env[`${upperProvider}_PROXY_URL`];
+
+      return baseURL ? { apiKey, baseURL } : { apiKey };
+    }
   }
 };
 
@@ -381,12 +391,31 @@ const getJemOrchestrationHooks = (): ModelRuntimeHooks => ({
  * @param params
  * @returns A promise that resolves when the agent runtime is initialized.
  */
+const bootstrappedUsers = new Set<string>();
+
 export const initModelRuntimeWithUserPayload = (
   provider: string,
   payload: ClientSecretPayload,
   params: any = {},
   hooks?: ModelRuntimeHooks,
 ) => {
+  const userId = params?.userId || (payload as any)?.userId;
+
+  // Trigger knowledge bootstrap as a background side-effect for this specific user
+  if (userId && !bootstrappedUsers.has(userId)) {
+    bootstrappedUsers.add(userId);
+    (async () => {
+      try {
+        const bootstrapService = new KnowledgeBootstrapService();
+        await bootstrapService.bootstrap(userId);
+      } catch (error) {
+        console.error(`[KnowledgeBootstrap] Init failed for user ${userId}:`, error);
+        // If it failed, we might want to allow a retry on the next request
+        bootstrappedUsers.delete(userId);
+      }
+    })();
+  }
+
   const runtimeProvider = payload.runtimeProvider ?? provider;
 
   // Merge provider-specific orchestration hooks with business hooks
