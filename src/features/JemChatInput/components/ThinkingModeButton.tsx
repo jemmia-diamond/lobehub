@@ -44,18 +44,18 @@ const useStyles = createStyles(({ css }) => ({
 const ThinkingModeButton = memo(() => {
   const { styles } = useStyles();
   const { t } = useTranslation('home');
-  const { thinkingMode, jemmiaList, model, provider } = useJemModeSelection();
   const updateAgentConfigById = useAgentStore((s) => s.updateAgentConfigById);
   const inboxAgentId = useAgentStore(builtinAgentSelectors.inboxAgentId);
   const targetId = useAgentId() || inboxAgentId;
+  const { thinkingMode, jemmiaList, model, provider } = useJemModeSelection(targetId);
 
   return (
     <ModelSwitchPanel
       openOnHover
       enabledList={jemmiaList}
-      model={model}
+      model={thinkingMode === 'auto' ? 'auto' : model}
       placement="bottomRight"
-      provider={provider}
+      provider={thinkingMode === 'auto' ? 'jemmia' : provider}
       variant="jemmia"
       onModelChange={async ({ model: newModel, provider: newProvider }) => {
         if (!targetId) return;
