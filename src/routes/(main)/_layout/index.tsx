@@ -29,6 +29,7 @@ import { HotkeyScopeEnum } from '@/types/hotkey';
 import DesktopHome from '../home';
 import DesktopHomeLayout from '../home/_layout';
 import DesktopAutoOidcOnFirstOpen from './DesktopAutoOidcOnFirstOpen';
+import DesktopAutoResetOnFirstOpen from './DesktopAutoResetOnFirstOpen';
 import DesktopLayoutContainer from './DesktopLayoutContainer';
 import RegisterHotkeys from './RegisterHotkeys';
 import { styles } from './style';
@@ -49,6 +50,7 @@ const Layout: FC = () => {
   return (
     <HotkeysProvider initiallyActiveScopes={[HotkeyScopeEnum.Global]}>
       <Suspense fallback={null}>
+        <DesktopAutoResetOnFirstOpen />
         {isDesktop && <DesktopAutoOidcOnFirstOpen />}
         {isDesktop && <DesktopNavigationBridge />}
         {isDesktop && <DesktopFileMenuBridge />}
