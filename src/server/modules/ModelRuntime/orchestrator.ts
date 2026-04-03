@@ -60,8 +60,10 @@ export const selectJemmiaModel = (payload: ChatStreamPayload): string => {
 
   // 1. Calculate approximate context size and count unique files
   let systemRoleChars = 0;
+  let conversationChars = 0;
   let totalFiles = 0;
-  const totalChars = messages.reduce((acc, msg) => {
+
+  for (const msg of messages) {
     let contentLen = 0;
     if (typeof msg.content === 'string') contentLen = msg.content.length;
     else if (Array.isArray(msg.content)) {
@@ -74,57 +76,74 @@ export const selectJemmiaModel = (payload: ChatStreamPayload): string => {
       }, 0);
     }
 
-    if (msg.role === 'system') systemRoleChars += contentLen;
-    return acc + contentLen;
-  }, 0);
+    if (msg.role === 'system') {
+      systemRoleChars += contentLen;
+    } else {
+      conversationChars += contentLen;
+    }
+  }
 
   const hasAttachments = totalFiles > 0;
+  const totalChars = systemRoleChars + conversationChars;
 
   // 2. User intent detection (Expert keywords & Coding patterns)
-  const lastMessage = messages.at(-1);
-  const lastContent =
-    typeof lastMessage?.content === 'string'
-      ? lastMessage.content
-      : Array.isArray(lastMessage?.content)
-        ? lastMessage.content.find((p) => p.type === 'text')?.text || ''
+  const systemMessage = messages.find((m) => m.role === 'system');
+  const systemContent = typeof systemMessage?.content === 'string' ? systemMessage.content : '';
+
+  // Detect RAG/Knowledge injection by looking for common headers or volume
+  const hasKnowledgeInjected =
+    systemContent.includes('Knowledge Base') ||
+    systemContent.includes('Context') ||
+    systemRoleChars > 10000;
+
+  // Search only for the last USER message to determine intent
+  const lastUserMessage = [...messages].reverse().find((m) => m.role === 'user');
+  const lastUserContent =
+    typeof lastUserMessage?.content === 'string'
+      ? lastUserMessage.content
+      : Array.isArray(lastUserMessage?.content)
+        ? lastUserMessage.content.find((p) => p.type === 'text')?.text || ''
         : '';
 
-  const lowContent = lastContent.toLowerCase();
+  const lowContent = lastUserContent.toLowerCase();
   const matchedExpertKeyword = EXPERT_KEYWORDS.find((keyword) => lowContent.includes(keyword));
-  const matchedCodingPattern = CODING_PATTERNS.find((pattern) => pattern.test(lastContent));
+  const matchedCodingPattern = CODING_PATTERNS.find((pattern) => pattern.test(lastUserContent));
 
   const containsExpertKeyword = !!matchedExpertKeyword;
   const isCodingTask = !!matchedCodingPattern;
-  const hasTools = !!(tools && tools.length > 0);
 
   // 3. Decision Logic
 
   // DEBUG LOG
   const toolNames = tools?.map((t) => t.function?.name || t.type).join(', ') || 'none';
   console.info(
-    `[Jemmora Auto Debug] Total: ${totalChars} (System: ${systemRoleChars}), Files: ${totalFiles}, Tools: ${tools?.length || 0} [${toolNames}], Expert: ${containsExpertKeyword}, Coding: ${isCodingTask}`,
+    `[Jemmora Auto Debug] Conversation: ${conversationChars} (System: ${systemRoleChars}), Knowledge Injected: ${hasKnowledgeInjected}, Files: ${totalFiles}, Tools: ${tools?.length || 0} [${toolNames}], Expert: ${containsExpertKeyword}, Coding: ${isCodingTask}`,
   );
 
   // CASE: High complexity or explicit expert task
   // trigger EXPERT if:
   // - totalFiles >= 3 (Requires cross-document reasoning)
   // - hasFiles AND containsExpertKeyword (e.g., 'summarize these files')
+  // - mentions 'policy', 'warranty', 'grading' etc via containsExpertKeyword
   // - isCodingTask
-  // - totalChars > 128,000
+  // - conversationChars > 128,000 (Actual user chat history is very deep)
   const isExpertRequired =
     totalFiles >= 3 ||
     (hasAttachments && containsExpertKeyword) ||
+    containsExpertKeyword ||
     isCodingTask ||
-    totalChars > 128000;
+    conversationChars > 128000;
 
   if (isExpertRequired) {
     const reason = isCodingTask
       ? `coding pattern (${matchedCodingPattern})`
       : hasAttachments && containsExpertKeyword
         ? `document analysis task (${matchedExpertKeyword} with ${totalFiles} files)`
-        : totalFiles >= 3
-          ? `multi-file reasoning (${totalFiles} files)`
-          : `large context (${totalChars} chars)`;
+        : containsExpertKeyword
+          ? `expert keyword match (${matchedExpertKeyword})`
+          : totalFiles >= 3
+            ? `multi-file reasoning (${totalFiles} files)`
+            : `large context (${conversationChars} user chars)`;
 
     console.info(
       `[Jemmora Auto] Selected EXPERT (${JEMMIA_MODELS.EXPERT}) due to ${reason}. (Total Chars: ${totalChars})`,
@@ -132,17 +151,13 @@ export const selectJemmiaModel = (payload: ChatStreamPayload): string => {
     return JEMMIA_MODELS.EXPERT;
   }
 
-  // CASE: Multimodal / Medium-Large context / Tool usage for normal tasks
+  // CASE: Multimodal or Large context
   // We trigger THINKING if:
   // - has any attachments
-  // - totalChars > 16,000
-  // - hasTools (and not a simple greeting)
-  if (hasAttachments || totalChars > 16000 || (hasTools && totalChars > 4000)) {
-    const reason = hasAttachments
-      ? `${totalFiles} attachments`
-      : hasTools
-        ? `tools (${tools?.length} active)`
-        : 'medium-large context';
+  // - conversationChars > 64,000
+  // (Tool calls are now handled by FAST unless one of the above is true)
+  if (hasAttachments || conversationChars > 64000) {
+    const reason = hasAttachments ? `${totalFiles} attachments` : 'large conversation context';
     console.info(
       `[Jemmora Auto] Selected THINKING (${JEMMIA_MODELS.THINKING}) due to ${reason}. (Total Chars: ${totalChars})`,
     );

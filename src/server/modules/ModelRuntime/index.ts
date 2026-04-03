@@ -20,10 +20,21 @@ import { type LobeChatDatabase } from '@/database/type';
 import { getLLMConfig } from '@/envs/llm';
 
 import { KeyVaultsGateKeeper } from '../KeyVaultsEncrypt';
+import { KnowledgeBootstrapService } from '../KnowledgeBootstrap';
 import apiKeyManager from './apiKeyManager';
 import { selectJemmiaModel } from './orchestrator';
 
 export * from './trace';
+
+// Global side-effect: Ensure Jemmia Global Knowledge is indexed on server startup
+(async () => {
+  try {
+    const bootstrapService = new KnowledgeBootstrapService();
+    await bootstrapService.bootstrapOnce();
+  } catch (error) {
+    console.error('[KnowledgeBootstrap] Global startup failed:', error);
+  }
+})();
 
 /**
  * Combined KeyVaults type for all providers
@@ -381,12 +392,31 @@ const getJemOrchestrationHooks = (): ModelRuntimeHooks => ({
  * @param params
  * @returns A promise that resolves when the agent runtime is initialized.
  */
+const bootstrappedUsers = new Set<string>();
+
 export const initModelRuntimeWithUserPayload = (
   provider: string,
   payload: ClientSecretPayload,
   params: any = {},
   hooks?: ModelRuntimeHooks,
 ) => {
+  const userId = params?.userId || (payload as any)?.userId;
+
+  // Trigger knowledge bootstrap as a background side-effect for this specific user
+  if (userId && !bootstrappedUsers.has(userId)) {
+    bootstrappedUsers.add(userId);
+    (async () => {
+      try {
+        const bootstrapService = new KnowledgeBootstrapService();
+        await bootstrapService.bootstrap(userId);
+      } catch (error) {
+        console.error(`[KnowledgeBootstrap] Init failed for user ${userId}:`, error);
+        // If it failed, we might want to allow a retry on the next request
+        bootstrappedUsers.delete(userId);
+      }
+    })();
+  }
+
   const runtimeProvider = payload.runtimeProvider ?? provider;
 
   // Merge provider-specific orchestration hooks with business hooks
