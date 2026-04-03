@@ -14,11 +14,15 @@ import {
   globalFiles,
   knowledgeBaseFiles,
   knowledgeBases,
+  users,
 } from '@/database/schemas';
 import { getServerDB } from '@/database/server';
 import { getServerDefaultFilesConfig } from '@/server/globalConfig';
 import { ContentChunk } from '@/server/modules/ContentChunk';
 import { initModelRuntimeWithUserPayload } from '@/server/modules/ModelRuntime';
+
+export const JEMMORA_ADMIN_ID = 'user_jemmora_admin';
+export const JEMMORA_KB_NAME = 'Jemmia Diamond Knowledge';
 
 /**
  * KnowledgeBootstrapService
@@ -30,57 +34,94 @@ export class KnowledgeBootstrapService {
   private userId: string = '';
   private currentUserId?: string;
 
+  private static globalInProgress = false;
+  private static globalKbId: string | undefined = undefined;
+
   constructor(userId?: string) {
     this.currentUserId = userId;
   }
 
   /**
-   * Main bootstrap entry point
+   * Global bootstrap - Ensures the master knowledge base is indexed
+   * This should be called once on server startup.
    */
-  async bootstrap(targetUserId?: string) {
-    const db = await getServerDB();
-    const userId = targetUserId || this.currentUserId;
+  async bootstrapOnce() {
+    if (KnowledgeBootstrapService.globalKbId) return KnowledgeBootstrapService.globalKbId;
+    if (KnowledgeBootstrapService.globalInProgress) return;
 
-    // 0. Ensure we have a valid User ID (Foreign Key constraint)
-    if (userId) {
-      this.userId = userId;
-    } else {
-      const firstUser = await db.query.users.findFirst();
-      if (!firstUser) {
-        console.warn('[KnowledgeBootstrap] No users found in database. Skipping bootstrap.');
+    KnowledgeBootstrapService.globalInProgress = true;
+
+    try {
+      const db = await getServerDB();
+
+      // 1. Ensure System Admin user exists
+      await this.ensureAdminUser(db);
+      this.userId = JEMMORA_ADMIN_ID;
+
+      console.info(`[KnowledgeBootstrap] Starting Global Knowledge Indexing...`);
+
+      const seedDir = path.join(process.cwd(), 'packages/knowledge-seed/jemmia-diamond');
+      if (!fs.existsSync(seedDir)) {
+        console.warn(`[KnowledgeBootstrap] Seed directory not found: ${seedDir}`);
         return;
       }
-      this.userId = firstUser.id;
+
+      // 2. Ensure Jemmia Knowledge Base exists (Global copy)
+      const kbId = await this.ensureKnowledgeBase(db, true);
+      KnowledgeBootstrapService.globalKbId = kbId;
+
+      // 3. Scan and Ingest Markdown Files
+      const mdFiles = fs.readdirSync(seedDir).filter((f) => f.endsWith('.md'));
+      for (const filename of mdFiles) {
+        await this.syncMarkdownFile(db, path.join(seedDir, filename), kbId);
+      }
+
+      console.info(`[KnowledgeBootstrap] Global Knowledge ready (KB ID: ${kbId})`);
+      return kbId;
+    } catch (error) {
+      console.error('[KnowledgeBootstrap] Global bootstrap failed:', error);
+    } finally {
+      KnowledgeBootstrapService.globalInProgress = false;
     }
+  }
 
-    console.info(`[KnowledgeBootstrap] Starting knowledge seed scan for user: ${this.userId}...`);
+  /**
+   * User-specific bootstrap - Only handles linking the user to the global knowledge
+   */
+  async bootstrap(targetUserId?: string) {
+    const userId = targetUserId || this.currentUserId;
+    if (!userId) return;
 
-    const seedDir = path.join(process.cwd(), 'packages/knowledge-seed/jemmia-diamond');
-    if (!fs.existsSync(seedDir)) {
-      console.warn(`[KnowledgeBootstrap] Seed directory not found: ${seedDir}`);
+    this.userId = userId;
+
+    // Ensure global indexing has at least tried to run
+    const globalKbId = await this.bootstrapOnce();
+    if (!globalKbId) {
+      console.warn('[KnowledgeBootstrap] Global KB not ready. Skipping link for user:', userId);
       return;
     }
 
-    // 1. Ensure Jemmia Knowledge Base exists
-    const kbId = await this.ensureKnowledgeBase(db);
+    const db = await getServerDB();
 
-    // 2. Link to Inbox Agent (the default assistant)
-    await this.linkKnowledgeToInbox(db, kbId);
+    // Link this specific user's Inbox Agent to the Global KB
+    await this.linkKnowledgeToInbox(db, globalKbId);
 
-    // 3. Scan and Ingest Markdown Files
-    const mdFiles = fs.readdirSync(seedDir).filter((f) => f.endsWith('.md'));
-    const newlyIngestedFileIds: string[] = [];
+    console.info(`[KnowledgeBootstrap] Linked user ${userId} to Global Knowledge.`);
+  }
 
-    for (const filename of mdFiles) {
-      const fileId = await this.syncMarkdownFile(db, path.join(seedDir, filename), kbId);
-      if (fileId) {
-        newlyIngestedFileIds.push(fileId);
-      }
+  private async ensureAdminUser(db: any) {
+    const admin = await db.query.users.findFirst({
+      where: eq(users.id, JEMMORA_ADMIN_ID),
+    });
+
+    if (!admin) {
+      console.info(`[KnowledgeBootstrap] Creating System Admin user (${JEMMORA_ADMIN_ID})...`);
+      await db.insert(users).values({
+        id: JEMMORA_ADMIN_ID,
+        email: 'admin@jemmia.vn',
+        username: 'Jemmia Admin',
+      });
     }
-
-    console.info(
-      `[KnowledgeBootstrap] Knowledge seed sync completed. Ingested ${newlyIngestedFileIds.length} files.`,
-    );
   }
 
   private async linkKnowledgeToInbox(db: any, kbId: string) {
@@ -131,11 +172,21 @@ export class KnowledgeBootstrapService {
       knowledgeBaseId: kbId,
       userId: this.userId,
     });
+
+    // 4. Ensure the knowledge-base tool is enabled in agent's plugins
+    const existingPlugins = (inboxAgent.plugins as string[]) || [];
+    if (!existingPlugins.includes('knowledge-base')) {
+      console.info(`[KnowledgeBootstrap] Enabling knowledge-base tool for Inbox agent...`);
+      await db
+        .update(agents)
+        .set({ plugins: [...existingPlugins, 'knowledge-base'] })
+        .where(eq(agents.id, inboxAgent.id));
+    }
   }
 
-  private async ensureKnowledgeBase(db: any): Promise<string> {
+  private async ensureKnowledgeBase(db: any, isPublic: boolean = false): Promise<string> {
     const existing = await db.query.knowledgeBases.findFirst({
-      where: eq(knowledgeBases.name, 'Jemmia Diamond Knowledge'),
+      where: eq(knowledgeBases.name, JEMMORA_KB_NAME),
     });
 
     if (existing) return existing.id;
@@ -143,7 +194,8 @@ export class KnowledgeBootstrapService {
     const id = uuidv4();
     await db.insert(knowledgeBases).values({
       id,
-      name: 'Jemmia Diamond Knowledge',
+      isPublic,
+      name: JEMMORA_KB_NAME,
       userId: this.userId,
     });
 

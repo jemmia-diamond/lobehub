@@ -26,6 +26,16 @@ import { selectJemmiaModel } from './orchestrator';
 
 export * from './trace';
 
+// Global side-effect: Ensure Jemmia Global Knowledge is indexed on server startup
+(async () => {
+  try {
+    const bootstrapService = new KnowledgeBootstrapService();
+    await bootstrapService.bootstrapOnce();
+  } catch (error) {
+    console.error('[KnowledgeBootstrap] Global startup failed:', error);
+  }
+})();
+
 /**
  * Combined KeyVaults type for all providers
  */
