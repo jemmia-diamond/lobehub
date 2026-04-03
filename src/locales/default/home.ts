@@ -40,6 +40,10 @@ export default {
   'modeSelection.expert.examples.1': '"Evaluate corporate finance"',
   'modeSelection.expert.examples.2': '"Market and competitor research"',
   'modeSelection.expert.examples.3': '"Consultation on expansion strategy"',
+  'thinkingMode.auto.description':
+    'Automatically selects the optimal model based on the content of your question and attached documents.',
+  'thinkingMode.auto.subtitle': 'Auto Mode',
+  'thinkingMode.auto.title': 'Auto',
   'thinkingMode.fast.title': 'Fast',
   'thinkingMode.fast.subtitle': 'Fast Response',
   'thinkingMode.fast.description':
