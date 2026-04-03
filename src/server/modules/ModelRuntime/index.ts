@@ -184,6 +184,19 @@ const getParamsFromPayload = (provider: string, payload: ClientSecretPayload) =>
       return baseURL ? { apiKey, baseURL } : { apiKey };
     }
 
+    default: {
+      let upperProvider = provider.toUpperCase();
+
+      if (!(`${upperProvider}_API_KEY` in llmConfig)) {
+        upperProvider = ModelProvider.OpenAI.toUpperCase(); // Use OpenAI options as default
+      }
+
+      const apiKey = apiKeyManager.pick(payload?.apiKey || llmConfig[`${upperProvider}_API_KEY`]);
+      const baseURL = payload?.baseURL || process.env[`${upperProvider}_PROXY_URL`];
+
+      return baseURL ? { apiKey, baseURL } : { apiKey };
+    }
+
     case ModelProvider.Ollama: {
       const baseURL = payload?.baseURL || process.env.OLLAMA_PROXY_URL;
 
@@ -308,28 +321,6 @@ const getParamsFromPayload = (provider: string, payload: ClientSecretPayload) =>
       const apiKey = apiKeyManager.pick(payload?.apiKey || TENCENT_CLOUD_API_KEY);
 
       return { apiKey };
-    }
-
-    default: {
-      let upperProvider = provider.toUpperCase();
-
-      // Special case for Jemmia if it hits the default case (e.g. via OpenAI SDK compatibility)
-      if (provider === 'jemmia' || provider === ModelProvider.Jemmia) {
-        const { JEMMIA_MODEL_PROXY_URL, JEMMIA_MODEL_TOKEN } = llmConfig;
-        const baseURL = payload?.baseURL || JEMMIA_MODEL_PROXY_URL;
-        const apiKey = apiKeyManager.pick(payload?.apiKey || JEMMIA_MODEL_TOKEN);
-
-        return baseURL ? { apiKey, baseURL } : { apiKey };
-      }
-
-      if (!(`${upperProvider}_API_KEY` in llmConfig)) {
-        upperProvider = ModelProvider.OpenAI.toUpperCase(); // Use OpenAI options as default
-      }
-
-      const apiKey = apiKeyManager.pick(payload?.apiKey || llmConfig[`${upperProvider}_API_KEY`]);
-      const baseURL = payload?.baseURL || process.env[`${upperProvider}_PROXY_URL`];
-
-      return baseURL ? { apiKey, baseURL } : { apiKey };
     }
   }
 };
