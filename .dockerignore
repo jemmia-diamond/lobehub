@@ -7,3 +7,9 @@ npm-debug.log
 .github
 *.md
 .env.example
+
+# Prune unnecessary locales to save context size and build time
+# Keeping only en-US and vi-VN as requested.
+locales/*
+!locales/en-US
+!locales/vi-VN
