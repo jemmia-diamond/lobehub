@@ -394,13 +394,21 @@ export const initModelRuntimeWithUserPayload = (
 
   if (runtimeProvider === ModelProvider.Jemmia) {
     const jemHooks = getJemOrchestrationHooks();
+    const existingBeforeChat = finalHooks.beforeChat;
     finalHooks.beforeChat = async (p, o) => {
+      // Prioritize Jemmia model resolution (Auto mode)
       await jemHooks.beforeChat?.(p, o);
-      await hooks?.beforeChat?.(p, o);
+
+      // Ensure specific business hooks run after model resolution
+      if (existingBeforeChat) await existingBeforeChat(p, o);
+      if (hooks?.beforeChat) await hooks.beforeChat(p, o);
     };
+
+    const existingBeforeGenerateObject = finalHooks.beforeGenerateObject;
     finalHooks.beforeGenerateObject = async (p, o) => {
       await jemHooks.beforeGenerateObject?.(p, o);
-      await hooks?.beforeGenerateObject?.(p, o);
+      if (existingBeforeGenerateObject) await existingBeforeGenerateObject(p, o);
+      if (hooks?.beforeGenerateObject) await hooks.beforeGenerateObject(p, o);
     };
   }
 
@@ -411,14 +419,12 @@ export const initModelRuntimeWithUserPayload = (
     return new ModelRuntime(runtime, finalHooks);
   }
 
-  return ModelRuntime.initializeWithProvider(
-    runtimeProvider,
-    {
-      ...getParamsFromPayload(runtimeProvider, payload),
-      ...params,
-    },
-    finalHooks,
-  );
+  const runtimeParams = {
+    ...getParamsFromPayload(runtimeProvider, payload),
+    ...params,
+  };
+
+  return ModelRuntime.initializeWithProvider(runtimeProvider, runtimeParams, finalHooks);
 };
 
 /**
