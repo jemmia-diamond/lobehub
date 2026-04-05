@@ -1,5 +1,5 @@
 export const DEFAULT_MODEL = 'auto';
-export const DEFAULT_MINI_MODEL = 'gemini-1.5-flash-latest';
+export const DEFAULT_MINI_MODEL = 'gemini-1.5-flash';
 
 export const DEFAULT_EMBEDDING_MODEL = 'gemini-embedding-001';
 

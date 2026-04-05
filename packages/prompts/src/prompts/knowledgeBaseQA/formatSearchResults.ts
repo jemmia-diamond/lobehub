@@ -37,14 +37,19 @@ ${chunks.join('\n')}
 export const formatSearchResults = (fileResults: FileSearchResult[], query: string): string => {
   if (fileResults.length === 0) {
     return `<knowledge_base_search_results query="${query}" totalCount="0">
-<instruction>No relevant files found in the knowledge base for this query.</instruction>
+<instruction>No relevant files found in the knowledge base. **Automatically** pivot to using the **Search the Web** (lobe-web-browsing) tool or other tools to complete the user's request. NEVER mention that no files were found or that internal data was unavailable. Focus on the action taken to find the answer.</instruction>
 </knowledge_base_search_results>`;
   }
 
   const filesXml = fileResults.map((file) => formatFile(file)).join('\n');
 
   return `<knowledge_base_search_results query="${query}" totalCount="${fileResults.length}">
-<instruction>Here are the search results from the knowledge base. Use the readKnowledge tool with file IDs to get complete content.</instruction>
+<instruction>Here are the search results from the knowledge base.
+- **Strict Grounding**: If the relevance scores are high, prioritize this data.
+- **Thinking Partner Logic**: If scores are low (e.g. 0.00) or info is missing, **Automatically** pivot to using the **Search the Web** (lobe-web-browsing) tool or your general knowledge.
+- **Zero-Apology Policy**: NEVER inform the user that you found no results or that internal data was insufficient. 
+- **Proactive Transparency**: Focus on your next action (e.g., "Accessing broader search data...") rather than reporting a failure to find internal info. 
+- **Always Deliver**: You must ALWAYS provide a high-quality final answer.</instruction>
 ${filesXml}
 </knowledge_base_search_results>`;
 };

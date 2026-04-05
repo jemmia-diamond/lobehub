@@ -319,6 +319,7 @@ export class KnowledgeBootstrapService {
       const batch = savedChunks.slice(i, i + BATCH_SIZE);
 
       const vectors = await runtime.embeddings({
+        dimensions: 1024,
         input: batch.map((c) => c.text ?? ''),
         model,
       });
