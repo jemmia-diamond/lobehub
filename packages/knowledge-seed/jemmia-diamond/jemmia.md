@@ -1,6 +1,6 @@
 # Kiến thức Thương hiệu Jemmia Diamond
 
-Chào mừng bạn đến với cơ sở tri thức chính thức của Jemmia Diamond. Tài liệu
+Tài liệu dành riêng cho nhân viên và tư vấn viên bán hàng của Jemmia Diamond. Tài liệu
 này chứa các thông tin quan trọng về sản phẩm, tiêu chuẩn chất lượng và chính
 sách dịch vụ của chúng tôi.
 

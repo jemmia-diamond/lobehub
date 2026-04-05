@@ -33,7 +33,7 @@ Jemmia cam kết đồng hành cùng khách hàng trong suốt hành trình sở
 - **Kiểm tra định kỳ:** Khuyến nghị quý khách mang trang sức đến showroom kiểm tra **6 tháng/lần** để đảm bảo tình trạng ổ chấu và độ sáng của đá.
 - **Tư vấn chuyên sâu:** Đội ngũ chuyên viên luôn sẵn sàng hướng dẫn cách chăm sóc phù hợp cho từng loại thiết kế cụ thể.
 
-**Câu hỏi thường gặp:**
+**Kịch bản tư vấn (Dành cho nội bộ):**
 
-- **Hỏi:** Trang sức mua ở Jemmia có được bảo dưỡng không?
-- **Trả lời:** Có, Jemmia cung cấp dịch vụ làm sạch, đánh bóng và kiểm tra định kỳ trọn đời hoàn toàn miễn phí tại tất cả các showroom để đảm bảo trang sức của quý khách luôn ở trạng thái tốt nhất.
+- **Khách hàng hỏi:** Trang sức mua ở Jemmia có được bảo dưỡng không?
+- **Kịch bản gợi ý trả lời khách hàng:** Có, Jemmia cung cấp dịch vụ làm sạch, đánh bóng và kiểm tra định kỳ trọn đời hoàn toàn miễn phí tại tất cả các showroom để đảm bảo trang sức của quý khách luôn ở trạng thái tốt nhất.

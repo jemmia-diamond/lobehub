@@ -35,7 +35,7 @@ Quy trình đặt cọc online tại Jemmia Diamond được thiết kế minh b
 3. **Kiểm tra trước:** Khách hàng được kiểm tra hàng kỹ lưỡng trước khi thanh toán số tiền còn lại.
 4. **Cam kết hoàn tiền:** Hoàn tiền 100% nếu không thực hiện đúng thỏa thuận.
 
-**Câu hỏi thường gặp:**
+**Kịch bản tư vấn (Dành cho nội bộ):**
 
-- **Hỏi:** Chuyển khoản đặt cọc online có an toàn không?
-- **Trả lời:** Với quy trình minh bạch, tài khoản công ty chính thức và hợp đồng rõ ràng, quý khách có thể hoàn toàn yên tâm khi thực hiện các giao dịch đặt cọc từ xa tại Jemmia.
+- **Khách hàng hỏi:** Chuyển khoản đặt cọc online có an toàn không?
+- **Kịch bản gợi ý trả lời khách hàng:** Với quy trình minh bạch, tài khoản công ty chính thức và hợp đồng rõ ràng, quý khách có thể hoàn toàn yên tâm khi thực hiện các giao dịch đặt cọc từ xa tại Jemmia.

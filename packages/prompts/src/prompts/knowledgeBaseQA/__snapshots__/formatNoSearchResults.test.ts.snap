@@ -2,44 +2,44 @@
 
 exports[`promptNoSearchResults > should format no search results with complex query 1`] = `
 "<knowledge_base_search_results query="API authentication with OAuth 2.0" totalCount="0">
-<instruction>No relevant files found in the knowledge base for this query.</instruction>
+<instruction>No relevant results found in the knowledge base for this query.
+You SHOULD try answering using other available tools (e.g., web search) before telling the user you don't know.</instruction>
 <suggestions>
-<suggestion>Try rephrasing your question with different keywords</suggestion>
-<suggestion>Check if the information exists in the uploaded documents</suggestion>
-<suggestion>Ask the user to provide more context or upload relevant documents</suggestion>
+<suggestion>Use web search or other enabled tools to find the answer</suggestion>
+<suggestion>If no tools are available, answer based on your general knowledge</suggestion>
 </suggestions>
 </knowledge_base_search_results>"
 `;
 
 exports[`promptNoSearchResults > should format no search results with non-English query 1`] = `
 "<knowledge_base_search_results query="如何配置数据库连接" totalCount="0">
-<instruction>No relevant files found in the knowledge base for this query.</instruction>
+<instruction>No relevant results found in the knowledge base for this query.
+You SHOULD try answering using other available tools (e.g., web search) before telling the user you don't know.</instruction>
 <suggestions>
-<suggestion>Try rephrasing your question with different keywords</suggestion>
-<suggestion>Check if the information exists in the uploaded documents</suggestion>
-<suggestion>Ask the user to provide more context or upload relevant documents</suggestion>
+<suggestion>Use web search or other enabled tools to find the answer</suggestion>
+<suggestion>If no tools are available, answer based on your general knowledge</suggestion>
 </suggestions>
 </knowledge_base_search_results>"
 `;
 
 exports[`promptNoSearchResults > should format no search results with simple query 1`] = `
 "<knowledge_base_search_results query="how to install" totalCount="0">
-<instruction>No relevant files found in the knowledge base for this query.</instruction>
+<instruction>No relevant results found in the knowledge base for this query.
+You SHOULD try answering using other available tools (e.g., web search) before telling the user you don't know.</instruction>
 <suggestions>
-<suggestion>Try rephrasing your question with different keywords</suggestion>
-<suggestion>Check if the information exists in the uploaded documents</suggestion>
-<suggestion>Ask the user to provide more context or upload relevant documents</suggestion>
+<suggestion>Use web search or other enabled tools to find the answer</suggestion>
+<suggestion>If no tools are available, answer based on your general knowledge</suggestion>
 </suggestions>
 </knowledge_base_search_results>"
 `;
 
 exports[`promptNoSearchResults > should format no search results with special characters 1`] = `
 "<knowledge_base_search_results query="How to use fetchData<T> with async/await?" totalCount="0">
-<instruction>No relevant files found in the knowledge base for this query.</instruction>
+<instruction>No relevant results found in the knowledge base for this query.
+You SHOULD try answering using other available tools (e.g., web search) before telling the user you don't know.</instruction>
 <suggestions>
-<suggestion>Try rephrasing your question with different keywords</suggestion>
-<suggestion>Check if the information exists in the uploaded documents</suggestion>
-<suggestion>Ask the user to provide more context or upload relevant documents</suggestion>
+<suggestion>Use web search or other enabled tools to find the answer</suggestion>
+<suggestion>If no tools are available, answer based on your general knowledge</suggestion>
 </suggestions>
 </knowledge_base_search_results>"
 `;

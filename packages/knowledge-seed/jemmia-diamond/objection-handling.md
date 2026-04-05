@@ -26,11 +26,11 @@
 - Jemmia chỉ chọn lọc những viên kim cương top 2% đạt chuẩn GIA quốc tế, được chuyên gia kiểm tra kỹ lưỡng từng chi tiết nhỏ về chất lượng và năng lượng trước khi tư vấn. Vì kim cương không chỉ là trang sức mà còn là tài sản tích lũy, cần đảm bảo giá trị thực chứ không chỉ dựa vào thông số.
 - Đề nghị gửi bảng minh họa, video thực tế để khách thấy rõ sự khác biệt giữa các viên cùng thông số, từ đó cân nhắc lựa chọn phù hợp.
 
-**Câu hỏi thường gặp:**
+**Kịch bản tư vấn (Dành cho nội bộ):**
 
-- **Hỏi:** Sao giá bên em cao hơn chỗ khác vậy?
-- **Cách hỏi khác:** Chỗ khác bán rẻ hơn nhiều? | Sao Jemmia đắt hơn bên kia? | Tôi thấy giá của Jemmia cao hơn đối thủ?
-- **Trả lời:** Cảm ơn anh/chị đã quan tâm và so sánh giá. Đây là điều rất hợp lý khi đầu tư vào sản phẩm có giá trị như kim cương. Tuy nhiên, giá trị thực của kim cương không chỉ nằm ở thông số trên giấy mà còn ở nhiều yếu tố như vị trí tạp chất, độ tán sắc, độ lửa - chỉ có thể cảm nhận khi trực tiếp xem viên. Jemmia chọn lọc top 2% kim cương GIA, mỗi viên đều được chuyên gia kiểm định kỹ lưỡng cả về chất lượng và năng lượng. Kim cương là tài sản tích lũy lâu dài, nên chúng tôi luôn đảm bảo giá trị thực chứ không chỉ dựa vào thông số. Tôi có thể gửi anh/chị bảng minh họa và video thực tế để thấy rõ sự khác biệt giữa các viên cùng thông số nhưng chất lượng khác nhau.
+- **Khách hàng hỏi:** Sao giá bên em cao hơn chỗ khác vậy?
+- **Các cách hỏi khác của khách hàng:** Chỗ khác bán rẻ hơn nhiều? | Sao Jemmia đắt hơn bên kia? | Tôi thấy giá của Jemmia cao hơn đối thủ?
+- **Kịch bản gợi ý trả lời khách hàng:** Cảm ơn anh/chị đã quan tâm và so sánh giá. Đây là điều rất hợp lý khi đầu tư vào sản phẩm có giá trị như kim cương. Tuy nhiên, giá trị thực của kim cương không chỉ nằm ở thông số trên giấy mà còn ở nhiều yếu tố như vị trí tạp chất, độ tán sắc, độ lửa - chỉ có thể cảm nhận khi trực tiếp xem viên. Jemmia chọn lọc top 2% kim cương GIA, mỗi viên đều được chuyên gia kiểm định kỹ lưỡng cả về chất lượng và năng lượng. Kim cương là tài sản tích lũy lâu dài, nên chúng tôi luôn đảm bảo giá trị thực chứ không chỉ dựa vào thông số. Tôi có thể gửi anh/chị bảng minh họa và video thực tế để thấy rõ sự khác biệt giữa các viên cùng thông số nhưng chất lượng khác nhau.
 
 ---
 
@@ -59,10 +59,10 @@
 - Khẳng định Jemmia chỉ chọn viên thuộc top 2% GIA quốc tế, được chuyên gia kiểm tra kỹ lưỡng trước khi tư vấn. Mua kim cương cần dựa vào giá trị thực chứ không chỉ nhìn thông số bề ngoài.
 - Mời khách xem bảng so sánh thực tế giữa các viên cùng thông số nhưng khác biệt về chất lượng, để hiểu rõ hơn về tiêu chí lựa chọn kim cương đúng cách.
 
-**Câu hỏi thường gặp:**
+**Kịch bản tư vấn (Dành cho nội bộ):**
 
-- **Hỏi:** Chị thấy mẫu tương tự mà giá rẻ hơn nhiều?
-- **Cách hỏi khác:** Có mẫu giống hệt nhưng giá thấp hơn? | Sao mẫu này đắt hơn mẫu tương tự ở bên kia?
-- **Trả lời:** Em hiểu việc anh/chị cân nhắc kỹ lưỡng và so sánh giá là hoàn toàn hợp lý. Tuy nhiên, kim cương dù nhìn bên ngoài có vẻ giống nhau, nhưng giá trị bên trong có thể hoàn toàn khác biệt. Ngay cả khi cùng thông số trên giấy GIA, các viên kim cương vẫn có thể khác nhau về vị trí tạp chất, độ tán sắc, độ sáng và yếu tố phong thủy - những điều chỉ có thể nhận biết khi xem thực tế. Jemmia chỉ chọn những viên thuộc top 2% GIA quốc tế, được chuyên gia kiểm tra kỹ lưỡng trước khi tư vấn. Em có thể gửi anh/chị bảng so sánh thực tế giữa các viên cùng thông số nhưng khác biệt về chất lượng, để anh/chị hiểu rõ hơn vì sao chúng ta nên chọn kim cương dựa trên giá trị thực chứ không chỉ nhìn thông số.
+- **Khách hàng hỏi:** Chị thấy mẫu tương tự mà giá rẻ hơn nhiều?
+- **Các cách hỏi khác của khách hàng:** Có mẫu giống hệt nhưng giá thấp hơn? | Sao mẫu này đắt hơn mẫu tương tự ở bên kia?
+- **Kịch bản gợi ý trả lời khách hàng:** Em hiểu việc anh/chị cân nhắc kỹ lưỡng và so sánh giá là hoàn toàn hợp lý. Tuy nhiên, kim cương dù nhìn bên ngoài có vẻ giống nhau, nhưng giá trị bên trong có thể hoàn toàn khác biệt. Ngay cả khi cùng thông số trên giấy GIA, các viên kim cương vẫn có thể khác nhau về vị trí tạp chất, độ tán sắc, độ sáng và yếu tố phong thủy - những điều chỉ có thể nhận biết khi xem thực tế. Jemmia chỉ chọn những viên thuộc top 2% GIA quốc tế, được chuyên gia kiểm tra kỹ lưỡng trước khi tư vấn. Em có thể gửi anh/chị bảng so sánh thực tế giữa các viên cùng thông số nhưng khác biệt về chất lượng, để anh/chị hiểu rõ hơn vì sao chúng ta nên chọn kim cương dựa trên giá trị thực chứ không chỉ nhìn thông số.
 
 ... \[content abbreviated for brevity, complete logic followed]

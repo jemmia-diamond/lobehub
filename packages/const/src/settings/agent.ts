@@ -46,7 +46,11 @@ export const DEFAULT_AGENT_CHAT_CONFIG: LobeAgentChatConfig = {
 export const DEFAULT_AGENT_CONFIG: LobeAgentConfig = {
   chatConfig: DEFAULT_AGENT_CHAT_CONFIG,
   model: DEFAULT_MODEL,
-  openingQuestions: [],
+  openingQuestions: [
+    'Hỗ trợ tôi lên kịch bản xử lý từ chối khách hàng về giá.',
+    'Tra cứu dữ liệu chính sách bảo hành, thu đổi của Jemmia.',
+    'Lên khung sườn cho email báo giá sản phẩm kim cương GIA.',
+  ],
   params: {
     frequency_penalty: 0,
     presence_penalty: 0,

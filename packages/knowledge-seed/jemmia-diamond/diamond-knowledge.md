@@ -35,7 +35,7 @@ Kim cương tấm (meleé) là những viên kim cương rất nhỏ (dưới 0.
 - **Tiêu chuẩn Jemmia:** Jemmia cam kết toàn bộ kim cương tấm đều đạt chuẩn cao: **Màu D-I, Độ sạch VS1/VS2, Giác cắt Excellent**.
 - **Kiểm soát:** Tất cả đá tấm được kiểm định kỹ lưỡng bằng máy chuyên dụng GIA trước khi đưa vào chế tác sản phẩm.
 
-**Câu hỏi thường gặp:**
+**Kịch bản tư vấn (Dành cho nội bộ):**
 
-- **Hỏi:** Đá nhỏ trên trang sức (kim cương tấm) có chứng nhận GIA không?
-- **Trả lời:** Theo quy định quốc tế, GIA không cấp chứng nhận cho đá dưới 0.3 carat. Tuy nhiên, Jemmia cam kết chất lượng VS1/VS2 cho toàn bộ đá tấm và thông tin này được ghi rõ trên hóa đơn bán hàng.
+- **Khách hàng hỏi:** Đá nhỏ trên trang sức (kim cương tấm) có chứng nhận GIA không?
+- **Kịch bản gợi ý trả lời khách hàng:** Theo quy định quốc tế, GIA không cấp chứng nhận cho đá dưới 0.3 carat. Tuy nhiên, Jemmia cam kết chất lượng VS1/VS2 cho toàn bộ đá tấm và thông tin này được ghi rõ trên hóa đơn bán hàng.

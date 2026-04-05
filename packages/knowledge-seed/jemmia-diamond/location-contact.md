@@ -38,7 +38,7 @@ Jemmia khuyến khích quý khách đặt lịch trước để chúng tôi có 
 1. **Liên hệ qua Zalo:** 0838 353 333
 2. **Website:** Truy cập mục đặt lịch hẹn tại <https://jemmia.vn/>
 
-**Câu hỏi thường gặp:**
+**Kịch bản tư vấn (Dành cho nội bộ):**
 
-- **Hỏi:** Có cần hẹn trước khi đến Jemmia không?
-- **Trả lời:** Quý khách có thể ghé thăm trực tiếp, nhưng việc đặt lịch hẹn trước sẽ giúp Jemmia chuẩn bị sẵn các mẫu sản phẩm và viên kim cương theo đúng tiêu chí của anh/chị, giúp tiết kiệm thời gian và tăng chất lượng buổi tư vấn.
+- **Khách hàng hỏi:** Có cần hẹn trước khi đến Jemmia không?
+- **Kịch bản gợi ý trả lời khách hàng:** Quý khách có thể ghé thăm trực tiếp, nhưng việc đặt lịch hẹn trước sẽ giúp Jemmia chuẩn bị sẵn các mẫu sản phẩm và viên kim cương theo đúng tiêu chí của anh/chị, giúp tiết kiệm thời gian và tăng chất lượng buổi tư vấn.

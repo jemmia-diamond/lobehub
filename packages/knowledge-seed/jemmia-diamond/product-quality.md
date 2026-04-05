@@ -67,7 +67,7 @@ Jemmia Diamond minh chứng chất lượng qua các cam kết:
 - **Bảo hành:** Chính sách bảo hành và bảo dưỡng **trọn đời** (đánh bóng, làm sạch, kiểm tra định kỳ miễn phí).
 - **Thu đổi:** Chính sách thu đổi minh bạch, hỗ trợ khách hàng trong việc tích lũy tài sản dài hạn.
 
-**Câu hỏi thường gặp:**
+**Kịch bản tư vấn (Dành cho nội bộ):**
 
-- **Hỏi:** Chất lượng sản phẩm trang sức Jemmia có bền không?
-- **Trả lời:** Với vật liệu đạt chuẩn và bàn tay của nghệ nhân hơn 20 năm kinh nghiệm, sản phẩm Jemmia đảm bảo sự chắc chắn và bền đẹp theo thời gian. Chính sách bảo dưỡng trọn đời là sự bảo chứng cho cam kết này.
+- **Khách hàng hỏi:** Chất lượng sản phẩm trang sức Jemmia có bền không?
+- **Kịch bản gợi ý trả lời khách hàng:** Với vật liệu đạt chuẩn và bàn tay của nghệ nhân hơn 20 năm kinh nghiệm, sản phẩm Jemmia đảm bảo sự chắc chắn và bền đẹp theo thời gian. Chính sách bảo dưỡng trọn đời là sự bảo chứng cho cam kết này.
