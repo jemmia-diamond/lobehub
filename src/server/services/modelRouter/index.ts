@@ -1,6 +1,15 @@
+import { calculateMessageTokens } from '@lobechat/agent-runtime';
 import debug from 'debug';
 
 const log = debug('lobechat:model-router');
+
+export const JEMMIA_MODELS = {
+  EXPERT: 'gemini-2.5-pro',
+  FAST: 'gemini-2.5-flash-lite',
+  THINKING: 'gemini-2.5-flash',
+};
+
+export type JemmiaMode = 'auto' | 'fast' | 'thinking' | 'expert' | (string & {});
 
 export interface ModelRoute {
   model: string;
@@ -8,58 +17,95 @@ export interface ModelRoute {
 }
 
 export class ModelRouterService {
-  private static readonly DEFAULT_FAST_MODEL: ModelRoute = {
-    model: 'gemini-2.5-flash-lite',
-    provider: 'jemmia',
-  };
+  private static readonly JEMMIA_PROVIDER = 'jemmia';
 
-  private static readonly DEFAULT_STANDARD_MODEL: ModelRoute = {
-    model: 'gemini-2.5-flash',
-    provider: 'jemmia',
-  };
+  public static isJemmiaProvider(provider?: string): boolean {
+    return provider === this.JEMMIA_PROVIDER;
+  }
 
-  private static readonly DEFAULT_PRO_MODEL: ModelRoute = {
-    model: 'gemini-2.5-pro',
-    provider: 'jemmia',
-  };
-
-  public static resolve(params: { agentConfig?: any; messages: any[]; tools: any[] }): ModelRoute {
-    const { messages, tools } = params;
-
-    const hasLarkDocInContext = messages.some(
-      (m) => typeof m.content === 'string' && m.content.includes('Lark Document ID'),
+  public static isJemmiaModeOrModel(input: string): boolean {
+    const i = input.toLowerCase();
+    return (
+      i === 'auto' ||
+      i === 'fast' ||
+      i === 'thinking' ||
+      i === 'expert' ||
+      Object.values(JEMMIA_MODELS).includes(i)
     );
-    const hasLarkTool = tools.some((t) => t.identifier === 'lobe-lark-doc');
-    const hasLocalFilesOrImages = messages.some((m) => {
-      if (Array.isArray(m.content)) {
-        return m.content.some((c: any) => c.type === 'image_url' || c.type === 'file_url');
+  }
+
+  public static resolve(params: {
+    agentConfig?: any;
+    messages: any[];
+    tools: any[];
+    mode?: string;
+  }): ModelRoute {
+    const { messages, tools, mode = 'auto' } = params;
+    const requestedMode = mode.toLowerCase();
+
+    if (requestedMode === 'fast' || requestedMode === JEMMIA_MODELS.FAST) {
+      console.info(`[Jemmora Mode] Mode: FAST → Model: ${JEMMIA_MODELS.FAST}`);
+      return { model: JEMMIA_MODELS.FAST, provider: this.JEMMIA_PROVIDER };
+    }
+
+    if (requestedMode === 'thinking' || requestedMode === JEMMIA_MODELS.THINKING) {
+      console.info(`[Jemmora Mode] Mode: THINKING → Model: ${JEMMIA_MODELS.THINKING}`);
+      return { model: JEMMIA_MODELS.THINKING, provider: this.JEMMIA_PROVIDER };
+    }
+
+    if (requestedMode === 'expert' || requestedMode === JEMMIA_MODELS.EXPERT) {
+      console.info(`[Jemmora Mode] Mode: EXPERT → Model: ${JEMMIA_MODELS.EXPERT}`);
+      return { model: JEMMIA_MODELS.EXPERT, provider: this.JEMMIA_PROVIDER };
+    }
+
+    const systemMessages = messages.filter((m) => m.role === 'system');
+    const nonSystemMessages = messages.filter((m) => m.role !== 'system');
+
+    const systemRoleTokens = calculateMessageTokens(systemMessages as any);
+    const conversationTokens = calculateMessageTokens(nonSystemMessages as any);
+
+    let totalFiles = 0;
+    for (const msg of messages) {
+      if (Array.isArray(msg.content)) {
+        for (const part of msg.content) {
+          if (part.type === 'image_url' || part.type === 'file_url') {
+            totalFiles += 1;
+          }
+        }
       }
-      return false;
-    });
-
-    if (hasLarkDocInContext || hasLarkTool || hasLocalFilesOrImages) {
-      log('Routing to PRO model due to file/image manipulation or Lark integration');
-      return this.DEFAULT_PRO_MODEL;
     }
 
-    const messageCount = messages.filter((m) => m.role !== 'system').length;
-    const toolCount = tools.length;
+    const systemMessage = messages.find((m) => m.role === 'system');
+    const systemContent = typeof systemMessage?.content === 'string' ? systemMessage.content : '';
+    const hasKnowledgeInjected =
+      systemContent.includes('Knowledge Base') || systemRoleTokens > 2000;
+    const hasLarkIntegration =
+      systemContent.includes('Lark Document ID') ||
+      tools.some((t) => t.identifier === 'lobe-lark-doc');
 
-    if (messageCount > 15 || toolCount > 5) {
-      log(
-        'Routing to PRO model due to high complexity (messages: %d, tools: %d)',
-        messageCount,
-        toolCount,
+    const toolNames =
+      tools?.map((t: any) => t.function?.name || t.identifier || t.type).join(', ') || 'none';
+    log(
+      `[Jemmora Auto Debug] Conversation: ${conversationTokens} tokens, Files: ${totalFiles}, Tools: ${tools?.length || 0} [${toolNames}]`,
+    );
+
+    if (totalFiles >= 3 || conversationTokens > 32000 || hasLarkIntegration) {
+      console.info(
+        `[Jemmora Auto] Mode: AUTO → Model: ${JEMMIA_MODELS.EXPERT} (Reason: complexity)`,
       );
-      return this.DEFAULT_PRO_MODEL;
+      return { model: JEMMIA_MODELS.EXPERT, provider: this.JEMMIA_PROVIDER };
     }
 
-    if (messageCount > 5 || toolCount > 0) {
-      log('Routing to STANDARD model (messages: %d, tools: %d)', messageCount, toolCount);
-      return this.DEFAULT_STANDARD_MODEL;
+    if (totalFiles > 0 || conversationTokens > 16000 || hasKnowledgeInjected) {
+      console.info(
+        `[Jemmora Auto] Mode: AUTO → Model: ${JEMMIA_MODELS.THINKING} (Reason: context/RAG)`,
+      );
+      return { model: JEMMIA_MODELS.THINKING, provider: this.JEMMIA_PROVIDER };
     }
 
-    log('Routing to FAST model for simple chat');
-    return this.DEFAULT_FAST_MODEL;
+    console.info(
+      `[Jemmora Auto] Mode: AUTO → Model: ${JEMMIA_MODELS.FAST} (Reason: simple interaction)`,
+    );
+    return { model: JEMMIA_MODELS.FAST, provider: this.JEMMIA_PROVIDER };
   }
 }
