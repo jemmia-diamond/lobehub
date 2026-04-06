@@ -9,7 +9,7 @@ const inVercel = process.env.VERCEL === '1';
 
 const RootLayout = ({ children }: { children: ReactNode }) => {
   return (
-    <html suppressHydrationWarning lang={'en'} style={{ height: '100%' }}>
+    <html suppressHydrationWarning lang={'vi-VN'} style={{ height: '100%' }}>
       <head>
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
