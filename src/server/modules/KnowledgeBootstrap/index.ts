@@ -20,6 +20,7 @@ import { getServerDB } from '@/database/server';
 import { getServerDefaultFilesConfig } from '@/server/globalConfig';
 import { ContentChunk } from '@/server/modules/ContentChunk';
 import { initModelRuntimeWithUserPayload } from '@/server/modules/ModelRuntime';
+import { withRateLimitRetry } from '@/utils/retryPolicy';
 
 export const JEMMORA_ADMIN_ID = 'user_jemmora_admin';
 export const JEMMORA_KB_NAME = 'Jemmia Diamond Knowledge';
@@ -106,7 +107,7 @@ export class KnowledgeBootstrapService {
     // Link this specific user's Inbox Agent to the Global KB
     await this.linkKnowledgeToInbox(db, globalKbId);
 
-    console.info(`[KnowledgeBootstrap] Linked user ${userId} to Global Knowledge.`);
+    console.info(`[KnowledgeBootstrap] Linked user ${userId} to Global Knowledge (Inbox).`);
   }
 
   private async ensureAdminUser(db: any) {
@@ -318,12 +319,15 @@ export class KnowledgeBootstrapService {
     for (let i = 0; i < savedChunks.length; i += BATCH_SIZE) {
       const batch = savedChunks.slice(i, i + BATCH_SIZE);
 
-      const vectors = await this.withRateLimitRetry(() =>
-        runtime.embeddings({
-          dimensions: 1024,
-          input: batch.map((c) => c.text ?? ''),
-          model,
-        }),
+      const vectors = await withRateLimitRetry(
+        () =>
+          runtime.embeddings({
+            dimensions: 1024,
+            input: batch.map((c) => c.text ?? ''),
+            model,
+          }),
+        5,
+        '[KnowledgeBootstrap]',
       );
 
       if (!vectors) continue;
@@ -335,57 +339,6 @@ export class KnowledgeBootstrapService {
         })),
       );
     }
-  }
-
-  private async withRateLimitRetry<T>(
-    operation: () => Promise<T>,
-    maxRetries: number = 5,
-  ): Promise<T> {
-    let retries = maxRetries;
-
-    while (retries > 0) {
-      try {
-        return await operation();
-      } catch (error: any) {
-        const isRateLimit =
-          error?.errorType === 'QuotaLimitReached' ||
-          error?.status === 429 ||
-          String(error).includes('429');
-
-        if (isRateLimit && retries > 1) {
-          retries--;
-          let waitSeconds = 5;
-
-          try {
-            if (error?.error?.message && typeof error.error.message === 'string') {
-              const parsed = JSON.parse(error.error.message);
-              const retryInfo = parsed?.error?.details?.find(
-                (d: any) => d['@type'] === 'type.googleapis.com/google.rpc.RetryInfo',
-              );
-              if (retryInfo?.retryDelay) {
-                waitSeconds = parseInt(retryInfo.retryDelay.replace('s', ''), 10) + 1;
-              } else {
-                const match = parsed?.error?.message?.match(/retry in ([\d.]+)s/);
-                if (match && match[1]) {
-                  waitSeconds = Math.ceil(parseFloat(match[1])) + 1;
-                }
-              }
-            }
-          } catch {
-            // Ignore parse error, use default 5s
-          }
-
-          console.warn(
-            `[KnowledgeBootstrap] Rate limit hit. Waiting ${waitSeconds}s before retrying... (${retries} retries left)`,
-          );
-          await new Promise((resolve) => setTimeout(resolve, waitSeconds * 1000));
-        } else {
-          throw error;
-        }
-      }
-    }
-
-    throw new Error('Retries exhausted without returning a result');
   }
 
   private generateHash(content: Buffer): string {

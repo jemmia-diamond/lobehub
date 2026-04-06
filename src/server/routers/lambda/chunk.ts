@@ -19,6 +19,7 @@ import { getServerDefaultFilesConfig } from '@/server/globalConfig';
 import { initModelRuntimeFromDB } from '@/server/modules/ModelRuntime';
 import { ChunkService } from '@/server/services/chunk';
 import { DocumentService } from '@/server/services/document';
+import { withRateLimitRetry } from '@/utils/retryPolicy';
 
 const chunkProcedure = authedProcedure
   .use(serverDatabase)
@@ -224,13 +225,18 @@ export const chunkRouter = router({
       // Read user's provider config from database
       const agentRuntime = await initModelRuntimeFromDB(ctx.serverDB, ctx.userId, provider);
 
-      const embeddings = await agentRuntime.embeddings(
-        {
-          dimensions: 1024,
-          input: input.query,
-          model,
-        },
-        { metadata: { trigger: RequestTrigger.SemanticSearch }, user: ctx.userId },
+      const embeddings = await withRateLimitRetry(
+        () =>
+          agentRuntime.embeddings(
+            {
+              dimensions: 1024,
+              input: input.query,
+              model,
+            },
+            { metadata: { trigger: RequestTrigger.SemanticSearch }, user: ctx.userId },
+          ),
+        3,
+        '[SemanticSearch]',
       );
 
       return ctx.chunkModel.semanticSearch({
@@ -252,14 +258,28 @@ export const chunkRouter = router({
         // slice content to make sure in the context window limit
         const query = input.query.length > 8000 ? input.query.slice(0, 8000) : input.query;
 
-        const embeddings = await modelRuntime.embeddings(
-          {
-            dimensions: 1024,
-            input: query,
-            model,
-          },
-          { metadata: { trigger: RequestTrigger.SemanticSearch }, user: ctx.userId },
-        );
+        let embeddings;
+        try {
+          embeddings = await withRateLimitRetry(
+            () =>
+              modelRuntime.embeddings(
+                {
+                  dimensions: 1024,
+                  input: query,
+                  model,
+                },
+                { metadata: { trigger: RequestTrigger.SemanticSearch }, user: ctx.userId },
+              ),
+            3,
+            '[SemanticSearchForChat]',
+          );
+        } catch (embeddingError) {
+          console.warn(
+            '[SemanticSearchForChat] Embedding failed, returning empty context to trigger fallback',
+            embeddingError,
+          );
+          return { chunks: [], fileResults: [] };
+        }
 
         if (!embeddings || embeddings.length === 0) {
           throw new Error(`Embedding provider ${provider} returned no results for model ${model}`);
