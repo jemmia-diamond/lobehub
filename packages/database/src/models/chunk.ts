@@ -136,6 +136,18 @@ export class ChunkModel {
     return data[0]?.count ?? 0;
   };
 
+  countEmbeddingsByFileId = async (id: string) => {
+    const data = await this.db
+      .select({
+        count: count(embeddings.id),
+      })
+      .from(fileChunks)
+      .innerJoin(embeddings, eq(fileChunks.chunkId, embeddings.chunkId))
+      .where(eq(fileChunks.fileId, id));
+
+    return data[0]?.count ?? 0;
+  };
+
   semanticSearch = async ({
     embedding,
     fileIds,

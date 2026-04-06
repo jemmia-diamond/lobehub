@@ -632,6 +632,7 @@
   "google/gemini-3-pro-image-preview.description": "Gemini 3 Pro Image (Nano Banana Pro) is Google’s image generation model with multimodal conversation support.",
   "google/gemini-3-pro-preview.description": "Gemini 3 Pro is the next-generation multimodal reasoning model in the Gemini family, understanding text, audio, images, and video, and handling complex tasks and large codebases.",
   "google/gemini-embedding-001.description": "A state-of-the-art embedding model with strong performance in English, multilingual, and code tasks.",
+  "google/gemini-embedding-2-preview.description": "The next generation of Gemini embedding models with higher performance and native multimodality.",
   "google/gemini-flash-1.5.description": "Gemini 1.5 Flash provides optimized multimodal processing for a range of complex tasks.",
   "google/gemini-pro-1.5.description": "Gemini 1.5 Pro combines the latest optimizations for more efficient multimodal data processing.",
   "google/gemma-2-27b-it.description": "Gemma 2 27B is a general-purpose LLM with strong performance across many scenarios.",

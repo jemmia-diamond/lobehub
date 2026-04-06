@@ -440,14 +440,14 @@ describe('LobeGoogleAI', () => {
 
       const result = await instance.embeddings({
         input: 'Hello',
-        model: 'gemini-embedding-001',
+        model: 'gemini-embedding-002-preview',
       });
 
       expect(result).toEqual([[0.1, 0.2, 0.3]]);
       expect(instance['client'].models.embedContent).toHaveBeenCalledWith({
         config: { outputDimensionality: undefined },
         content: { parts: [{ text: 'Hello' }], role: 'user' },
-        model: 'gemini-embedding-001',
+        model: 'gemini-embedding-002-preview',
       });
     });
 
@@ -461,7 +461,7 @@ describe('LobeGoogleAI', () => {
 
       const result = await instance.embeddings({
         input: ['Hello', 'World'],
-        model: 'gemini-embedding-001',
+        model: 'gemini-embedding-002-preview',
       });
 
       expect(result).toHaveLength(2);
@@ -476,7 +476,7 @@ describe('LobeGoogleAI', () => {
       try {
         await instance.embeddings({
           input: 'Hello',
-          model: 'gemini-embedding-001',
+          model: 'gemini-embedding-002-preview',
         });
       } catch (e) {
         expect(e).toMatchObject({
@@ -493,7 +493,7 @@ describe('LobeGoogleAI', () => {
       try {
         await instance.embeddings({
           input: 'Hello',
-          model: 'gemini-embedding-001',
+          model: 'gemini-embedding-002-preview',
         });
       } catch (e) {
         expect(e).toMatchObject({

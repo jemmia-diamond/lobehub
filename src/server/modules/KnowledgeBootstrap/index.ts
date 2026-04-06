@@ -217,19 +217,19 @@ export class KnowledgeBootstrapService {
     });
 
     if (existing) {
-      // Check if it has chunks. If not, the previous run likely failed halfway.
+      // Check if it has embeddings. If not, the previous run likely failed halfway (e.g. rate limit during embedding).
       const chunkModel = new ChunkModel(db, this.userId);
-      const count = await chunkModel.countByFileId(existing.id);
+      const count = await chunkModel.countEmbeddingsByFileId(existing.id);
 
       if (count > 0) {
         console.info(
-          `[KnowledgeBootstrap] Skipped (already indexed with ${count} chunks): ${filename}`,
+          `[KnowledgeBootstrap] Skipped (already indexed with ${count} embeddings): ${filename}`,
         );
         return existing.id;
       }
 
       console.warn(
-        `[KnowledgeBootstrap] File ${filename} exists but has no chunks. Re-indexing...`,
+        `[KnowledgeBootstrap] File ${filename} exists but has no embeddings. Re-indexing...`,
       );
       // Delete the stale record to allow clean re-insertion
       await db.delete(files).where(eq(files.id, existing.id));
@@ -318,11 +318,13 @@ export class KnowledgeBootstrapService {
     for (let i = 0; i < savedChunks.length; i += BATCH_SIZE) {
       const batch = savedChunks.slice(i, i + BATCH_SIZE);
 
-      const vectors = await runtime.embeddings({
-        dimensions: 1024,
-        input: batch.map((c) => c.text ?? ''),
-        model,
-      });
+      const vectors = await this.withRateLimitRetry(() =>
+        runtime.embeddings({
+          dimensions: 1024,
+          input: batch.map((c) => c.text ?? ''),
+          model,
+        }),
+      );
 
       if (!vectors) continue;
 
@@ -333,6 +335,57 @@ export class KnowledgeBootstrapService {
         })),
       );
     }
+  }
+
+  private async withRateLimitRetry<T>(
+    operation: () => Promise<T>,
+    maxRetries: number = 5,
+  ): Promise<T> {
+    let retries = maxRetries;
+
+    while (retries > 0) {
+      try {
+        return await operation();
+      } catch (error: any) {
+        const isRateLimit =
+          error?.errorType === 'QuotaLimitReached' ||
+          error?.status === 429 ||
+          String(error).includes('429');
+
+        if (isRateLimit && retries > 1) {
+          retries--;
+          let waitSeconds = 5;
+
+          try {
+            if (error?.error?.message && typeof error.error.message === 'string') {
+              const parsed = JSON.parse(error.error.message);
+              const retryInfo = parsed?.error?.details?.find(
+                (d: any) => d['@type'] === 'type.googleapis.com/google.rpc.RetryInfo',
+              );
+              if (retryInfo?.retryDelay) {
+                waitSeconds = parseInt(retryInfo.retryDelay.replace('s', ''), 10) + 1;
+              } else {
+                const match = parsed?.error?.message?.match(/retry in ([\d.]+)s/);
+                if (match && match[1]) {
+                  waitSeconds = Math.ceil(parseFloat(match[1])) + 1;
+                }
+              }
+            }
+          } catch {
+            // Ignore parse error, use default 5s
+          }
+
+          console.warn(
+            `[KnowledgeBootstrap] Rate limit hit. Waiting ${waitSeconds}s before retrying... (${retries} retries left)`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, waitSeconds * 1000));
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    throw new Error('Retries exhausted without returning a result');
   }
 
   private generateHash(content: Buffer): string {

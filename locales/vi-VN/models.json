@@ -632,6 +632,7 @@
   "google/gemini-3-pro-image-preview.description": "Gemini 3 Pro Image (Nano Banana Pro) là mô hình tạo hình ảnh của Google với hỗ trợ hội thoại đa phương thức.",
   "google/gemini-3-pro-preview.description": "Gemini 3 Pro là mô hình suy luận đa phương thức thế hệ tiếp theo trong dòng Gemini, có khả năng hiểu văn bản, âm thanh, hình ảnh và video, xử lý các tác vụ phức tạp và mã nguồn lớn.",
   "google/gemini-embedding-001.description": "Mô hình embedding tiên tiến với hiệu suất mạnh mẽ trong tiếng Anh, đa ngôn ngữ và lập trình.",
+  "google/gemini-embedding-2-preview.description": "Thế hệ tiếp theo của mô hình embedding Gemini với hiệu suất cao hơn và khả năng đa phương thức bản địa.",
   "google/gemini-flash-1.5.description": "Gemini 1.5 Flash cung cấp xử lý đa phương tiện tối ưu cho nhiều tác vụ phức tạp.",
   "google/gemini-pro-1.5.description": "Gemini 1.5 Pro kết hợp các tối ưu hóa mới nhất để xử lý dữ liệu đa phương tiện hiệu quả hơn.",
   "google/gemma-2-27b-it.description": "Gemma 2 27B là mô hình ngôn ngữ tổng quát với hiệu suất mạnh mẽ trong nhiều tình huống.",

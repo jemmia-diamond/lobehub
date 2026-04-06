@@ -152,6 +152,15 @@ const jemmiaChatModels: (AIChatModelCard | AIEmbeddingModelCard)[] = [
     maxDimension: 1024,
     type: 'embedding',
   },
+  {
+    contextWindowTokens: 8192,
+    description: 'Natively multimodal embedding model with higher dimensions.',
+    displayName: 'Gemini Embedding 002',
+    enabled: true,
+    id: 'gemini-embedding-2-preview',
+    maxDimension: 3072,
+    type: 'embedding',
+  },
 ];
 
 export default jemmiaChatModels;
