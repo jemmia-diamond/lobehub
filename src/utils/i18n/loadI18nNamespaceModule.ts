@@ -6,12 +6,16 @@ export interface LoadI18nNamespaceModuleParams {
 }
 
 export const loadI18nNamespaceModule = async (params: LoadI18nNamespaceModuleParams) => {
-  const { defaultLang, normalizeLocale, lng, ns } = params;
+  const { normalizeLocale, lng, ns } = params;
 
-  if (lng === defaultLang) return import(`@/locales/default/${ns}`);
+  const normalizedLocale = normalizeLocale(lng);
 
+  // English uses the TypeScript source files in src/locales/default/
+  if (normalizedLocale === 'en-US') return import(`@/locales/default/${ns}`);
+
+  // All other locales (including vi-VN) load from JSON translation files
   try {
-    return import(`@/../locales/${normalizeLocale(lng)}/${ns}.json`);
+    return import(`@/../locales/${normalizedLocale}/${ns}.json`);
   } catch {
     return import(`@/locales/default/${ns}`);
   }
