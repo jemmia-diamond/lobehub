@@ -1,4 +1,4 @@
-import { type ModelRuntime } from '@lobechat/model-runtime';
+import { type ModelRuntime, safeParseJSON } from '@lobechat/model-runtime';
 import { agenticVerifierSystemPrompt } from '@lobechat/prompts';
 import debug from 'debug';
 
@@ -24,6 +24,9 @@ export class AgenticVerifierService {
     const { query, answer, chunks, modelRuntime, modelId } = params;
 
     try {
+      console.info(
+        `[Agentic Verifier] Starting verification for query: "${query.slice(0, 50)}..."`,
+      );
       log(`Verifying answer against ${chunks.length} chunks using ${modelId}...`);
 
       const result = await modelRuntime.generateObject({
@@ -62,8 +65,17 @@ export class AgenticVerifierService {
         },
       });
 
-      if (result && typeof result === 'object') {
-        const verified = result as any;
+      // Use defensive JSON extraction to handle potential LLM conversational filler
+      const verified = safeParseJSON<{
+        issues: string[];
+        isValid: boolean;
+        scratchpad: string;
+      }>(result);
+
+      if (verified) {
+        console.info(
+          `[Agentic Verifier] Groundedness Result: ${verified.isValid ? 'VALID' : 'INVALID'}. Issues: ${verified.issues.length}`,
+        );
         log(`Verification results: ${verified.isValid ? 'VALID' : 'INVALID'}`);
         if (verified.issues.length > 0) log(`Issues: ${verified.issues.join(' | ')}`);
 

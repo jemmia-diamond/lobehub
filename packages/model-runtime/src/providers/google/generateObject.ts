@@ -6,6 +6,7 @@ import type { Pricing } from 'model-bank';
 import { buildGoogleTool } from '../../core/contextBuilders/google';
 import { convertGoogleAIUsage } from '../../core/usageConverters/google-ai';
 import type { ChatCompletionTool, GenerateObjectOptions, GenerateObjectSchema } from '../../types';
+import { safeParseJSON } from '../../utils/safeParseJSON';
 
 const debug = Debug('lobe-mode-runtime:google:generateObject');
 
@@ -173,16 +174,7 @@ export const createGoogleGenerateObject = async (
   }
 
   const text = response.text;
-
-  try {
-    const result = JSON.parse(text!);
-    debug('JSON parsing successful', result);
-    return result;
-  } catch {
-    console.error('parse json error:', text);
-
-    return undefined;
-  }
+  return safeParseJSON(text);
 };
 
 /**

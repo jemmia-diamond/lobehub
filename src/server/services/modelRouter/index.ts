@@ -1,4 +1,5 @@
-import { type ModelRuntime } from '@lobechat/model-runtime';
+import { calculateMessageTokens } from '@lobechat/agent-runtime';
+import { type ModelRuntime, safeParseJSON } from '@lobechat/model-runtime';
 import { intelligentRoutingSystemPrompt, intelligentRoutingUserPrompt } from '@lobechat/prompts';
 import debug from 'debug';
 
@@ -59,7 +60,9 @@ export class ModelRouterService {
         const chunks = this.extractChunks(systemContent);
 
         if (chunks.length > 0) {
-          log('RAG Chunks detected. Triggering Agentic Navigator...');
+          console.info(
+            `[Jemmora Routing] RAG Chunks detected (${chunks.length}). Starting Agentic Navigator...`,
+          );
           const userMessage = messages.findLast((m) => m.role === 'user');
           const query =
             typeof userMessage?.content === 'string' ? userMessage.content : 'unknown query';
@@ -77,8 +80,9 @@ export class ModelRouterService {
             chunks,
             navigation.relevantChunkIds,
           );
+
           const navigatedMessages = messages.map((m) =>
-            m.role === 'system' ? { ...m, content: filteredSystemContent } : m,
+            m === systemMessage ? { ...m, content: filteredSystemContent } : m,
           );
 
           return {
@@ -87,14 +91,37 @@ export class ModelRouterService {
             provider: this.JEMMIA_PROVIDER,
             reason: `agentic-navigation: ${navigation.relevantChunkIds.length}/${chunks.length} chunks`,
           };
+        } else {
+          console.info('[Jemmora Routing] No valid RAG chunks extracted from system prompt.');
         }
       }
 
       // 3. Triage Phase: General intent routing using the FAST tier model
+      const totalTokens = calculateMessageTokens(messages);
+      const totalFiles = messages.reduce((acc, m) => {
+        if (Array.isArray(m.content)) {
+          return (
+            acc +
+            (m.content as any[]).filter((c) => c.type === 'file' || c.type === 'image_url').length
+          );
+        }
+        return acc;
+      }, 0);
+
+      console.info(
+        `[Jemmora Routing] Triage Metrics: ${totalTokens} tokens, ${totalFiles} files. Selecting tier...`,
+      );
+
       const result = await modelRuntime.generateObject({
         messages: [
           { content: intelligentRoutingSystemPrompt, role: 'system' },
-          { content: intelligentRoutingUserPrompt(messages, tools), role: 'user' },
+          {
+            content: intelligentRoutingUserPrompt(messages, tools, {
+              files: totalFiles,
+              tokens: totalTokens,
+            }),
+            role: 'user',
+          },
         ],
         model: JEMMIA_MODELS.FAST,
         schema: {
@@ -120,20 +147,22 @@ export class ModelRouterService {
       let modelId: string | undefined;
       let scratchpad: string | undefined;
 
-      // Handle structured output or regex fallback
-      if (typeof result === 'object' && result !== null) {
-        modelId = (result as any)?.modelId;
-        scratchpad = (result as any)?.scratchpad;
+      // Handle structured output or defensive JSON extraction
+      const parsed = safeParseJSON<{ modelId: string; scratchpad: string }>(result);
+      if (!parsed) {
+        console.error(`[Jemmora Routing] Triage Parse FAILED. Raw Result: ${result}`);
+      }
+      console.info(
+        `[Jemmora Routing] Triage Result: ${parsed?.modelId || 'FALLBACK: FAST'}. Scratchpad: ${parsed?.scratchpad || 'N/A'}`,
+      );
+
+      if (parsed) {
+        modelId = parsed.modelId;
+        scratchpad = parsed.scratchpad;
       } else if (typeof result === 'string') {
-        try {
-          const parsed = JSON.parse(result);
-          modelId = parsed?.modelId;
-          scratchpad = parsed?.scratchpad;
-        } catch {
-          const modelIds = Object.values(JEMMIA_MODELS).join('|').replaceAll('.', '\\.');
-          const match = result.match(new RegExp(`(${modelIds})`));
-          if (match) modelId = match[0];
-        }
+        const modelIds = Object.values(JEMMIA_MODELS).join('|').replaceAll('.', '\\.');
+        const match = result.match(new RegExp(`(${modelIds})`));
+        if (match) modelId = match[0];
       }
 
       if (modelId) {
@@ -245,9 +274,6 @@ export class ModelRouterService {
     return chunks;
   }
 
-  /**
-   * Helper to rebuild the system prompt with only selected chunks
-   */
   private static rebuildSystemPrompt(
     originalContent: string,
     allChunks: any[],

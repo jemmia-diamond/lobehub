@@ -15,7 +15,12 @@ import { withRateLimitRetry } from '@/utils/retryPolicy';
  * but we request exactly this size via `outputDimensionality` so the
  * model itself optimizes the representation — no post-hoc truncation needed.
  */
-const VECTOR_DIMENSIONS = 1024;
+const getDimension = (modelId: string): number => {
+  if (modelId.includes('text-embedding-3-small')) return 1536;
+  if (modelId.includes('gemini-embedding-001')) return 1024;
+  if (modelId.includes('gemini-embedding-2-preview')) return 3072;
+  return 1024; // Default fallback
+};
 
 export class ServerEmbeddingService {
   /**
@@ -41,13 +46,18 @@ export class ServerEmbeddingService {
     const { model, provider } =
       getServerDefaultFilesConfig().embeddingModel || DEFAULT_FILE_EMBEDDING_MODEL_ITEM;
 
+    const dimensions = getDimension(model);
+    console.info(
+      `${logPrefix} Model: ${model} | Dimensions: ${dimensions} | Mode: ${this.getMode()}`,
+    );
+
     if (this.getMode() === 'sdk') {
       const result = await withRateLimitRetry(
         () =>
           embed({
             model: this.getGoogleProvider().embedding(model),
             providerOptions: {
-              google: { outputDimensionality: VECTOR_DIMENSIONS },
+              google: { outputDimensionality: dimensions },
             },
             value: text,
           }),
@@ -62,7 +72,7 @@ export class ServerEmbeddingService {
       () =>
         agentRuntime.embeddings(
           {
-            dimensions: VECTOR_DIMENSIONS,
+            dimensions,
             input: text,
             model,
           },
@@ -88,13 +98,18 @@ export class ServerEmbeddingService {
     const { model, provider } =
       getServerDefaultFilesConfig().embeddingModel || DEFAULT_FILE_EMBEDDING_MODEL_ITEM;
 
+    const dimensions = getDimension(model);
+    console.info(
+      `${logPrefix} Model: ${model} | Dimensions: ${dimensions} | Mode: ${this.getMode()}`,
+    );
+
     if (this.getMode() === 'sdk') {
       const result = await withRateLimitRetry(
         () =>
           embedMany({
             model: this.getGoogleProvider().embedding(model),
             providerOptions: {
-              google: { outputDimensionality: VECTOR_DIMENSIONS },
+              google: { outputDimensionality: dimensions },
             },
             values: texts,
           }),
@@ -109,7 +124,7 @@ export class ServerEmbeddingService {
       () =>
         agentRuntime.embeddings(
           {
-            dimensions: VECTOR_DIMENSIONS,
+            dimensions,
             input: texts,
             model,
           },

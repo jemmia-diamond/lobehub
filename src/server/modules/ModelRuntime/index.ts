@@ -408,7 +408,7 @@ const getJemOrchestrationHooks = (
         payload.model = model;
         if (messages) (payload as any).messages = messages;
       } catch (error) {
-        log('[Intelligent Routing] Auto-evaluation failed:', error);
+        console.error('[Intelligent Routing] Auto-evaluation failed:', error);
       }
     } else {
       // Explicit mode mapping (Fast, Thinking, Expert) or Heuristic Fallback
@@ -508,7 +508,7 @@ const addAgenticOrchestrationMiddleware = (runtime: ModelRuntime) => {
           }
         }
       } catch (e) {
-        log('Post-stream verification failed:', e);
+        console.error('[Agentic Verification] Post-stream verification failed:', e);
       }
     })();
 

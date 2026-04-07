@@ -42,6 +42,7 @@ import { isExceededContextWindowError } from '../../utils/isExceededContextWindo
 import { isQuotaLimitError } from '../../utils/isQuotaLimitError';
 import { postProcessModelList } from '../../utils/postProcessModelList';
 import { StreamingResponse } from '../../utils/response';
+import { safeParseJSON } from '../../utils/safeParseJSON';
 import type { LobeRuntimeAI } from '../BaseAI';
 import { convertOpenAIMessages, convertOpenAIResponseInputs } from '../contextBuilders/openai';
 import { resolveModelSamplingParameters } from '../parameterResolver';
@@ -768,15 +769,7 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
 
           const text = res.output_text;
           log('received structured output from Responses API, length: %d', text?.length || 0);
-          try {
-            const result = JSON.parse(text);
-            log('successfully parsed JSON output');
-            return result;
-          } catch (error) {
-            log('failed to parse JSON output: %O', error);
-            console.error('parse json error:', text);
-            return undefined;
-          }
+          return safeParseJSON(text);
         }
 
         log('calling chat.completions.create for structured output');
@@ -797,15 +790,7 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
 
         log('received structured output from Chat Completions API, length: %d', text?.length || 0);
 
-        try {
-          const result = JSON.parse(text);
-          log('successfully parsed JSON output');
-          return result;
-        } catch (error) {
-          log('failed to parse JSON output: %O', error);
-          console.error('parse json error:', text);
-          return undefined;
-        }
+        return safeParseJSON(text);
       } catch (error) {
         const handledError = this.handleError(error);
 

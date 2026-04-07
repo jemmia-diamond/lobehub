@@ -1,4 +1,4 @@
-import { type ModelRuntime } from '@lobechat/model-runtime';
+import { type ModelRuntime, safeParseJSON } from '@lobechat/model-runtime';
 import { agenticSkimmerSystemPrompt, agenticSkimmerUserPrompt } from '@lobechat/prompts';
 import debug from 'debug';
 
@@ -26,7 +26,9 @@ export class AgenticNavigatorService {
     const { query, chunks, modelRuntime, models } = params;
 
     try {
-      log(`Starting hierarchical navigation for ${chunks.length} chunks...`);
+      console.info(
+        `[Agentic Navigator] Starting hierarchical navigation for ${chunks.length} chunks. Query: "${query.slice(0, 50)}..."`,
+      );
 
       return await this.navigateRecursive({
         chunks,
@@ -61,7 +63,7 @@ export class AgenticNavigatorService {
   }): Promise<NavigatedContext> {
     const { query, chunks, modelRuntime, models, depth, scratchpad } = params;
 
-    log(`[Navigator Depth ${depth}] Evaluating ${chunks.length} chunks...`);
+    console.info(`[Agentic Navigator] Depth ${depth}: Evaluating ${chunks.length} chunks...`);
 
     const result = await modelRuntime.generateObject({
       messages: [
@@ -100,12 +102,23 @@ export class AgenticNavigatorService {
       },
     });
 
-    if (!result || typeof result !== 'object') {
-      throw new Error('Invalid navigator response');
+    // Use defensive JSON extraction to handle potential LLM conversational filler
+    const parsed = safeParseJSON<{
+      modelId: string;
+      relevantChunkIds: string[];
+      scratchpad: string;
+    }>(result);
+
+    if (!parsed) {
+      throw new Error('Invalid navigator response: Could not parse JSON block');
     }
 
-    const { relevantChunkIds, scratchpad: newScratchpad, modelId } = result as any;
+    const { relevantChunkIds, scratchpad: newScratchpad, modelId } = parsed;
     const selectedChunks = chunks.filter((c) => relevantChunkIds.includes(c.id));
+
+    console.info(
+      `[Agentic Navigator] Depth ${depth}: LLM selected ${selectedChunks.length} chunks. Next tier: ${modelId}. Reasoning: ${newScratchpad.slice(0, 100)}...`,
+    );
 
     log(`[Navigator Depth ${depth}] Selected ${selectedChunks.length} chunks.`);
 
