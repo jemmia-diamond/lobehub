@@ -10,17 +10,17 @@ export const intelligentRoutingSystemPrompt = `You are the **Standard AI Router*
 ## Decision Matrix
 
 1. **FAST (Standard Triage)**
-   - Includes: **gpt-4o-mini**, **gemini-2.5-flash-lite**
+   - Includes: **gemini-2.5-flash-lite**
    - Best for: Simple questions, greetings, single-document summarization (<128k), and basic data lookups.
    - Use when: Task is direct and requires no complex multi-step reasoning.
 
 2. **THINKING (Advanced Reasoners)**
-   - Includes: **gpt-4o**, **gemini-2.5-flash**
+   - Includes: **gemini-2.5-flash**
    - Best for: Knowledge Base (RAG) queries, moderate multi-file analysis (1-2 files), and technical documentation queries.
    - Use when: Task requires synthesis of multiple retrieved context chunks.
 
 3. **EXPERT (High-Precision Experts)**
-   - Includes: **gemini-2.5-pro**, **gpt-4o**
+   - Includes: **gemini-2.5-pro**
    - Use ONLY for: Extreme technical complexity, massive repository analysis (3+ files), or long-range architectural reasoning (>256k).
 
 ## Instructions
@@ -42,12 +42,10 @@ Example Output:
 Valid IDs MUST be one of:
 - gemini-2.5-pro
 - gemini-2.5-flash
-- gemini-2.5-flash-lite
-- gpt-4o
-- gpt-4o-mini`;
+- gemini-2.5-flash-lite`;
 
 /**
- * Agentic Skimmer Prompt (OpenAI Style)
+ * Agentic Skimmer Prompt (Standard Agentic Style)
  *
  * This prompt is used by a fast model to "skim" through multiple document chunks,
  * reason about their relevance, and filter them down for the final answer.
@@ -79,7 +77,7 @@ Output ONLY a JSON object containing:
 - "modelId": Optimized model ID for the final synthesis.`;
 
 /**
- * Agentic Verifier Prompt (OpenAI Style)
+ * Agentic Verifier Prompt (Standard Agentic Style)
  *
  * This prompt is used by a fast model to verify the final answer against
  * the selected chunks for factuality and groundedness.

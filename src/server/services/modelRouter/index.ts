@@ -11,8 +11,6 @@ export const JEMMIA_MODELS = {
   EXPERT: 'gemini-2.5-pro',
   FAST: 'gemini-2.5-flash-lite',
   THINKING: 'gemini-2.5-flash',
-  OPENAI_EXPERT: 'gpt-4o',
-  OPENAI_FAST: 'gpt-4o-mini',
 };
 
 export type JemmiaMode = 'auto' | 'fast' | 'thinking' | 'expert' | (string & {});
@@ -51,17 +49,17 @@ export class ModelRouterService {
     try {
       log('Evaluating intelligent routing...');
 
-      // 1. Detect if RAG is present in the system prompt
+      // 1. Context Analysis: Check for RAG context in system prompt
       const systemMessage = messages.find((m) => m.role === 'system');
       const systemContent = typeof systemMessage?.content === 'string' ? systemMessage.content : '';
       const containsChunks = systemContent.includes('<chunk') && systemContent.includes('</chunk>');
 
-      // 2. If chunks are present, trigger Agentic Navigator (Skimmer)
+      // 2. Navigation Phase: If RAG chunks are present, perform hierarchical filtering
       if (containsChunks) {
-        log('RAG Chunks detected. Triggering Agentic Navigator...');
         const chunks = this.extractChunks(systemContent);
 
         if (chunks.length > 0) {
+          log('RAG Chunks detected. Triggering Agentic Navigator...');
           const userMessage = messages.findLast((m) => m.role === 'user');
           const query =
             typeof userMessage?.content === 'string' ? userMessage.content : 'unknown query';
@@ -69,16 +67,11 @@ export class ModelRouterService {
           const navigation = await AgenticNavigatorService.navigateChunks({
             chunks,
             modelRuntime,
-            models: {
-              ...JEMMIA_MODELS,
-              FAST: JEMMIA_MODELS.OPENAI_FAST, // Default navigation to OpenAI Fast
-            },
+            models: JEMMIA_MODELS,
             query,
           });
 
-          log(`Navigator reasoning: ${navigation.reasoning}`);
-
-          // Re-construct messages with ONLY relevant chunks
+          // Re-construct system prompt with narrowed context
           const filteredSystemContent = this.rebuildSystemPrompt(
             systemContent,
             chunks,
@@ -97,12 +90,13 @@ export class ModelRouterService {
         }
       }
 
+      // 3. Triage Phase: General intent routing using the FAST tier model
       const result = await modelRuntime.generateObject({
         messages: [
           { content: intelligentRoutingSystemPrompt, role: 'system' },
           { content: intelligentRoutingUserPrompt(messages, tools), role: 'user' },
         ],
-        model: JEMMIA_MODELS.OPENAI_FAST,
+        model: JEMMIA_MODELS.FAST,
         schema: {
           name: 'intelligent_routing',
           schema: {
@@ -126,7 +120,7 @@ export class ModelRouterService {
       let modelId: string | undefined;
       let scratchpad: string | undefined;
 
-      // Try structured output first, then fall back to JSON.parse, then regex
+      // Handle structured output or regex fallback
       if (typeof result === 'object' && result !== null) {
         modelId = (result as any)?.modelId;
         scratchpad = (result as any)?.scratchpad;
@@ -136,23 +130,31 @@ export class ModelRouterService {
           modelId = parsed?.modelId;
           scratchpad = parsed?.scratchpad;
         } catch {
-          const match = result.match(/(gemini-2\.5-(pro|flash-lite|flash)|gpt-4o(-mini)?)/);
+          const modelIds = Object.values(JEMMIA_MODELS).join('|').replaceAll('.', '\\.');
+          const match = result.match(new RegExp(`(${modelIds})`));
           if (match) modelId = match[0];
         }
       }
 
       if (modelId) {
-        console.info(`[Router Triage] Reasoning: ${scratchpad || 'N/A'}`);
-        console.info(`[Router Triage] Selected Model: ${modelId}`);
+        log(`[Router Triage] Reasoning: ${scratchpad || 'N/A'}`);
+        log(`[Router Triage] Selected Model: ${modelId}`);
         return { model: modelId, provider: this.JEMMIA_PROVIDER, reason: 'intelligent-routing' };
       }
     } catch (error) {
-      console.error('[Jemmora Routing] Evaluation failed, falling back to default FAST:', error);
+      console.error('[Jemmora Routing] Evaluation failed, falling back to default:', error);
     }
 
-    return { model: JEMMIA_MODELS.FAST, provider: this.JEMMIA_PROVIDER, reason: 'fallback-fast' };
+    return {
+      model: JEMMIA_MODELS.FAST,
+      provider: this.JEMMIA_PROVIDER,
+      reason: 'fallback-gemini-fast',
+    };
   }
 
+  /**
+   * Triggers the verification phase for agentic responses.
+   */
   public static async verify(params: {
     answer: string;
     chunks: any[];
@@ -160,39 +162,40 @@ export class ModelRouterService {
     modelRuntime: ModelRuntime;
     query: string;
   }): Promise<any> {
-    const { query, answer, chunks, modelId, modelRuntime } = params;
+    const { modelId, modelRuntime, ...rest } = params;
 
-    // OpenAI Standard: Only verify Expert-tier responses
-    if (modelId === JEMMIA_MODELS.EXPERT || modelId === JEMMIA_MODELS.OPENAI_EXPERT) {
-      log('Expert response detected. Triggering Agentic Verifier...');
-      return AgenticVerifierService.verifyAnswer({
-        answer,
-        chunks,
-        fastModel: JEMMIA_MODELS.OPENAI_FAST,
-        modelRuntime,
-        query,
-      });
+    // Skip verification for manually selected models or variants
+    if (
+      modelId === JEMMIA_MODELS.FAST ||
+      modelId === JEMMIA_MODELS.THINKING ||
+      modelId === JEMMIA_MODELS.EXPERT
+    ) {
+      log('Explicit mode detected. Skipping orchestration verification.');
+      return { issues: [], isValid: true };
     }
 
-    return { issues: [], isValid: true };
+    log('Triggering Agentic Verifier for automated reasoning response...');
+    return AgenticVerifierService.verifyAnswer({
+      ...rest,
+      modelId,
+      modelRuntime,
+    });
   }
 
+  /**
+   * Resolves explicit user-requested modes or models.
+   */
   public static resolve(params: { messages?: any[]; mode?: string; tools?: any[] }): ModelRoute {
     const { mode = 'auto' } = params;
     const requestedMode = mode.toLowerCase();
 
-    // 1. Explicit UI Mode Mapping
-    if (
-      requestedMode === 'fast' ||
-      requestedMode === 'openai-fast' ||
-      requestedMode === JEMMIA_MODELS.FAST ||
-      requestedMode === JEMMIA_MODELS.OPENAI_FAST
-    ) {
-      const model =
-        requestedMode === 'openai-fast' || requestedMode === JEMMIA_MODELS.OPENAI_FAST
-          ? JEMMIA_MODELS.OPENAI_FAST
-          : JEMMIA_MODELS.FAST;
-      return { model, provider: this.JEMMIA_PROVIDER, reason: 'explicit-fast' };
+    // Map UI modes to specific model identifiers
+    if (requestedMode === 'fast' || requestedMode === JEMMIA_MODELS.FAST) {
+      return {
+        model: JEMMIA_MODELS.FAST,
+        provider: this.JEMMIA_PROVIDER,
+        reason: 'explicit-fast',
+      };
     }
 
     if (requestedMode === 'thinking' || requestedMode === JEMMIA_MODELS.THINKING) {
@@ -203,20 +206,14 @@ export class ModelRouterService {
       };
     }
 
-    if (
-      requestedMode === 'expert' ||
-      requestedMode === 'openai-expert' ||
-      requestedMode === JEMMIA_MODELS.EXPERT ||
-      requestedMode === JEMMIA_MODELS.OPENAI_EXPERT
-    ) {
-      const model =
-        requestedMode === 'openai-expert' || requestedMode === JEMMIA_MODELS.OPENAI_EXPERT
-          ? JEMMIA_MODELS.OPENAI_EXPERT
-          : JEMMIA_MODELS.EXPERT;
-      return { model, provider: this.JEMMIA_PROVIDER, reason: 'explicit-expert' };
+    if (requestedMode === 'expert' || requestedMode === JEMMIA_MODELS.EXPERT) {
+      return {
+        model: JEMMIA_MODELS.EXPERT,
+        provider: this.JEMMIA_PROVIDER,
+        reason: 'explicit-expert',
+      };
     }
 
-    // Default to Tier 1 - FAST for any unrecognized requests
     return {
       model: JEMMIA_MODELS.FAST,
       provider: this.JEMMIA_PROVIDER,
@@ -239,6 +236,7 @@ export class ModelRouterService {
         fileId: match[1],
         fileName: match[2],
         id: chunks.length.toString(), // Assign numeric ID for the skimmer
+        rawContent: match[0], // Store the exact raw string for safe replacement later
         similarity: match[3],
         source: match[2],
       });
@@ -255,21 +253,14 @@ export class ModelRouterService {
     allChunks: any[],
     selectedIds: string[],
   ): string {
-    let newContent = originalContent;
+    const chunkRegex =
+      /<chunk\s+fileId="([^"]+)"\s+fileName="([^"]+)"\s+similarity="([^"]+)">([\s\S]*?)<\/chunk>/g;
 
-    // Filter out chunks that were NOT selected
-    for (const chunk of allChunks) {
-      if (!selectedIds.includes(chunk.id)) {
-        // Remove this chunk's XML from the prompt
-        const escapedContent = chunk.content.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const pattern = new RegExp(
-          `<chunk\\s+fileId="${chunk.fileId}"[^>]*>${escapedContent}<\\/chunk>\\s*`,
-          'g',
-        );
-        newContent = newContent.replaceAll(pattern, '');
-      }
-    }
-
-    return newContent;
+    return originalContent
+      .replaceAll(chunkRegex, (match) => {
+        const chunk = allChunks.find((c) => c.rawContent === match);
+        return chunk && selectedIds.includes(chunk.id) ? match : '';
+      })
+      .trim();
   }
 }

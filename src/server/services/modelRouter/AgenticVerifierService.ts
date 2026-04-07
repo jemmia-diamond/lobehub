@@ -11,42 +11,48 @@ export interface VerificationResult {
 
 export class AgenticVerifierService {
   /**
-   * Verifies the generated answer against selected groundedness chunks.
-   * Based on OpenAI's Verifier/Check pattern.
+   * Verifies the generated answer against context chunks for factual groundedness.
+   * Based on the standard 'Verifier/Fact-Checking' pattern.
    */
   public static async verifyAnswer(params: {
     answer: string;
     chunks: any[];
+    modelId: string;
     modelRuntime: ModelRuntime;
     query: string;
-    fastModel?: string;
   }): Promise<VerificationResult> {
-    const { query, answer, chunks, modelRuntime, fastModel = 'gpt-4o-mini' } = params;
+    const { query, answer, chunks, modelRuntime, modelId } = params;
 
     try {
-      log(`Verifying answer against ${chunks.length} chunks...`);
+      log(`Verifying answer against ${chunks.length} chunks using ${modelId}...`);
 
       const result = await modelRuntime.generateObject({
         messages: [
-          { content: agenticVerifierSystemPrompt(query, answer), role: 'system' },
-          { content: `Chunks for verification:\n${JSON.stringify(chunks)}`, role: 'user' },
+          {
+            content: agenticVerifierSystemPrompt(query, answer),
+            role: 'system',
+          },
+          {
+            content: `CONTEXT CHUNKS:\n${JSON.stringify(chunks.map((c) => ({ content: c.content, id: c.id })))}`,
+            role: 'user',
+          },
         ],
-        model: fastModel,
+        model: modelId,
         schema: {
           name: 'agentic_verifier',
           schema: {
             properties: {
               issues: {
-                description: 'List of factual errors or hallucination issues found',
+                description: 'List of factual errors or unsupported claims found.',
                 items: { type: 'string' },
                 type: 'array',
               },
               isValid: {
-                description: 'Whether the answer is grounded in the provided chunks',
+                description: 'Whether the answer is fully grounded in the provided chunks.',
                 type: 'boolean',
               },
               scratchpad: {
-                description: 'Point-by-point cross-verification of answer and chunks',
+                description: 'Step-by-step cross-verification results.',
                 type: 'string',
               },
             },
@@ -58,17 +64,19 @@ export class AgenticVerifierService {
 
       if (result && typeof result === 'object') {
         const verified = result as any;
-        log(`Verification complete. Valid: ${verified.isValid}. Issues: ${verified.issues.length}`);
+        log(`Verification results: ${verified.isValid ? 'VALID' : 'INVALID'}`);
+        if (verified.issues.length > 0) log(`Issues: ${verified.issues.join(' | ')}`);
+
         return {
           issues: verified.issues,
           isValid: verified.isValid,
         };
       }
     } catch (error) {
-      console.error('[Agentic Verifier] Verification failed:', error);
+      console.error('[Agentic Verifier] Groundedness check failed:', error);
     }
 
-    // Default to valid if verification fails to avoid blocking the user flow
+    // Default to valid if verification fails to prevent blocking the user experience
     return {
       issues: [],
       isValid: true,

@@ -423,12 +423,101 @@ const getJemOrchestrationHooks = (
 });
 
 /**
- * Initializes the agent runtime with the user payload in backend
- * @param provider - The provider name.
- * @param payload - The JWT payload.
- * @param params
- * @returns A promise that resolves when the agent runtime is initialized.
+ * Wraps the ModelRuntime with Agentic RAG orchestration (Verification).
+ * This middleware intercepts generateObject and chat calls to perform
+ * background groundedness checks on expert-tier responses.
  */
+const addAgenticOrchestrationMiddleware = (runtime: ModelRuntime) => {
+  const originalGenerateObject = runtime.generateObject.bind(runtime);
+  runtime.generateObject = async (payload: any) => {
+    const result = await originalGenerateObject(payload);
+
+    // Extract query and answer for verification
+    const messages = payload.messages || [];
+    const userMessage = messages.findLast((m: any) => m.role === 'user');
+    const query = userMessage?.content || '';
+    const answer = typeof result === 'string' ? result : JSON.stringify(result);
+
+    // Attempt to find Gold Chunks in the system prompt
+    const systemMessage = messages.find((m: any) => m.role === 'system');
+    const systemContent = systemMessage?.content || '';
+    const chunks = ModelRouterService.extractChunks(systemContent);
+
+    if (chunks.length > 0) {
+      const verification = await ModelRouterService.verify({
+        answer,
+        chunks,
+        modelId: payload.model,
+        modelRuntime: runtime, // Re-use runtime for verification
+        query,
+      });
+
+      if (!verification.isValid) {
+        console.warn(
+          `[Agentic Verifier] Potential Hallucination Detected: ${verification.issues.join(', ')}`,
+        );
+      }
+    }
+
+    return result;
+  };
+
+  const originalChat = runtime.chat.bind(runtime);
+  runtime.chat = async (payload: any) => {
+    const result = await originalChat(payload);
+
+    // Verify stream in background (latency-neutral for user)
+    (async () => {
+      try {
+        // IMPORTANT: Only clone and verify if the result supports cloning (e.g. Fetch Response)
+        // For raw AsyncIterables, background consumption without a tee would exhaust the stream for the user
+        if (!result || typeof result.clone !== 'function') return;
+
+        const res = result.clone();
+        // Collect stream content
+        let fullText = '';
+
+        // If it's a Fetch Response, we can get text or read body
+        if (res instanceof Response) {
+          fullText = await res.text();
+        }
+
+        // Extract query
+        const messages = payload.messages || [];
+        const userMessage = messages.findLast((m: any) => m.role === 'user');
+        const query = userMessage?.content || '';
+
+        // Extract Gold Chunks
+        const systemMessage = messages.find((m: any) => m.role === 'system');
+        const systemContent = systemMessage?.content || '';
+        const chunks = ModelRouterService.extractChunks(systemContent);
+
+        if (chunks.length > 0 && fullText) {
+          const verification = await ModelRouterService.verify({
+            answer: fullText,
+            chunks,
+            modelId: payload.model,
+            modelRuntime: runtime,
+            query,
+          });
+
+          if (!verification.isValid) {
+            console.warn(
+              `[Agentic Verifier] Hallucination Flagged in Stream: ${verification.issues.join(', ')}`,
+            );
+          }
+        }
+      } catch (e) {
+        log('Post-stream verification failed:', e);
+      }
+    })();
+
+    return result;
+  };
+
+  return runtime;
+};
+
 const bootstrappedUsers = new Set<string>();
 
 export const initModelRuntimeWithUserPayload = (
@@ -490,94 +579,8 @@ export const initModelRuntimeWithUserPayload = (
 
   const runtime = ModelRuntime.initializeWithProvider(runtimeProvider, runtimeParams, finalHooks);
 
-  // OpenAI Standard: Wrap generateObject to include the Verifier stage for Expert tasks
   if (runtimeProvider === ModelProvider.Jemmia) {
-    const originalGenerateObject = runtime.generateObject.bind(runtime);
-    runtime.generateObject = async (payload: any) => {
-      const result = await originalGenerateObject(payload);
-
-      // Extract query and answer for verification
-      const messages = payload.messages || [];
-      const userMessage = messages.findLast((m: any) => m.role === 'user');
-      const query = userMessage?.content || '';
-      const answer = typeof result === 'string' ? result : JSON.stringify(result);
-
-      // Attempt to find Gold Chunks in the system prompt
-      const systemMessage = messages.find((m: any) => m.role === 'system');
-      const systemContent = systemMessage?.content || '';
-      const chunks = ModelRouterService.extractChunks(systemContent);
-
-      if (chunks.length > 0) {
-        const verification = await ModelRouterService.verify({
-          answer,
-          chunks,
-          modelId: payload.model,
-          modelRuntime: runtime, // Re-use runtime for verification
-          query,
-        });
-
-        if (!verification.isValid) {
-          console.warn(
-            `[Agentic Verifier] Potential Hallucination Detected: ${verification.issues.join(', ')}`,
-          );
-        }
-      }
-
-      return result;
-    };
-
-    const originalChat = runtime.chat.bind(runtime);
-    runtime.chat = async (payload: any) => {
-      const result = await originalChat(payload);
-
-      // Verify stream in background (latency-neutral for user)
-      (async () => {
-        try {
-          const res = result.clone ? result.clone() : result;
-          // Collect stream content
-          let fullText = '';
-
-          // If it's a Fetch Response, we can get text or read body
-          if (res instanceof Response) {
-            fullText = await res.text();
-          } else if (res[Symbol.asyncIterator]) {
-            for await (const chunk of res as any) {
-              fullText += chunk.text || chunk.content || chunk || '';
-            }
-          }
-
-          // Extract query
-          const messages = payload.messages || [];
-          const userMessage = messages.findLast((m: any) => m.role === 'user');
-          const query = userMessage?.content || '';
-
-          // Extract Gold Chunks
-          const systemMessage = messages.find((m: any) => m.role === 'system');
-          const systemContent = systemMessage?.content || '';
-          const chunks = ModelRouterService.extractChunks(systemContent);
-
-          if (chunks.length > 0 && fullText) {
-            const verification = await ModelRouterService.verify({
-              answer: fullText,
-              chunks,
-              modelId: payload.model,
-              modelRuntime: runtime,
-              query,
-            });
-
-            if (!verification.isValid) {
-              console.warn(
-                `[Agentic Verifier] Hallucination Flagged in Stream: ${verification.issues.join(', ')}`,
-              );
-            }
-          }
-        } catch (e) {
-          log('Post-stream verification failed:', e);
-        }
-      })();
-
-      return result;
-    };
+    return addAgenticOrchestrationMiddleware(runtime);
   }
 
   return runtime;

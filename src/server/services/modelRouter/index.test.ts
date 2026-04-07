@@ -28,13 +28,6 @@ describe('ModelRouterService', () => {
       expect(result.reason).toBe('explicit-expert');
     });
 
-    it('should support OpenAI variant model names', () => {
-      const result = ModelRouterService.resolve({
-        mode: 'openai-fast',
-      });
-      expect(result.model).toBe('gpt-4o-mini');
-    });
-
     it('should fallback to FAST for unrecognized modes', () => {
       const result = ModelRouterService.resolve({
         mode: 'unrecognized-mode',
@@ -73,7 +66,7 @@ describe('ModelRouterService', () => {
       });
 
       expect(result.model).toBe('gemini-2.5-flash-lite');
-      expect(result.reason).toBe('fallback-fast');
+      expect(result.reason).toBe('fallback-gemini-fast');
     });
 
     it('should handle regex fallback if generateObject returns text instead of object', async () => {
