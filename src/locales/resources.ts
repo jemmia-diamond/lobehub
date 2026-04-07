@@ -2,7 +2,7 @@ import { DEFAULT_LANG } from '@/const/locale';
 
 import type resources from './default';
 
-export const locales = ['en-US', 'vi-VN'] as const;
+export const locales = ['vi-VN'] as const;
 
 export type DefaultResources = typeof resources;
 export type NS = keyof DefaultResources;
@@ -14,7 +14,6 @@ export const normalizeLocale = (locale?: string): Locales => {
   const normalized = locale.toLowerCase();
 
   if (normalized.startsWith('vi')) return 'vi-VN';
-  if (normalized.startsWith('en')) return 'en-US';
 
   return DEFAULT_LANG;
 };
@@ -29,10 +28,6 @@ export const localeOptions: LocaleOptions = [
     label: 'Tiếng Việt',
     value: 'vi-VN',
   },
-  {
-    label: 'English',
-    value: 'en-US',
-  },
 ] as LocaleOptions;
 
-export const supportLocales: string[] = ['en-US', 'vi-VN', 'en', 'vi'];
+export const supportLocales: string[] = ['vi-VN', 'vi'];

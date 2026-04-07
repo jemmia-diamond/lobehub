@@ -360,8 +360,30 @@ const buildVertexOptions = (
 /**
  * Get orchestration hooks for Jemmia provider
  */
-const getJemOrchestrationHooks = (): ModelRuntimeHooks => ({
+const getJemOrchestrationHooks = (
+  provider: string,
+  userPayload: ClientSecretPayload,
+  userParams: any,
+): ModelRuntimeHooks => ({
   beforeChat: async (payload) => {
+    const mode = payload.model.toLowerCase();
+
+    if (mode === 'auto') {
+      try {
+        // Initialize a router runtime WITHOUT hooks to avoid recursion
+        const routerRuntime = initModelRuntimeWithUserPayload(provider, userPayload, userParams);
+        const { model } = await ModelRouterService.evaluate({
+          messages: payload.messages,
+          modelRuntime: routerRuntime,
+          tools: payload.tools || [],
+        });
+        payload.model = model;
+        return;
+      } catch (error) {
+        console.error('[Jemmora Intelligent Routing] Failed:', error);
+      }
+    }
+
     const { model } = ModelRouterService.resolve({
       messages: payload.messages,
       mode: payload.model,
@@ -370,6 +392,24 @@ const getJemOrchestrationHooks = (): ModelRuntimeHooks => ({
     payload.model = model;
   },
   beforeGenerateObject: async (payload) => {
+    const mode = payload.model.toLowerCase();
+
+    if (mode === 'auto') {
+      try {
+        // Initialize a router runtime WITHOUT hooks to avoid recursion
+        const routerRuntime = initModelRuntimeWithUserPayload(provider, userPayload, userParams);
+        const { model } = await ModelRouterService.evaluate({
+          messages: (payload as any).messages || [],
+          modelRuntime: routerRuntime,
+          tools: (payload as any).tools || [],
+        });
+        payload.model = model;
+        return;
+      } catch (error) {
+        console.error('[Jemmora Intelligent Routing] Failed:', error);
+      }
+    }
+
     const { model } = ModelRouterService.resolve({
       messages: (payload as any).messages || [],
       mode: payload.model,
@@ -416,7 +456,7 @@ export const initModelRuntimeWithUserPayload = (
   const finalHooks: ModelRuntimeHooks = { ...hooks };
 
   if (runtimeProvider === ModelProvider.Jemmia) {
-    const jemHooks = getJemOrchestrationHooks();
+    const jemHooks = getJemOrchestrationHooks(provider, payload, params);
     const existingBeforeChat = finalHooks.beforeChat;
     finalHooks.beforeChat = async (p, o) => {
       await jemHooks.beforeChat?.(p, o);
