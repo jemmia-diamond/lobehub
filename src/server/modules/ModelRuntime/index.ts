@@ -12,6 +12,7 @@ import {
   type VertexAIKeyVault,
 } from '@lobechat/types';
 import { safeParseJSON } from '@lobechat/utils';
+import debug from 'debug';
 import { ModelProvider } from 'model-bank';
 
 import { getBusinessModelRuntimeHooks } from '@/business/server/model-runtime';
@@ -23,6 +24,8 @@ import { ModelRouterService } from '@/server/services/modelRouter';
 import { KeyVaultsGateKeeper } from '../KeyVaultsEncrypt';
 import { KnowledgeBootstrapService } from '../KnowledgeBootstrap';
 import apiKeyManager from './apiKeyManager';
+
+const log = debug('lobechat:model-runtime');
 
 export * from './trace';
 
@@ -370,52 +373,52 @@ const getJemOrchestrationHooks = (
 
     if (mode === 'auto') {
       try {
-        // Initialize a router runtime WITHOUT hooks to avoid recursion
         const routerRuntime = initModelRuntimeWithUserPayload(provider, userPayload, userParams);
-        const { model } = await ModelRouterService.evaluate({
+        const { model, messages } = await ModelRouterService.evaluate({
           messages: payload.messages,
           modelRuntime: routerRuntime,
           tools: payload.tools || [],
         });
         payload.model = model;
-        return;
+        if (messages) payload.messages = messages;
       } catch (error) {
-        console.error('[Jemmora Intelligent Routing] Failed:', error);
+        log('[Intelligent Routing] Auto-evaluation failed:', error);
       }
+    } else {
+      // Explicit mode mapping (Fast, Thinking, Expert) or Heuristic Fallback
+      const { model } = ModelRouterService.resolve({
+        messages: payload.messages,
+        mode: payload.model,
+        tools: payload.tools || [],
+      });
+      payload.model = model;
     }
-
-    const { model } = ModelRouterService.resolve({
-      messages: payload.messages,
-      mode: payload.model,
-      tools: payload.tools || [],
-    });
-    payload.model = model;
   },
   beforeGenerateObject: async (payload) => {
     const mode = payload.model.toLowerCase();
 
     if (mode === 'auto') {
       try {
-        // Initialize a router runtime WITHOUT hooks to avoid recursion
         const routerRuntime = initModelRuntimeWithUserPayload(provider, userPayload, userParams);
-        const { model } = await ModelRouterService.evaluate({
+        const { model, messages } = await ModelRouterService.evaluate({
           messages: (payload as any).messages || [],
           modelRuntime: routerRuntime,
           tools: (payload as any).tools || [],
         });
         payload.model = model;
-        return;
+        if (messages) (payload as any).messages = messages;
       } catch (error) {
-        console.error('[Jemmora Intelligent Routing] Failed:', error);
+        log('[Intelligent Routing] Auto-evaluation failed:', error);
       }
+    } else {
+      // Explicit mode mapping (Fast, Thinking, Expert) or Heuristic Fallback
+      const { model } = ModelRouterService.resolve({
+        messages: (payload as any).messages || [],
+        mode: payload.model,
+        tools: (payload as any).tools || [],
+      });
+      payload.model = model;
     }
-
-    const { model } = ModelRouterService.resolve({
-      messages: (payload as any).messages || [],
-      mode: payload.model,
-      tools: (payload as any).tools || [],
-    });
-    payload.model = model;
   },
 });
 
@@ -485,7 +488,99 @@ export const initModelRuntimeWithUserPayload = (
     ...params,
   };
 
-  return ModelRuntime.initializeWithProvider(runtimeProvider, runtimeParams, finalHooks);
+  const runtime = ModelRuntime.initializeWithProvider(runtimeProvider, runtimeParams, finalHooks);
+
+  // OpenAI Standard: Wrap generateObject to include the Verifier stage for Expert tasks
+  if (runtimeProvider === ModelProvider.Jemmia) {
+    const originalGenerateObject = runtime.generateObject.bind(runtime);
+    runtime.generateObject = async (payload: any) => {
+      const result = await originalGenerateObject(payload);
+
+      // Extract query and answer for verification
+      const messages = payload.messages || [];
+      const userMessage = messages.findLast((m: any) => m.role === 'user');
+      const query = userMessage?.content || '';
+      const answer = typeof result === 'string' ? result : JSON.stringify(result);
+
+      // Attempt to find Gold Chunks in the system prompt
+      const systemMessage = messages.find((m: any) => m.role === 'system');
+      const systemContent = systemMessage?.content || '';
+      const chunks = ModelRouterService.extractChunks(systemContent);
+
+      if (chunks.length > 0) {
+        const verification = await ModelRouterService.verify({
+          answer,
+          chunks,
+          modelId: payload.model,
+          modelRuntime: runtime, // Re-use runtime for verification
+          query,
+        });
+
+        if (!verification.isValid) {
+          console.warn(
+            `[Agentic Verifier] Potential Hallucination Detected: ${verification.issues.join(', ')}`,
+          );
+        }
+      }
+
+      return result;
+    };
+
+    const originalChat = runtime.chat.bind(runtime);
+    runtime.chat = async (payload: any) => {
+      const result = await originalChat(payload);
+
+      // Verify stream in background (latency-neutral for user)
+      (async () => {
+        try {
+          const res = result.clone ? result.clone() : result;
+          // Collect stream content
+          let fullText = '';
+
+          // If it's a Fetch Response, we can get text or read body
+          if (res instanceof Response) {
+            fullText = await res.text();
+          } else if (res[Symbol.asyncIterator]) {
+            for await (const chunk of res as any) {
+              fullText += chunk.text || chunk.content || chunk || '';
+            }
+          }
+
+          // Extract query
+          const messages = payload.messages || [];
+          const userMessage = messages.findLast((m: any) => m.role === 'user');
+          const query = userMessage?.content || '';
+
+          // Extract Gold Chunks
+          const systemMessage = messages.find((m: any) => m.role === 'system');
+          const systemContent = systemMessage?.content || '';
+          const chunks = ModelRouterService.extractChunks(systemContent);
+
+          if (chunks.length > 0 && fullText) {
+            const verification = await ModelRouterService.verify({
+              answer: fullText,
+              chunks,
+              modelId: payload.model,
+              modelRuntime: runtime,
+              query,
+            });
+
+            if (!verification.isValid) {
+              console.warn(
+                `[Agentic Verifier] Hallucination Flagged in Stream: ${verification.issues.join(', ')}`,
+              );
+            }
+          }
+        } catch (e) {
+          log('Post-stream verification failed:', e);
+        }
+      })();
+
+      return result;
+    };
+  }
+
+  return runtime;
 };
 
 /**

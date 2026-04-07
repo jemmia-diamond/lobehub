@@ -274,7 +274,7 @@ export const chunkRouter = router({
         });
 
         // Group chunks by file and calculate relevance scores
-        const fileResults = groupAndRankFiles(chunks, input.topK || 15);
+        const fileResults = groupAndRankFiles(chunks, input.topK || 30);
 
         // TODO: need to rerank the chunks
 
