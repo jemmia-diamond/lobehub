@@ -146,22 +146,31 @@ export class ModelRouterService {
       `[Jemmora Auto Debug] Conversation: ${conversationTokens} tokens, Files: ${totalFiles}, Tools: ${tools?.length || 0} [${toolNames}]`,
     );
 
-    if (totalFiles >= 3 || conversationTokens > 32000 || hasLarkIntegration) {
+    // Tier 3 — EXPERT: massive complexity (3+ files, extreme token count, or deep long-range reasoning)
+    if (totalFiles >= 3 || conversationTokens > 256_000) {
       console.info(
-        `[Jemmora Auto] Mode: AUTO → Model: ${JEMMIA_MODELS.EXPERT} (Reason: complexity)`,
+        `[Jemmora Auto] Mode: AUTO → Model: ${JEMMIA_MODELS.EXPERT} (Reason: massive complexity – ${totalFiles} files, ${conversationTokens} tokens)`,
       );
       return { model: JEMMIA_MODELS.EXPERT, provider: this.JEMMIA_PROVIDER };
     }
 
-    if (totalFiles > 0 || conversationTokens > 16000 || hasKnowledgeInjected) {
+    // Tier 2 — THINKING: RAG/Knowledge Base queries, multi-step reasoning,
+    //          1-2 files, Lark integration, or long conversation history
+    if (
+      totalFiles > 0 ||
+      hasKnowledgeInjected ||
+      hasLarkIntegration ||
+      conversationTokens > 128_000
+    ) {
       console.info(
-        `[Jemmora Auto] Mode: AUTO → Model: ${JEMMIA_MODELS.THINKING} (Reason: context/RAG)`,
+        `[Jemmora Auto] Mode: AUTO → Model: ${JEMMIA_MODELS.THINKING} (Reason: KB/RAG/files/Lark)`,
       );
       return { model: JEMMIA_MODELS.THINKING, provider: this.JEMMIA_PROVIDER };
     }
 
+    // Tier 1 — FAST (default workhorse): direct questions, greetings, single-doc summaries, standard context
     console.info(
-      `[Jemmora Auto] Mode: AUTO → Model: ${JEMMIA_MODELS.FAST} (Reason: simple interaction)`,
+      `[Jemmora Auto] Mode: AUTO → Model: ${JEMMIA_MODELS.FAST} (Reason: standard interaction)`,
     );
     return { model: JEMMIA_MODELS.FAST, provider: this.JEMMIA_PROVIDER };
   }

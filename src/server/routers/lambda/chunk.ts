@@ -1,6 +1,8 @@
-import { DEFAULT_FILE_EMBEDDING_MODEL_ITEM } from '@lobechat/const';
-import { type ChatSemanticSearchChunk, type FileSearchResult } from '@lobechat/types';
-import { RequestTrigger, SemanticSearchSchema } from '@lobechat/types';
+import {
+  type ChatSemanticSearchChunk,
+  type FileSearchResult,
+  SemanticSearchSchema,
+} from '@lobechat/types';
 import { TRPCError } from '@trpc/server';
 import { inArray } from 'drizzle-orm';
 import pMap from 'p-map';
@@ -15,11 +17,9 @@ import { MessageModel } from '@/database/models/message';
 import { knowledgeBaseFiles } from '@/database/schemas';
 import { authedProcedure, router } from '@/libs/trpc/lambda';
 import { keyVaults, serverDatabase } from '@/libs/trpc/lambda/middleware';
-import { getServerDefaultFilesConfig } from '@/server/globalConfig';
-import { initModelRuntimeFromDB } from '@/server/modules/ModelRuntime';
 import { ChunkService } from '@/server/services/chunk';
 import { DocumentService } from '@/server/services/document';
-import { withRateLimitRetry } from '@/utils/retryPolicy';
+import { ServerEmbeddingService } from '@/server/services/embedding';
 
 const chunkProcedure = authedProcedure
   .use(serverDatabase)
@@ -220,27 +220,14 @@ export const chunkRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { model, provider } =
-        getServerDefaultFilesConfig().embeddingModel || DEFAULT_FILE_EMBEDDING_MODEL_ITEM;
-      // Read user's provider config from database
-      const agentRuntime = await initModelRuntimeFromDB(ctx.serverDB, ctx.userId, provider);
-
-      const embeddings = await withRateLimitRetry(
-        () =>
-          agentRuntime.embeddings(
-            {
-              dimensions: 1024,
-              input: input.query,
-              model,
-            },
-            { metadata: { trigger: RequestTrigger.SemanticSearch }, user: ctx.userId },
-          ),
-        3,
-        '[SemanticSearch]',
+      const embedding = await ServerEmbeddingService.generateEmbedding(
+        input.query,
+        ctx.serverDB,
+        ctx.userId,
       );
 
       return ctx.chunkModel.semanticSearch({
-        embedding: embeddings![0],
+        embedding,
         fileIds: input.fileIds,
         query: input.query,
       });
@@ -250,27 +237,15 @@ export const chunkRouter = router({
     .input(SemanticSearchSchema)
     .mutation(async ({ ctx, input }) => {
       try {
-        const { model, provider } =
-          getServerDefaultFilesConfig().embeddingModel || DEFAULT_FILE_EMBEDDING_MODEL_ITEM;
-        // Read user's provider config from database
-        const modelRuntime = await initModelRuntimeFromDB(ctx.serverDB, ctx.userId, provider);
-
         // slice content to make sure in the context window limit
         const query = input.query.length > 8000 ? input.query.slice(0, 8000) : input.query;
 
-        let embeddings;
+        let embeddingVector: number[];
         try {
-          embeddings = await withRateLimitRetry(
-            () =>
-              modelRuntime.embeddings(
-                {
-                  dimensions: 1024,
-                  input: query,
-                  model,
-                },
-                { metadata: { trigger: RequestTrigger.SemanticSearch }, user: ctx.userId },
-              ),
-            3,
+          embeddingVector = await ServerEmbeddingService.generateEmbedding(
+            query,
+            ctx.serverDB,
+            ctx.userId,
             '[SemanticSearchForChat]',
           );
         } catch (embeddingError) {
@@ -280,12 +255,6 @@ export const chunkRouter = router({
           );
           return { chunks: [], fileResults: [] };
         }
-
-        if (!embeddings || embeddings.length === 0) {
-          throw new Error(`Embedding provider ${provider} returned no results for model ${model}`);
-        }
-
-        const embedding = embeddings[0];
 
         let finalFileIds = input.fileIds ?? [];
 
@@ -298,7 +267,7 @@ export const chunkRouter = router({
         }
 
         const chunks = await ctx.chunkModel.semanticSearchForChat({
-          embedding,
+          embedding: embeddingVector,
           fileIds: finalFileIds,
           query: input.query,
           topK: input.topK,

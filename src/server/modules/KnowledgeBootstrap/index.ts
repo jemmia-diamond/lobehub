@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { DEFAULT_PROVIDER } from '@lobechat/business-const';
 import { and, eq } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -17,10 +16,8 @@ import {
   users,
 } from '@/database/schemas';
 import { getServerDB } from '@/database/server';
-import { getServerDefaultFilesConfig } from '@/server/globalConfig';
 import { ContentChunk } from '@/server/modules/ContentChunk';
-import { initModelRuntimeWithUserPayload } from '@/server/modules/ModelRuntime';
-import { withRateLimitRetry } from '@/utils/retryPolicy';
+import { ServerEmbeddingService } from '@/server/services/embedding';
 
 export const JEMMORA_ADMIN_ID = 'user_jemmora_admin';
 export const JEMMORA_KB_NAME = 'Jemmia Diamond Knowledge';
@@ -305,37 +302,26 @@ export class KnowledgeBootstrapService {
     );
 
     // C. Embedding
-    const { model, provider } = getServerDefaultFilesConfig().embeddingModel || {
-      model: 'text-embedding-3-small',
-      provider: DEFAULT_PROVIDER,
-    };
-
-    console.info(`[KnowledgeBootstrap] Generating embeddings using ${provider}:${model}...`);
-    const runtime = initModelRuntimeWithUserPayload(provider, {} as any);
-    const embeddingModel = new EmbeddingModel(db, this.userId);
+    console.info(`[KnowledgeBootstrap] Generating embeddings using ServerEmbeddingService...`);
+    const embeddingDbModel = new EmbeddingModel(db, this.userId);
 
     // Process chunks in batches for efficiency
     const BATCH_SIZE = 10;
     for (let i = 0; i < savedChunks.length; i += BATCH_SIZE) {
       const batch = savedChunks.slice(i, i + BATCH_SIZE);
 
-      const vectors = await withRateLimitRetry(
-        () =>
-          runtime.embeddings({
-            dimensions: 1024,
-            input: batch.map((c) => c.text ?? ''),
-            model,
-          }),
-        5,
-        '[KnowledgeBootstrap]',
+      const embeddings = await ServerEmbeddingService.generateEmbeddings(
+        batch.map((c) => c.text ?? ''),
+        db,
+        this.userId,
       );
 
-      if (!vectors) continue;
+      if (!embeddings || embeddings.length === 0) continue;
 
-      await embeddingModel.bulkCreate(
+      await embeddingDbModel.bulkCreate(
         batch.map((chunkItem, index) => ({
           chunkId: chunkItem.id,
-          embeddings: vectors[index],
+          embeddings: embeddings[index],
         })),
       );
     }
