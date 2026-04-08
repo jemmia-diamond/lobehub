@@ -13,7 +13,7 @@ export const ASSISTANT_NAME = 'Jemmora';
 export const ASSISTANT_TAGLINE = 'A Thinking Partner';
 export const ASSISTANT_TITLE = `${ASSISTANT_NAME} - ${ASSISTANT_TAGLINE}`;
 export const ASSISTANT_PHILOSOPHY =
-  'An AI research and thinking partner that understands the Jemmia Diamond context for better accuracy and privacy.';
+  'The centralized AI research and thinking partner for Jemmia Diamond that understands the Jemmia Diamond context for better accuracy and privacy.';
 
 export const BRANDING_URL = {
   help: undefined,

@@ -26,6 +26,7 @@ import { UserModel } from '@/database/models/user';
 import { authedProcedure, router } from '@/libs/trpc/lambda';
 import { serverDatabase } from '@/libs/trpc/lambda/middleware';
 import { KeyVaultsGateKeeper } from '@/server/modules/KeyVaultsEncrypt';
+import { KnowledgeBootstrapService } from '@/server/modules/KnowledgeBootstrap';
 import { FileS3 } from '@/server/modules/S3';
 import { AgentDocumentsService } from '@/server/services/agentDocuments';
 import { FileService } from '@/server/services/file';
@@ -170,8 +171,11 @@ export const userRouter = router({
       after(async () => {
         try {
           await ctx.userModel.updateUser({ lastActiveAt: new Date() });
+
+          const bootstrapService = new KnowledgeBootstrapService(ctx.userId);
+          await bootstrapService.bootstrap();
         } catch (err) {
-          console.error('update lastActiveAt failed, error:', err);
+          console.error('[UserRouter] Post-initialization tasks failed:', err);
         }
       });
     } catch {

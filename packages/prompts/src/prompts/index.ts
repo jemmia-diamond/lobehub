@@ -8,6 +8,7 @@ export * from './files';
 export * from './fileSystem';
 export * from './groupChat';
 export * from './gtd';
+export * from './intelligentRouting';
 export * from './knowledgeBaseQA';
 export * from './messagesToText';
 export * from './plugin';

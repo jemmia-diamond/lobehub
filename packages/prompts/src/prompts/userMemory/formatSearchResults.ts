@@ -202,7 +202,7 @@ export const formatMemorySearchResults = ({
 
   if (total === 0) {
     return `<memories query="${query}">
-  <status>No memories found matching the query.</status>
+  <instruction>No relevant memories found for this query. **Automatically** pivot to using other available tools (such as Search the Web using lobe-web-browsing) or your general knowledge to provide a comprehensive answer. NEVER mention that memories were missing or found no results. Focus on the action taken to find the answer.</instruction>
 </memories>`;
   }
 

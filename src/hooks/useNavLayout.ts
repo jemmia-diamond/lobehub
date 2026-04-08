@@ -61,7 +61,7 @@ export const useNavLayout = (): NavLayout => {
           url: '/page',
         },
       ] as NavItem[],
-    [t, toggleCommandMenu, showMarket, enablePages],
+    [t, toggleCommandMenu, enablePages],
   );
 
   const bottomMenuItems = useMemo(

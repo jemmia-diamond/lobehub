@@ -785,7 +785,32 @@ export class FileUploadService extends BaseService {
   }
 
   /**
-   * Parse file content
+   * 上传文件并自动触发知识索引分块任务
+   */
+  async uploadFileAndIndex(
+    file: File,
+    options: PublicFileUploadRequest = {},
+  ): Promise<{ file: FileDetailResponse['file']; chunk: FileChunkResponse }> {
+    const uploadResult = await this.uploadFile(file, options);
+    const fileId = uploadResult.file.id;
+
+    if (!fileId) {
+      throw this.createCommonError('Uploaded file ID is missing');
+    }
+
+    const chunkResult = await this.createChunkTask(fileId, {
+      autoEmbedding: options.autoEmbedding,
+      skipExist: options.skipExist,
+    });
+
+    return {
+      file: uploadResult.file,
+      chunk: chunkResult,
+    };
+  }
+
+  /**
+   * 解析文件内容
    */
   async parseFile(
     fileId: string,

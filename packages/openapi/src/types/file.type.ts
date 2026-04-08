@@ -43,7 +43,9 @@ export interface FileDetailResponse {
 export interface PublicFileUploadRequest {
   /** Agent ID (optional, takes priority over sessionId) */
   agentId?: string;
-  /** File directory (optional) */
+  /** 是否自动触发嵌入任务 */
+  autoEmbedding?: boolean;
+  /** 文件目录（可选） */
   directory?: string;
   /** Knowledge base ID (optional) */
   knowledgeBaseId?: string;
@@ -53,6 +55,8 @@ export interface PublicFileUploadRequest {
   skipCheckFileType?: boolean;
   /** Whether to skip deduplication check */
   skipDeduplication?: boolean;
+  /** 创建任务时是否跳过已存在分块 */
+  skipExist?: boolean;
 }
 
 // ==================== File Management Types ====================

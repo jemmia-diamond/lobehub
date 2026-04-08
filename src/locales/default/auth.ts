@@ -74,6 +74,7 @@ export default {
   'betterAuth.signin.continueWithGithub': 'Continue with GitHub',
   'betterAuth.signin.continueWithGoogle': 'Continue with Google',
   'betterAuth.signin.continueWithKeycloak': 'Sign in with Keycloak',
+  'betterAuth.signin.continueWithLark': 'Sign in with Lark',
   'betterAuth.signin.continueWithLogto': 'Sign in with Logto',
   'betterAuth.signin.continueWithMicrosoft': 'Continue with Microsoft',
   'betterAuth.signin.continueWithOIDC': 'Sign in with OIDC',
@@ -136,6 +137,7 @@ export default {
   'date.recent30Days': 'Last 30 Days',
   'footer.agreement':
     'By continuing, you confirm that you have read and agree to the <terms>Terms and Conditions</terms> and <privacy>Privacy Policy</privacy>',
+  'footer.copyright': '© {{year}} Jemmia Diamond. All rights reserved.',
   'footer.privacy': 'Privacy Policy',
   'footer.terms': 'Terms of Service',
   'header.desc': 'Manage your account information.',

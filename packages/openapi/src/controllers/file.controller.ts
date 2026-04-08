@@ -186,6 +186,52 @@ export class FileController extends BaseController {
   }
 
   /**
+   * Upload a file and create a knowledge indexing task
+   * POST /files/index
+   */
+  async uploadAndIndexFile(c: Context) {
+    try {
+      const userId = this.getUserId(c)!; // requireAuth middleware ensures userId exists
+
+      const db = await this.getDatabase();
+      const fileService = new FileUploadService(db, userId);
+
+      const formData = await this.getFormData(c);
+      const file = formData.get('file') as File | null;
+
+      if (!file) {
+        return this.error(c, 'No file provided', 400);
+      }
+
+      const knowledgeBaseId = (formData.get('knowledgeBaseId') as string | null) || null;
+      const skipCheckFileType = formData.get('skipCheckFileType') === 'true';
+      const directory = (formData.get('directory') as string | null) || null;
+      const agentId = (formData.get('agentId') as string | null) || null;
+      const sessionId = (formData.get('sessionId') as string | null) || null;
+      const skipDeduplication = formData.get('skipDeduplication') === 'true';
+      const autoEmbedding = formData.get('autoEmbedding') === 'true';
+      const skipExist = formData.get('skipExist') === 'true';
+
+      const options: PublicFileUploadRequest = {
+        agentId: agentId || undefined,
+        directory: directory || undefined,
+        knowledgeBaseId: knowledgeBaseId || undefined,
+        sessionId: sessionId || undefined,
+        skipCheckFileType,
+        skipDeduplication,
+        autoEmbedding,
+        skipExist,
+      };
+
+      const result = await fileService.uploadFileAndIndex(file, options);
+
+      return this.success(c, result, 'File uploaded and indexing task created successfully');
+    } catch (error) {
+      return this.handleError(c, error);
+    }
+  }
+
+  /**
    * Parses file content
    * POST /files/:id/parses
    */

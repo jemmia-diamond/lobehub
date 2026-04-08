@@ -2,8 +2,7 @@ import i18next from 'i18next';
 import resourcesToBackend from 'i18next-resources-to-backend';
 import { initReactI18next } from 'react-i18next';
 
-import { DEFAULT_LANG } from '@/const/locale';
-import { normalizeLocale } from '@/locales/resources';
+import { locales, normalizeLocale } from '@/locales/resources';
 
 const AUTH_I18N_NAMESPACES = [
   'auth',
@@ -41,41 +40,21 @@ const loadDefaultNamespace = async (ns: AuthI18nNamespace) => {
   }
 };
 
-const loadZhNamespace = async (ns: AuthI18nNamespace) => {
-  switch (ns) {
-    case 'auth': {
-      return import('@/../locales/zh-CN/auth.json');
-    }
-    case 'authError': {
-      return import('@/../locales/zh-CN/authError.json');
-    }
-    case 'common': {
-      return import('@/../locales/zh-CN/common.json');
-    }
-    case 'error': {
-      return import('@/../locales/zh-CN/error.json');
-    }
-    case 'marketAuth': {
-      return import('@/../locales/zh-CN/marketAuth.json');
-    }
-    case 'oauth': {
-      return import('@/../locales/zh-CN/oauth.json');
-    }
-  }
-};
-
 const loadAuthNamespace = async (lng: string, ns: string) => {
   const safeNamespace = isAllowedNamespace(ns) ? ns : 'auth';
   const normalizedLocale = normalizeLocale(lng);
 
-  try {
-    if (normalizedLocale === DEFAULT_LANG) return loadDefaultNamespace(safeNamespace);
-    if (normalizedLocale === 'zh-CN') return loadZhNamespace(safeNamespace);
-  } catch {
-    // fall through to default namespace
-  }
+  // If the requested locale is English, load from the default TypeScript-based namespace
+  if (normalizedLocale === 'vi-VN') return loadDefaultNamespace(safeNamespace);
 
-  return loadDefaultNamespace(safeNamespace);
+  const isSupported = (locales as readonly string[]).includes(normalizedLocale);
+  if (!isSupported) return loadDefaultNamespace(safeNamespace);
+
+  try {
+    return await import(`../../../../../locales/${normalizedLocale}/${safeNamespace}.json`);
+  } catch {
+    return loadDefaultNamespace(safeNamespace);
+  }
 };
 
 export const createAuthI18n = (lang?: string) => {
@@ -95,7 +74,7 @@ export const createAuthI18n = (lang?: string) => {
 
       return instance.init({
         defaultNS: ['auth', 'common', 'error'],
-        fallbackLng: DEFAULT_LANG,
+        fallbackLng: 'en-US',
         initAsync,
         interpolation: { escapeValue: false },
         keySeparator: false,

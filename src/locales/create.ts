@@ -1,3 +1,4 @@
+import type { Resource } from 'i18next';
 import i18n from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import resourcesToBackend from 'i18next-resources-to-backend';
@@ -64,44 +65,31 @@ export const createI18nNext = (lang?: string) => {
     init: (params: { initAsync?: boolean } = {}) => {
       const { initAsync = true } = params;
       const initialLang = normalizeLocale(lang);
-      const bundledLanguageResources =
-        initialLang === DEFAULT_LANG
-          ? {
-              [DEFAULT_LANG]: defaultResources,
-            }
-          : {
-              [DEFAULT_LANG]: defaultResources,
-              [initialLang]: createBundledResources(),
-            };
+      const bundledLanguageResources: Resource = {
+        [DEFAULT_LANG]: defaultResources,
+      };
+
+      if (initialLang !== DEFAULT_LANG) {
+        bundledLanguageResources[initialLang] = createBundledResources();
+      }
 
       const initPromise = instance.init({
         debug: debugMode,
         defaultNS: ['error', 'common', 'chat'],
         fallbackLng: DEFAULT_LANG,
-        initAsync,
-        // Keep init synchronous so components can render with bundled vi-VN resources
-        // before the user's actual language finishes loading in the background.
-        ns: [],
-
-        // Preload default language (vi-VN) synchronously to avoid Suspense on first render
-        resources: {
-          ...bundledLanguageResources,
-        },
-        // Keep backend loading enabled for namespaces that are not preloaded above.
-        partialBundledLanguages: true,
-
         interpolation: {
           escapeValue: false,
         },
-        // Re-render components when new language resources are loaded from backend,
-        // so preloaded vi-VN fallback gets replaced by the user's actual language.
+        initAsync,
+        keySeparator: false,
+        lng: initialLang,
+        ns: [],
+        partialBundledLanguages: true,
         react: {
           bindI18nStore: 'added',
           useSuspense: false,
         },
-        keySeparator: false,
-
-        lng: initialLang,
+        resources: bundledLanguageResources,
       });
 
       if (initialLang !== DEFAULT_LANG) {

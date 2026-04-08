@@ -1,5 +1,6 @@
 'use client';
 
+import { ASSISTANT_NAME } from '@lobechat/business-const';
 import { ActionIcon, Avatar, Block, Text } from '@lobehub/ui';
 import { ChevronsUpDownIcon } from 'lucide-react';
 import { type PropsWithChildren } from 'react';
@@ -25,7 +26,7 @@ const Agent = memo<PropsWithChildren>(() => {
   ]);
 
   const displayTitle = isInbox
-    ? title || 'Jemmora'
+    ? title || ASSISTANT_NAME
     : title || t('defaultSession', { ns: 'common' });
 
   if (isLoading) return <SkeletonItem height={32} padding={0} />;

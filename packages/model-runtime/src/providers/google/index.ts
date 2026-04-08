@@ -15,6 +15,9 @@ import {
   type ChatCompletionTool,
   type ChatMethodOptions,
   type ChatStreamPayload,
+  type Embeddings,
+  type EmbeddingsOptions,
+  type EmbeddingsPayload,
   type GenerateObjectOptions,
   type GenerateObjectPayload,
 } from '../../types';
@@ -329,6 +332,46 @@ export class LobeGoogleAI implements LobeRuntimeAI {
     }
 
     return undefined;
+  }
+
+  async embeddings(
+    payload: EmbeddingsPayload,
+    _options?: EmbeddingsOptions,
+  ): Promise<Embeddings[]> {
+    try {
+      const input = Array.isArray(payload.input) ? payload.input : [payload.input];
+      const { model, dimensions } = payload;
+
+      const promises = input.map(async (text) => {
+        const response = await this.client.models.embedContent({
+          config: {
+            outputDimensionality: dimensions,
+          },
+          contents: { parts: [{ text }], role: 'user' },
+          model,
+        });
+
+        if (!response.embeddings || response.embeddings.length === 0) {
+          throw new Error(
+            `Embedding provider ${this.provider} returned no results for model ${model}`,
+          );
+        }
+
+        return response.embeddings[0].values as number[];
+      });
+
+      return await Promise.all(promises);
+    } catch (e) {
+      log('Error: %O', e);
+      const err = e as Error;
+      const { errorType, error } = parseGoogleErrorMessage(err.message);
+
+      throw AgentRuntimeError.chat({
+        error,
+        errorType,
+        provider: this.provider,
+      });
+    }
   }
 
   private createEnhancedStream(originalStream: any, signal: AbortSignal): ReadableStream {

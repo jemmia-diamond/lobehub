@@ -2,7 +2,7 @@
 
 import { createStyles } from 'antd-style';
 import { ChevronDown } from 'lucide-react';
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useAgentId } from '@/features/ChatInput/hooks/useAgentId';
@@ -44,10 +44,17 @@ const useStyles = createStyles(({ css }) => ({
 const ThinkingModeButton = memo(() => {
   const { styles } = useStyles();
   const { t } = useTranslation('home');
-  const { thinkingMode, jemmiaList, model, provider } = useJemModeSelection();
   const updateAgentConfigById = useAgentStore((s) => s.updateAgentConfigById);
   const inboxAgentId = useAgentStore(builtinAgentSelectors.inboxAgentId);
   const targetId = useAgentId() || inboxAgentId;
+  const { thinkingMode, jemmiaList, model, provider, handleModeChange } =
+    useJemModeSelection(targetId);
+
+  // Sync default auto mode on mount if not correctly set
+  useEffect(() => {
+    if (!targetId || provider === 'jemmia') return;
+    handleModeChange('auto');
+  }, [targetId, provider, handleModeChange]);
 
   return (
     <ModelSwitchPanel

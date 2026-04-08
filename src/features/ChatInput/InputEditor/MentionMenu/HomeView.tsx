@@ -16,7 +16,6 @@ interface HomeViewProps {
 
 const HomeView = memo<HomeViewProps>(
   ({ visibleItems, activeKey, onSelectItem, dividerIndex, categories }) => {
-
     return (
       <div className={styles.scrollArea}>
         {visibleItems.map((item, idx) => {

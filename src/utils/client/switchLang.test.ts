@@ -21,7 +21,7 @@ describe('switchLang', () => {
   });
 
   it('should change language to the specified locale', () => {
-    const locale: LocaleMode = 'en-US';
+    const locale: LocaleMode = 'vi-VN';
     switchLang(locale);
 
     expect(changeLanguage).toHaveBeenCalledWith(locale);

@@ -135,11 +135,12 @@ export const useCategory = () => {
 
     // Agent group
     const agentItems: CategoryItem[] = [
-      (showProvider && (!enableBusinessFeatures || isDevMode)) && {
-        icon: Brain,
-        key: SettingsTabs.Provider,
-        label: t('tab.provider'),
-      },
+      showProvider &&
+        (!enableBusinessFeatures || isDevMode) && {
+          icon: Brain,
+          key: SettingsTabs.Provider,
+          label: t('tab.provider'),
+        },
       {
         icon: Sparkles,
         key: SettingsTabs.ServiceModel,

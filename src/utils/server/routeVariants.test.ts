@@ -29,19 +29,19 @@ describe('RouteVariants', () => {
     it('should serialize variants with mobile enabled', () => {
       const variants: IRouteVariants = {
         isMobile: true,
-        locale: 'zh-CN',
+        locale: 'vi-VN',
       };
       const result = RouteVariants.serializeVariants(variants);
-      expect(result).toBe('zh-CN__1');
+      expect(result).toBe('vi-VN__1');
     });
 
     it('should serialize variants with different locales', () => {
       const variants: IRouteVariants = {
         isMobile: false,
-        locale: 'ja-JP',
+        locale: 'vi-VN',
       };
       const result = RouteVariants.serializeVariants(variants);
-      expect(result).toBe('ja-JP__0');
+      expect(result).toBe('vi-VN__0');
     });
 
     it('should serialize variants with custom colors', () => {
@@ -228,21 +228,21 @@ describe('RouteVariants', () => {
     });
 
     it('should create variants with custom locale', () => {
-      const result = RouteVariants.createVariants({ locale: 'zh-CN' });
+      const result = RouteVariants.createVariants({ locale: 'vi-VN' });
       expect(result).toEqual({
         ...DEFAULT_VARIANTS,
-        locale: 'zh-CN',
+        locale: 'vi-VN',
       });
     });
 
     it('should create variants with multiple custom options', () => {
       const result = RouteVariants.createVariants({
         isMobile: true,
-        locale: 'ja-JP',
+        locale: 'vi-VN',
       });
       expect(result).toEqual({
         isMobile: true,
-        locale: 'ja-JP',
+        locale: 'vi-VN',
       });
     });
 
@@ -261,13 +261,13 @@ describe('RouteVariants', () => {
     it('should create variants with all custom options', () => {
       const result = RouteVariants.createVariants({
         isMobile: true,
-        locale: 'zh-CN',
+        locale: 'vi-VN',
         neutralColor: '#aaaaaa',
         primaryColor: '#00ff00',
       });
       expect(result).toEqual({
         isMobile: true,
-        locale: 'zh-CN',
+        locale: 'vi-VN',
         neutralColor: '#aaaaaa',
         primaryColor: '#00ff00',
       });
@@ -278,7 +278,7 @@ describe('RouteVariants', () => {
     it('should maintain data integrity through serialize and deserialize', () => {
       const original: IRouteVariants = {
         isMobile: true,
-        locale: 'zh-CN',
+        locale: 'vi-VN',
       };
       const serialized = RouteVariants.serializeVariants(original);
       const deserialized = RouteVariants.deserializeVariants(serialized);

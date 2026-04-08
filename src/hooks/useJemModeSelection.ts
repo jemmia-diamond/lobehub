@@ -46,19 +46,21 @@ export const useJemModeSelection = (agentId?: string) => {
 
   const thinkingMode: ThinkingMode = useMemo(() => {
     const { auto, fast, deep, expert } = jem as any;
-    if (provider !== 'jemmia') return 'auto';
 
-    if (auto && auto.id === model) return 'auto';
-    if (fast && fast.id === model) return 'fast';
-    if (deep && deep.id === model) return 'deep';
-    if (expert && expert.id === model) return 'expert';
+    if (provider === 'jemmia') {
+      if (auto && auto.id === model) return 'auto';
+      if (fast && fast.id === model) return 'fast';
+      if (deep && deep.id === model) return 'deep';
+      if (expert && expert.id === model) return 'expert';
+    }
 
+    // Default to auto if not in jemmia or not a recognized jemmia model
     return 'auto';
   }, [jem, model, provider]);
 
   const handleModeChange = useCallback(
-    (mode: Exclude<ThinkingMode, null>) => {
-      if (!targetId) return;
+    (mode: ThinkingMode) => {
+      if (!targetId || !mode) return;
       const { auto, fast, deep, expert } = jem as any;
 
       let target = auto;
