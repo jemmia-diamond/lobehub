@@ -69,6 +69,31 @@ app.post(
 );
 
 /**
+ * Upload and index a file in one request
+ * POST /files/index
+ * Content-Type: multipart/form-data
+ *
+ * Form fields:
+ * - file: File (required) - The file to upload
+ * - knowledgeBaseId: string (optional) - Knowledge base ID
+ * - agentId: string (optional) - Agent ID
+ * - sessionId: string (optional) - Session ID
+ * - skipCheckFileType: boolean (optional) - Whether to skip file type check
+ * - skipDeduplication: boolean (optional) - Whether to skip file deduplication
+ * - autoEmbedding: boolean (optional) - Whether to auto-trigger embedding after chunking
+ * - skipExist: boolean (optional) - Whether to skip existing chunk results
+ */
+app.post(
+  '/index',
+  requireAuth,
+  requireAnyPermission(getAllScopePermissions('FILE_UPLOAD'), '您没有权限上传文件'),
+  async (c) => {
+    const fileController = new FileController();
+    return await fileController.uploadAndIndexFile(c);
+  },
+);
+
+/**
  * Get file details
  * GET /files/:id
  *
