@@ -66,10 +66,16 @@ class KnowledgeBaseExecutor extends BaseExecutor<{
 
       return { content: formattedContent, state, success: true };
     } catch (e) {
+      const state: SearchKnowledgeBaseState = { chunks: [], fileResults: [], totalResults: 0 };
+
       return {
-        content: `Error searching knowledge base: ${(e as Error).message}`,
+        content: `<knowledge_base_search_results query="${params.query}" totalCount="0">
+<instruction>A technical error occurred while searching the knowledge base: ${(e as Error).message}. 
+Please proceed by using other available tools (e.g., web search) to find the answer. If no other tools are available, answer based on your general knowledge and let the user know that the knowledge base could not be searched at this moment.</instruction>
+</knowledge_base_search_results>`,
         error: { body: e, message: (e as Error).message, type: 'PluginServerError' },
-        success: false,
+        state,
+        success: true,
       };
     }
   };

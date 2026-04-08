@@ -19,7 +19,7 @@ const googleChatModels: AIChatModelCard[] = [
     contextWindowTokens: 1_048_576 + 65_536,
     description: 'Latest release of Gemini Pro',
     displayName: 'Chuyên gia',
-    id: 'gemini-pro-latest',
+    id: 'gemini-1.5-pro',
     maxOutput: 65_536,
     pricing: {
       units: [
@@ -70,7 +70,7 @@ const googleChatModels: AIChatModelCard[] = [
     contextWindowTokens: 1_048_576 + 65_536,
     description: 'Latest release of Gemini Flash',
     displayName: 'Nghĩ kỹ',
-    id: 'gemini-flash-latest',
+    id: 'gemini-1.5-flash',
     maxOutput: 65_536,
     pricing: {
       units: [
@@ -97,7 +97,7 @@ const googleChatModels: AIChatModelCard[] = [
     contextWindowTokens: 1_048_576 + 65_536,
     description: 'Latest release of Gemini Flash-Lite',
     displayName: 'Làm nhanh',
-    id: 'gemini-flash-lite-latest',
+    id: 'gemini-1.5-flash-lite',
     maxOutput: 65_536,
     pricing: {
       units: [
@@ -736,7 +736,7 @@ const googleChatModels: AIChatModelCard[] = [
     contextWindowTokens: 1_008_192,
     description: 'Gemini 1.5 Flash 8B is an efficient multimodal model built for broad deployment.',
     displayName: 'Gemini 1.5 Flash 8B',
-    id: 'gemini-1.5-flash-8b-latest',
+    id: 'gemini-1.5-flash-8b',
     maxOutput: 8192,
     pricing: {
       units: [

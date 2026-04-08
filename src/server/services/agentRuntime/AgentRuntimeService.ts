@@ -1530,23 +1530,30 @@ export class AgentRuntimeService {
   }) {
     let modelRuntimeConfig = metadata?.modelRuntimeConfig;
 
-    // Resolve "auto" model if necessary
-    if (modelRuntimeConfig?.model === 'auto' && agentState) {
-      const resolved = ModelRouterService.resolve({
+    const isJemmia =
+      ModelRouterService.isJemmiaProvider(modelRuntimeConfig?.provider) ||
+      (modelRuntimeConfig?.model &&
+        ModelRouterService.isJemmiaModeOrModel(modelRuntimeConfig.model));
+
+    if (isJemmia && agentState) {
+      const { model: resolvedModel, provider: resolvedProvider } = ModelRouterService.resolve({
         agentConfig: metadata?.agentConfig,
         messages: agentState.messages,
+        mode: modelRuntimeConfig?.model,
         tools: agentState.tools || [],
       });
 
       modelRuntimeConfig = {
         ...modelRuntimeConfig,
-        ...resolved,
+        model: resolvedModel,
+        provider: resolvedProvider,
       };
 
       log(
-        '[%s][%d] Resolved "auto" model to %s/%s',
+        '[%s][%d] Unified Jemmia resolution for mode "%s" to model %s/%s',
         operationId,
         stepIndex,
+        metadata?.modelRuntimeConfig?.model || 'unknown',
         modelRuntimeConfig.provider,
         modelRuntimeConfig.model,
       );

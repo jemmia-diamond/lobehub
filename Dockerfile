@@ -65,7 +65,9 @@ ENV NEXT_PUBLIC_ANALYTICS_UMAMI="${NEXT_PUBLIC_ANALYTICS_UMAMI}" \
     NEXT_PUBLIC_UMAMI_WEBSITE_ID="${NEXT_PUBLIC_UMAMI_WEBSITE_ID}"
 
 # Node
-ENV NODE_OPTIONS="--max-old-space-size=8192"
+ENV NODE_OPTIONS="--max-old-space-size=10240" \
+    GENERATE_SOURCEMAP=false \
+    NEXT_TELEMETRY_DISABLED=1
 
 WORKDIR /app
 
@@ -99,7 +101,7 @@ RUN pnpm exec tsx scripts/dockerPrebuild.mts
 RUN rm -rf src/app/desktop "src/app/(backend)/trpc/desktop"
 
 # run build standalone for docker version
-RUN npm run build:docker
+RUN pnpm run build:docker
 
 ## Application image, copy all the files for production
 FROM busybox:latest AS app

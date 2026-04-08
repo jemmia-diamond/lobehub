@@ -1,6 +1,6 @@
-import { type AIChatModelCard } from '../types';
+import { type AIChatModelCard, type AIEmbeddingModelCard } from '../types';
 
-const jemmiaChatModels: AIChatModelCard[] = [
+const jemmiaChatModels: (AIChatModelCard | AIEmbeddingModelCard)[] = [
   {
     abilities: {
       functionCall: true,
@@ -133,6 +133,33 @@ const jemmiaChatModels: AIChatModelCard[] = [
       searchProvider: 'google',
     },
     type: 'chat',
+  },
+  {
+    contextWindowTokens: 8192,
+    description: 'The standard embedding model from OpenAI.',
+    displayName: 'OpenAI Embedding (Small)',
+    enabled: true,
+    id: 'text-embedding-3-small',
+    maxDimension: 1536,
+    type: 'embedding',
+  },
+  {
+    contextWindowTokens: 2048,
+    description: 'High-performance embedding model for RAG and search.',
+    displayName: 'Gemini Embedding',
+    enabled: true,
+    id: 'gemini-embedding-001',
+    maxDimension: 1024,
+    type: 'embedding',
+  },
+  {
+    contextWindowTokens: 8192,
+    description: 'Natively multimodal embedding model with higher dimensions.',
+    displayName: 'Gemini Embedding 002',
+    enabled: true,
+    id: 'gemini-embedding-2-preview',
+    maxDimension: 3072,
+    type: 'embedding',
   },
 ];
 

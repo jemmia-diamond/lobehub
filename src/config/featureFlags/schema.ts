@@ -145,7 +145,7 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   enable_tools: true,
   enable_model: true,
   enable_file_upload: true,
-  enable_lark_tools: true,
+  enable_lark_tools: false,
   enable_mention_employee: false,
   enable_mention_doc: false,
   show_lark_search_filter_sort: true,

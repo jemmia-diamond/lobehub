@@ -4,7 +4,7 @@ import { useEnabledChatModels } from '@/hooks/useEnabledChatModels';
 import { useAgentStore } from '@/store/agent';
 import { agentByIdSelectors, builtinAgentSelectors } from '@/store/agent/selectors';
 
-export type ThinkingMode = 'fast' | 'deep' | 'expert' | null;
+export type ThinkingMode = 'auto' | 'fast' | 'deep' | 'expert' | null;
 
 export const useJemModeSelection = (agentId?: string) => {
   const enabledModels = useEnabledChatModels();
@@ -22,17 +22,18 @@ export const useJemModeSelection = (agentId?: string) => {
 
     const jemModels = enabledModels.find((p) => p.id === 'jemmia')?.children || [];
 
+    const auto = jemModels.find((m) => m.id === 'auto');
     const fast = jemModels.find((m) => m.id === 'gemini-2.5-flash-lite');
     const deep = jemModels.find((m) => m.id === 'gemini-2.5-flash');
     const expert = jemModels.find((m) => m.id === 'gemini-2.5-pro');
 
-    return { deep, expert, fast };
+    return { auto, deep, expert, fast };
   }, [enabledModels]);
 
   const jemmiaList = useMemo(() => {
     if (!enabledModels) return [];
 
-    const visibleModelIds = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+    const visibleModelIds = ['auto', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'];
 
     return enabledModels
       .filter((p) => p.id === 'jemmia')
@@ -44,23 +45,27 @@ export const useJemModeSelection = (agentId?: string) => {
   }, [enabledModels]);
 
   const thinkingMode: ThinkingMode = useMemo(() => {
-    const { fast, deep, expert } = jem as any;
-    if (provider !== 'jemmia') return deep ? 'deep' : null;
+    const { auto, fast, deep, expert } = jem as any;
 
-    if (fast && fast.id === model) return 'fast';
-    if (deep && deep.id === model) return 'deep';
-    if (expert && expert.id === model) return 'expert';
+    if (provider === 'jemmia') {
+      if (auto && auto.id === model) return 'auto';
+      if (fast && fast.id === model) return 'fast';
+      if (deep && deep.id === model) return 'deep';
+      if (expert && expert.id === model) return 'expert';
+    }
 
-    return deep ? 'deep' : null;
+    // Default to auto if not in jemmia or not a recognized jemmia model
+    return 'auto';
   }, [jem, model, provider]);
 
   const handleModeChange = useCallback(
-    (mode: Exclude<ThinkingMode, null>) => {
-      if (!targetId) return;
-      const { fast, deep, expert } = jem as any;
+    (mode: ThinkingMode) => {
+      if (!targetId || !mode) return;
+      const { auto, fast, deep, expert } = jem as any;
 
-      let target = deep;
+      let target = auto;
       if (mode === 'fast' && fast) target = fast;
+      if (mode === 'deep' && deep) target = deep;
       if (mode === 'expert' && expert) target = expert;
 
       if (!target) return;

@@ -43,6 +43,8 @@ export interface FileDetailResponse {
 export interface PublicFileUploadRequest {
   /** Agent ID（可选，优先于 sessionId） */
   agentId?: string;
+  /** 是否自动触发嵌入任务 */
+  autoEmbedding?: boolean;
   /** 文件目录（可选） */
   directory?: string;
   /** 知识库ID（可选） */
@@ -53,6 +55,8 @@ export interface PublicFileUploadRequest {
   skipCheckFileType?: boolean;
   /** 是否跳过去重检查 */
   skipDeduplication?: boolean;
+  /** 创建任务时是否跳过已存在分块 */
+  skipExist?: boolean;
 }
 
 // ==================== File Management Types ====================

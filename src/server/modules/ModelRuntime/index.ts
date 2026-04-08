@@ -18,8 +18,10 @@ import { getBusinessModelRuntimeHooks } from '@/business/server/model-runtime';
 import { AiProviderModel } from '@/database/models/aiProvider';
 import { type LobeChatDatabase } from '@/database/type';
 import { getLLMConfig } from '@/envs/llm';
+import { ModelRouterService } from '@/server/services/modelRouter';
 
 import { KeyVaultsGateKeeper } from '../KeyVaultsEncrypt';
+import { KnowledgeBootstrapService } from '../KnowledgeBootstrap';
 import apiKeyManager from './apiKeyManager';
 
 export * from './trace';
@@ -356,35 +358,134 @@ const buildVertexOptions = (
 };
 
 /**
+ * Get orchestration hooks for Jemmia provider
+ */
+const getJemOrchestrationHooks = (
+  provider: string,
+  userPayload: ClientSecretPayload,
+  userParams: any,
+): ModelRuntimeHooks => ({
+  beforeChat: async (payload) => {
+    const mode = payload.model.toLowerCase();
+
+    if (mode === 'auto') {
+      try {
+        // Initialize a router runtime WITHOUT hooks to avoid recursion
+        const routerRuntime = initModelRuntimeWithUserPayload(provider, userPayload, userParams);
+        const { model } = await ModelRouterService.evaluate({
+          messages: payload.messages,
+          modelRuntime: routerRuntime,
+          tools: payload.tools || [],
+        });
+        payload.model = model;
+        return;
+      } catch (error) {
+        console.error('[Jemmora Intelligent Routing] Failed:', error);
+      }
+    }
+
+    const { model } = ModelRouterService.resolve({
+      messages: payload.messages,
+      mode: payload.model,
+      tools: payload.tools || [],
+    });
+    payload.model = model;
+  },
+  beforeGenerateObject: async (payload) => {
+    const mode = payload.model.toLowerCase();
+
+    if (mode === 'auto') {
+      try {
+        // Initialize a router runtime WITHOUT hooks to avoid recursion
+        const routerRuntime = initModelRuntimeWithUserPayload(provider, userPayload, userParams);
+        const { model } = await ModelRouterService.evaluate({
+          messages: (payload as any).messages || [],
+          modelRuntime: routerRuntime,
+          tools: (payload as any).tools || [],
+        });
+        payload.model = model;
+        return;
+      } catch (error) {
+        console.error('[Jemmora Intelligent Routing] Failed:', error);
+      }
+    }
+
+    const { model } = ModelRouterService.resolve({
+      messages: (payload as any).messages || [],
+      mode: payload.model,
+      tools: (payload as any).tools || [],
+    });
+    payload.model = model;
+  },
+});
+
+/**
  * Initializes the agent runtime with the user payload in backend
  * @param provider - The provider name.
  * @param payload - The JWT payload.
  * @param params
  * @returns A promise that resolves when the agent runtime is initialized.
  */
+const bootstrappedUsers = new Set<string>();
+
 export const initModelRuntimeWithUserPayload = (
   provider: string,
   payload: ClientSecretPayload,
   params: any = {},
   hooks?: ModelRuntimeHooks,
 ) => {
+  const userId = params?.userId || (payload as any)?.userId;
+
+  // Trigger knowledge bootstrap as a background side-effect for this specific user
+  if (userId && !bootstrappedUsers.has(userId)) {
+    bootstrappedUsers.add(userId);
+    (async () => {
+      try {
+        const bootstrapService = new KnowledgeBootstrapService();
+        await bootstrapService.bootstrap(userId);
+      } catch (error) {
+        console.error(`[KnowledgeBootstrap] Init failed for user ${userId}:`, error);
+        // If it failed, we might want to allow a retry on the next request
+        bootstrappedUsers.delete(userId);
+      }
+    })();
+  }
+
   const runtimeProvider = payload.runtimeProvider ?? provider;
+
+  const finalHooks: ModelRuntimeHooks = { ...hooks };
+
+  if (runtimeProvider === ModelProvider.Jemmia) {
+    const jemHooks = getJemOrchestrationHooks(provider, payload, params);
+    const existingBeforeChat = finalHooks.beforeChat;
+    finalHooks.beforeChat = async (p, o) => {
+      await jemHooks.beforeChat?.(p, o);
+
+      if (existingBeforeChat) await existingBeforeChat(p, o);
+      if (hooks?.beforeChat) await hooks.beforeChat(p, o);
+    };
+
+    const existingBeforeGenerateObject = finalHooks.beforeGenerateObject;
+    finalHooks.beforeGenerateObject = async (p, o) => {
+      await jemHooks.beforeGenerateObject?.(p, o);
+      if (existingBeforeGenerateObject) await existingBeforeGenerateObject(p, o);
+      if (hooks?.beforeGenerateObject) await hooks.beforeGenerateObject(p, o);
+    };
+  }
 
   if (runtimeProvider === ModelProvider.VertexAI) {
     const vertexOptions = buildVertexOptions(payload, params);
     const runtime = LobeVertexAI.initFromVertexAI(vertexOptions);
 
-    return new ModelRuntime(runtime, hooks);
+    return new ModelRuntime(runtime, finalHooks);
   }
 
-  return ModelRuntime.initializeWithProvider(
-    runtimeProvider,
-    {
-      ...getParamsFromPayload(runtimeProvider, payload),
-      ...params,
-    },
-    hooks,
-  );
+  const runtimeParams = {
+    ...getParamsFromPayload(runtimeProvider, payload),
+    ...params,
+  };
+
+  return ModelRuntime.initializeWithProvider(runtimeProvider, runtimeParams, finalHooks);
 };
 
 /**

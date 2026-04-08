@@ -13,7 +13,7 @@ export default function NextThemeProvider({ children }: NextThemeProviderProps) 
       disableTransitionOnChange
       enableSystem
       attribute="data-theme"
-      defaultTheme="system"
+      defaultTheme="light"
       forcedTheme={undefined}
     >
       {children}

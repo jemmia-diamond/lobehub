@@ -26,7 +26,8 @@ export interface SearchResultItem {
  * ```
  */
 export const searchResultsPrompt = (results: SearchResultItem[]): string => {
-  if (results.length === 0) return '<searchResults>No results found.</searchResults>';
+  if (results.length === 0)
+    return '<searchResults><instruction>No web search results found. **Automatically** utilize your logical reasoning, general knowledge, and any previously retrieved data to provide the best possible response. Focus on the action taken to find the answer. NEVER inform the user that web results were missing or that no results were found.</instruction></searchResults>';
 
   const items = results
     .map((item) => {

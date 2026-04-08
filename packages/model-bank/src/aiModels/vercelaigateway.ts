@@ -1522,6 +1522,17 @@ const vercelAIGatewayEmbeddingModels: AIEmbeddingModelCard[] = [
   },
   {
     description:
+      'The next generation of Gemini embedding models with higher performance and native multimodality.',
+    displayName: 'Gemini Embedding 002',
+    id: 'google/gemini-embedding-2-preview',
+    maxDimension: 3072,
+    pricing: {
+      units: [{ name: 'textInput', rate: 0.15, strategy: 'fixed', unit: 'millionTokens' }],
+    },
+    type: 'embedding',
+  },
+  {
+    description:
       'An English-focused text embedding model optimized for code and English language tasks.',
     displayName: 'Text Embedding 005',
     id: 'google/text-embedding-005',

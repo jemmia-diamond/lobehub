@@ -73,7 +73,7 @@ describe('LobeGoogleAI', () => {
     });
 
     it('should withGrounding', () => {
-      const data = [
+      const _data = [
         {
           candidates: [{ content: { parts: [{ text: 'As' }], role: 'model' } }],
           usageMetadata: { promptTokenCount: 8, totalTokenCount: 8 },
@@ -428,6 +428,82 @@ describe('LobeGoogleAI', () => {
     });
   });
 
+  describe('embeddings', () => {
+    it('should return embeddings on successful API call', async () => {
+      // Mock Google AI SDK's embedContent method
+      const mockEmbedResponse = {
+        embeddings: [{ values: [0.1, 0.2, 0.3] }],
+      };
+      vi.spyOn(instance['client'].models, 'embedContent').mockResolvedValue(
+        mockEmbedResponse as any,
+      );
+
+      const result = await instance.embeddings({
+        input: 'Hello',
+        model: 'gemini-embedding-002-preview',
+      });
+
+      expect(result).toEqual([[0.1, 0.2, 0.3]]);
+      expect(instance['client'].models.embedContent).toHaveBeenCalledWith({
+        config: { outputDimensionality: undefined },
+        content: { parts: [{ text: 'Hello' }], role: 'user' },
+        model: 'gemini-embedding-002-preview',
+      });
+    });
+
+    it('should handle array input correctly', async () => {
+      const mockEmbedResponse = {
+        embeddings: [{ values: [0.1, 0.2, 0.3] }],
+      };
+      vi.spyOn(instance['client'].models, 'embedContent').mockResolvedValue(
+        mockEmbedResponse as any,
+      );
+
+      const result = await instance.embeddings({
+        input: ['Hello', 'World'],
+        model: 'gemini-embedding-002-preview',
+      });
+
+      expect(result).toHaveLength(2);
+      expect(instance['client'].models.embedContent).toHaveBeenCalledTimes(2);
+    });
+
+    it('should throw error when no embeddings returned', async () => {
+      vi.spyOn(instance['client'].models, 'embedContent').mockResolvedValue({
+        embeddings: [],
+      } as any);
+
+      try {
+        await instance.embeddings({
+          input: 'Hello',
+          model: 'gemini-embedding-002-preview',
+        });
+      } catch (e) {
+        expect(e).toMatchObject({
+          errorType: bizErrorType,
+          provider: 'google',
+        });
+      }
+    });
+
+    it('should catch and parse API errors', async () => {
+      const apiError = new Error('Invalid API Key');
+      vi.spyOn(instance['client'].models, 'embedContent').mockRejectedValue(apiError);
+
+      try {
+        await instance.embeddings({
+          input: 'Hello',
+          model: 'gemini-embedding-002-preview',
+        });
+      } catch (e) {
+        expect(e).toMatchObject({
+          errorType: bizErrorType,
+          provider: 'google',
+        });
+      }
+    });
+  });
+
   describe('private method', () => {
     describe('createEnhancedStream', () => {
       it('should handle stream cancellation with data gracefully', async () => {
@@ -443,7 +519,8 @@ describe('LobeGoogleAI', () => {
         const chunks: any[] = [];
 
         // Read first value then cancel to trigger error chunk
-        chunks.push((await reader.read()).value);
+        const { value: firstValue } = await reader.read();
+        chunks.push(firstValue);
         abortController.abort();
 
         // Read all remaining chunks
@@ -497,10 +574,12 @@ describe('LobeGoogleAI', () => {
         const chunks: any[] = [];
 
         // Read first value then collect remaining chunks (error included)
-        chunks.push((await reader.read()).value);
+        const { value: firstValue } = await reader.read();
+        chunks.push(firstValue);
         let result;
         while (!(result = await reader.read()).done) {
-          chunks.push(result.value);
+          const { value } = result;
+          chunks.push(value);
         }
 
         // Assert both data and error chunk together
@@ -519,6 +598,7 @@ describe('LobeGoogleAI', () => {
 
       it('should handle AbortError without data', async () => {
         const mockStream = (async function* () {
+          for (const _ of []) yield;
           throw new Error('aborted');
         })();
 
@@ -529,8 +609,8 @@ describe('LobeGoogleAI', () => {
         const chunks: any[] = [];
 
         // Read error chunk
-        const chunk1 = await reader.read();
-        chunks.push(chunk1.value);
+        const { value: errorValue } = await reader.read();
+        chunks.push(errorValue);
 
         // Stream should be closed
         const chunk2 = await reader.read();
@@ -562,10 +642,12 @@ describe('LobeGoogleAI', () => {
         const chunks: any[] = [];
 
         // Read first value then collect remaining chunks (parsing error)
-        chunks.push((await reader.read()).value);
+        const { value: firstValue } = await reader.read();
+        chunks.push(firstValue);
         let result;
         while (!(result = await reader.read()).done) {
-          chunks.push(result.value);
+          const { value } = result;
+          chunks.push(value);
         }
 
         expect(chunks).toEqual([
@@ -586,7 +668,9 @@ describe('LobeGoogleAI', () => {
 
 describe('thinkingConfig includeThoughts logic', () => {
   it('should enable thinking when thinkingBudget is set', async () => {
-    const mockStreamData = (async function* (): AsyncGenerator<GenerateContentResponse> {})();
+    const mockStreamData = (async function* (): AsyncGenerator<GenerateContentResponse> {
+      for (const _ of []) yield {} as any;
+    })();
     vi.spyOn(instance['client'].models, 'generateContentStream').mockResolvedValue(mockStreamData);
 
     await instance.chat({
@@ -602,7 +686,9 @@ describe('thinkingConfig includeThoughts logic', () => {
   });
 
   it('should enable thinking when thinkingLevel is set', async () => {
-    const mockStreamData = (async function* (): AsyncGenerator<GenerateContentResponse> {})();
+    const mockStreamData = (async function* (): AsyncGenerator<GenerateContentResponse> {
+      for (const _ of []) yield {} as any;
+    })();
     vi.spyOn(instance['client'].models, 'generateContentStream').mockResolvedValue(mockStreamData);
 
     await instance.chat({
@@ -618,7 +704,9 @@ describe('thinkingConfig includeThoughts logic', () => {
   });
 
   it('should let API decide thinking for gemini-3-pro-image models without explicit params', async () => {
-    const mockStreamData = (async function* (): AsyncGenerator<GenerateContentResponse> {})();
+    const mockStreamData = (async function* (): AsyncGenerator<GenerateContentResponse> {
+      for (const _ of []) yield {} as any;
+    })();
     vi.spyOn(instance['client'].models, 'generateContentStream').mockResolvedValue(mockStreamData);
 
     await instance.chat({
