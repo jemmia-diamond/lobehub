@@ -20,6 +20,7 @@ import { AiProviderModel } from '@/database/models/aiProvider';
 import { type LobeChatDatabase } from '@/database/type';
 import { getLLMConfig } from '@/envs/llm';
 import { ModelRouterService } from '@/server/services/modelRouter';
+import { ChunkManager } from '@/server/services/modelRouter/ChunkManager';
 
 import { KeyVaultsGateKeeper } from '../KeyVaultsEncrypt';
 import { KnowledgeBootstrapService } from '../KnowledgeBootstrap';
@@ -427,9 +428,25 @@ const getJemOrchestrationHooks = (
  * This middleware intercepts generateObject and chat calls to perform
  * background groundedness checks on expert-tier responses.
  */
-const addAgenticOrchestrationMiddleware = (runtime: ModelRuntime) => {
+const addAgenticOrchestrationMiddleware = (runtime: ModelRuntime, knowledgeIds?: string[]) => {
   const originalGenerateObject = runtime.generateObject.bind(runtime);
   runtime.generateObject = async (payload: any) => {
+    // Inject knowledgeIds into search tools if missing
+    if (knowledgeIds && knowledgeIds.length > 0 && payload.tools) {
+      payload.tools = payload.tools.map((tool: any) => {
+        if (tool.identifier === 'knowledge-base' || tool.identifier === 'agent-knowledge-base') {
+          return {
+            ...tool,
+            settings: {
+              ...tool.settings,
+              knowledgeIds: tool.settings?.knowledgeIds || knowledgeIds,
+            },
+          };
+        }
+        return tool;
+      });
+    }
+
     const result = await originalGenerateObject(payload);
 
     // Extract query and answer for verification
@@ -438,10 +455,7 @@ const addAgenticOrchestrationMiddleware = (runtime: ModelRuntime) => {
     const query = userMessage?.content || '';
     const answer = typeof result === 'string' ? result : JSON.stringify(result);
 
-    // Attempt to find Gold Chunks in the system prompt
-    const systemMessage = messages.find((m: any) => m.role === 'system');
-    const systemContent = systemMessage?.content || '';
-    const chunks = ModelRouterService.extractChunks(systemContent);
+    const chunks = ChunkManager.extractAllChunks(messages);
 
     if (chunks.length > 0) {
       const verification = await ModelRouterService.verify({
@@ -464,6 +478,22 @@ const addAgenticOrchestrationMiddleware = (runtime: ModelRuntime) => {
 
   const originalChat = runtime.chat.bind(runtime);
   runtime.chat = async (payload: any) => {
+    // Inject knowledgeIds into search tools if missing
+    if (knowledgeIds && knowledgeIds.length > 0 && payload.tools) {
+      payload.tools = payload.tools.map((tool: any) => {
+        if (tool.identifier === 'knowledge-base' || tool.identifier === 'agent-knowledge-base') {
+          return {
+            ...tool,
+            settings: {
+              ...tool.settings,
+              knowledgeIds: tool.settings?.knowledgeIds || knowledgeIds,
+            },
+          };
+        }
+        return tool;
+      });
+    }
+
     const result = await originalChat(payload);
 
     // Verify stream in background (latency-neutral for user)
@@ -487,10 +517,7 @@ const addAgenticOrchestrationMiddleware = (runtime: ModelRuntime) => {
         const userMessage = messages.findLast((m: any) => m.role === 'user');
         const query = userMessage?.content || '';
 
-        // Extract Gold Chunks
-        const systemMessage = messages.find((m: any) => m.role === 'system');
-        const systemContent = systemMessage?.content || '';
-        const chunks = ModelRouterService.extractChunks(systemContent);
+        const chunks = ChunkManager.extractAllChunks(messages);
 
         if (chunks.length > 0 && fullText) {
           const verification = await ModelRouterService.verify({
@@ -580,7 +607,7 @@ export const initModelRuntimeWithUserPayload = (
   const runtime = ModelRuntime.initializeWithProvider(runtimeProvider, runtimeParams, finalHooks);
 
   if (runtimeProvider === ModelProvider.Jemmia) {
-    return addAgenticOrchestrationMiddleware(runtime);
+    return addAgenticOrchestrationMiddleware(runtime, params?.knowledgeIds);
   }
 
   return runtime;
@@ -608,6 +635,7 @@ export const initModelRuntimeFromDB = async (
   db: LobeChatDatabase,
   userId: string,
   provider: string,
+  knowledgeIds?: string[],
 ): Promise<ModelRuntime> => {
   // 1. Get user's provider configuration from database
   const aiProviderModel = new AiProviderModel(db, userId);
@@ -632,5 +660,5 @@ export const initModelRuntimeFromDB = async (
   const hooks = getBusinessModelRuntimeHooks(userId, provider);
 
   // 5. Initialize ModelRuntime with the payload and hooks
-  return initModelRuntimeWithUserPayload(provider, payload, { userId }, hooks);
+  return initModelRuntimeWithUserPayload(provider, payload, { knowledgeIds, userId }, hooks);
 };

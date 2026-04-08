@@ -2,6 +2,10 @@ import { type ModelRuntime, safeParseJSON } from '@lobechat/model-runtime';
 import { agenticVerifierSystemPrompt } from '@lobechat/prompts';
 import debug from 'debug';
 
+import { withRateLimitRetry } from '@/utils/retryPolicy';
+
+import type { AgenticChunk } from './types';
+
 const log = debug('lobechat:agentic-verifier');
 
 export interface VerificationResult {
@@ -16,7 +20,7 @@ export class AgenticVerifierService {
    */
   public static async verifyAnswer(params: {
     answer: string;
-    chunks: any[];
+    chunks: AgenticChunk[];
     modelId: string;
     modelRuntime: ModelRuntime;
     query: string;
@@ -29,41 +33,46 @@ export class AgenticVerifierService {
       );
       log(`Verifying answer against ${chunks.length} chunks using ${modelId}...`);
 
-      const result = await modelRuntime.generateObject({
-        messages: [
-          {
-            content: agenticVerifierSystemPrompt(query, answer),
-            role: 'system',
-          },
-          {
-            content: `CONTEXT CHUNKS:\n${JSON.stringify(chunks.map((c) => ({ content: c.content, id: c.id })))}`,
-            role: 'user',
-          },
-        ],
-        model: modelId,
-        schema: {
-          name: 'agentic_verifier',
-          schema: {
-            properties: {
-              issues: {
-                description: 'List of factual errors or unsupported claims found.',
-                items: { type: 'string' },
-                type: 'array',
+      const result = await withRateLimitRetry(
+        () =>
+          modelRuntime.generateObject({
+            messages: [
+              {
+                content: agenticVerifierSystemPrompt(query, answer),
+                role: 'system',
               },
-              isValid: {
-                description: 'Whether the answer is fully grounded in the provided chunks.',
-                type: 'boolean',
+              {
+                content: `CONTEXT CHUNKS:\n${JSON.stringify(chunks.map((c) => ({ content: c.content, id: c.id })))}`,
+                role: 'user',
               },
-              scratchpad: {
-                description: 'Step-by-step cross-verification results.',
-                type: 'string',
+            ],
+            model: modelId,
+            schema: {
+              name: 'agentic_verifier',
+              schema: {
+                properties: {
+                  issues: {
+                    description: 'List of factual errors or unsupported claims found.',
+                    items: { type: 'string' },
+                    type: 'array',
+                  },
+                  isValid: {
+                    description: 'Whether the answer is fully grounded in the provided chunks.',
+                    type: 'boolean',
+                  },
+                  scratchpad: {
+                    description: 'Step-by-step cross-verification results.',
+                    type: 'string',
+                  },
+                },
+                required: ['isValid', 'issues', 'scratchpad'],
+                type: 'object',
               },
             },
-            required: ['isValid', 'issues', 'scratchpad'],
-            type: 'object',
-          },
-        },
-      });
+          }),
+        3,
+        '[Verifier]',
+      );
 
       // Use defensive JSON extraction to handle potential LLM conversational filler
       const verified = safeParseJSON<{

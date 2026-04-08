@@ -1,8 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { AgenticVerifierService } from './AgenticVerifierService';
 import { ModelRouterService } from './index';
 
 describe('ModelRouterService', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
   describe('resolve', () => {
     it('should route to FAST model when "fast" is explicitly requested', () => {
       const result = ModelRouterService.resolve({
@@ -50,6 +54,34 @@ describe('ModelRouterService', () => {
       });
 
       expect(result.model).toBe('gemini-2.5-pro');
+    });
+
+    it('should verify responses with chunks', async () => {
+      const verifySpy = vi
+        .spyOn(AgenticVerifierService, 'verifyAnswer')
+        .mockResolvedValue({ issues: [], isValid: true });
+
+      const result = await ModelRouterService.verify({
+        answer: 'test answer',
+        chunks: [
+          {
+            content: 'chunk',
+            fileId: 'f1',
+            fileName: 'file.txt',
+            id: '0',
+            rawContent: '<chunk>chunk</chunk>',
+            similarity: '0.1',
+            source: 'file.txt',
+          },
+        ],
+        modelId: 'gemini-2.5-pro',
+        modelRuntime: {} as any,
+        query: 'query',
+      });
+
+      expect(result.isValid).toBe(true);
+      expect(verifySpy).toHaveBeenCalled();
+      expect(verifySpy.mock.calls[0][0].modelId).toBe('gemini-2.5-flash-lite');
     });
 
     it('should fallback to FAST if evaluate fails', async () => {

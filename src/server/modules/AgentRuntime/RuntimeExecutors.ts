@@ -339,7 +339,17 @@ export const createRuntimeExecutors = (
       }
 
       // Initialize ModelRuntime (read user's keyVaults from database)
-      const modelRuntime = await initModelRuntimeFromDB(ctx.serverDB, ctx.userId!, provider);
+      const knowledgeIds = ctx.agentConfig?.knowledgeBases
+        ?.filter((kb: { enabled?: boolean | null }) => kb.enabled === true)
+        .map((kb: { id?: string }) => kb.id)
+        .filter(Boolean);
+
+      const modelRuntime = await initModelRuntimeFromDB(
+        ctx.serverDB,
+        ctx.userId!,
+        provider,
+        knowledgeIds,
+      );
 
       // Construct ChatStreamPayload
       const stream = ctx.stream ?? true;

@@ -3,8 +3,12 @@ import { type ModelRuntime, safeParseJSON } from '@lobechat/model-runtime';
 import { intelligentRoutingSystemPrompt, intelligentRoutingUserPrompt } from '@lobechat/prompts';
 import debug from 'debug';
 
+import { withRateLimitRetry } from '@/utils/retryPolicy';
+
 import { AgenticNavigatorService } from './AgenticNavigatorService';
 import { AgenticVerifierService } from './AgenticVerifierService';
+import { ChunkManager } from './ChunkManager';
+import type { ModelRoute } from './types';
 
 const log = debug('lobechat:model-router');
 
@@ -15,12 +19,6 @@ export const JEMMIA_MODELS = {
 };
 
 export type JemmiaMode = 'auto' | 'fast' | 'thinking' | 'expert' | (string & {});
-
-export interface ModelRoute {
-  model: string;
-  provider: string;
-  reason?: string;
-}
 
 export class ModelRouterService {
   private static readonly JEMMIA_PROVIDER = 'jemmia';
@@ -50,50 +48,38 @@ export class ModelRouterService {
     try {
       log('Evaluating intelligent routing...');
 
-      // 1. Context Analysis: Check for RAG context in system prompt
-      const systemMessage = messages.find((m) => m.role === 'system');
-      const systemContent = typeof systemMessage?.content === 'string' ? systemMessage.content : '';
-      const containsChunks = systemContent.includes('<chunk') && systemContent.includes('</chunk>');
+      // 1. Context Analysis: Check for RAG context across all messages (System, Tool, etc.)
+      const allChunks = ChunkManager.extractAllChunks(messages);
 
       // 2. Navigation Phase: If RAG chunks are present, perform hierarchical filtering
-      if (containsChunks) {
-        const chunks = this.extractChunks(systemContent);
+      if (allChunks.length > 0) {
+        console.info(
+          `[Jemmora Routing] RAG Chunks detected (${allChunks.length}). Starting Agentic Navigator...`,
+        );
+        const userMessage = messages.findLast((m) => m.role === 'user');
+        const query =
+          typeof userMessage?.content === 'string' ? userMessage.content : 'unknown query';
 
-        if (chunks.length > 0) {
-          console.info(
-            `[Jemmora Routing] RAG Chunks detected (${chunks.length}). Starting Agentic Navigator...`,
-          );
-          const userMessage = messages.findLast((m) => m.role === 'user');
-          const query =
-            typeof userMessage?.content === 'string' ? userMessage.content : 'unknown query';
+        const navigation = await AgenticNavigatorService.navigateChunks({
+          chunks: allChunks,
+          modelRuntime,
+          models: JEMMIA_MODELS,
+          query,
+        });
 
-          const navigation = await AgenticNavigatorService.navigateChunks({
-            chunks,
-            modelRuntime,
-            models: JEMMIA_MODELS,
-            query,
-          });
+        // Re-construct messages with narrowed context via ChunkManager
+        const navigatedMessages = ChunkManager.rebuildMessages(
+          messages,
+          allChunks,
+          navigation.relevantChunkIds,
+        );
 
-          // Re-construct system prompt with narrowed context
-          const filteredSystemContent = this.rebuildSystemPrompt(
-            systemContent,
-            chunks,
-            navigation.relevantChunkIds,
-          );
-
-          const navigatedMessages = messages.map((m) =>
-            m === systemMessage ? { ...m, content: filteredSystemContent } : m,
-          );
-
-          return {
-            messages: navigatedMessages,
-            model: navigation.modelId,
-            provider: this.JEMMIA_PROVIDER,
-            reason: `agentic-navigation: ${navigation.relevantChunkIds.length}/${chunks.length} chunks`,
-          };
-        } else {
-          console.info('[Jemmora Routing] No valid RAG chunks extracted from system prompt.');
-        }
+        return {
+          messages: navigatedMessages,
+          model: navigation.modelId,
+          provider: this.JEMMIA_PROVIDER,
+          reason: `agentic-navigation: ${navigation.relevantChunkIds.length}/${allChunks.length} chunks`,
+        };
       }
 
       // 3. Triage Phase: General intent routing using the FAST tier model
@@ -112,37 +98,42 @@ export class ModelRouterService {
         `[Jemmora Routing] Triage Metrics: ${totalTokens} tokens, ${totalFiles} files. Selecting tier...`,
       );
 
-      const result = await modelRuntime.generateObject({
-        messages: [
-          { content: intelligentRoutingSystemPrompt, role: 'system' },
-          {
-            content: intelligentRoutingUserPrompt(messages, tools, {
-              files: totalFiles,
-              tokens: totalTokens,
-            }),
-            role: 'user',
-          },
-        ],
-        model: JEMMIA_MODELS.FAST,
-        schema: {
-          name: 'intelligent_routing',
-          schema: {
-            properties: {
-              modelId: {
-                description: 'The selected model ID',
-                enum: Object.values(JEMMIA_MODELS),
-                type: 'string',
+      const result = await withRateLimitRetry(
+        () =>
+          modelRuntime.generateObject({
+            messages: [
+              { content: intelligentRoutingSystemPrompt, role: 'system' },
+              {
+                content: intelligentRoutingUserPrompt(messages, tools, {
+                  files: totalFiles,
+                  tokens: totalTokens,
+                }),
+                role: 'user',
               },
-              scratchpad: {
-                description: 'Reasoning for the triage decision',
-                type: 'string',
+            ],
+            model: JEMMIA_MODELS.FAST,
+            schema: {
+              name: 'intelligent_routing',
+              schema: {
+                properties: {
+                  modelId: {
+                    description: 'The selected model ID',
+                    enum: Object.values(JEMMIA_MODELS),
+                    type: 'string',
+                  },
+                  scratchpad: {
+                    description: 'Reasoning for the triage decision',
+                    type: 'string',
+                  },
+                },
+                required: ['modelId', 'scratchpad'],
+                type: 'object',
               },
             },
-            required: ['modelId', 'scratchpad'],
-            type: 'object',
-          },
-        },
-      });
+          }),
+        3,
+        '[Router Triage]',
+      );
 
       let modelId: string | undefined;
       let scratchpad: string | undefined;
@@ -204,11 +195,16 @@ export class ModelRouterService {
     }
 
     log('Triggering Agentic Verifier for automated reasoning response...');
-    return AgenticVerifierService.verifyAnswer({
-      ...rest,
-      modelId,
-      modelRuntime,
-    });
+    return withRateLimitRetry(
+      () =>
+        AgenticVerifierService.verifyAnswer({
+          ...rest,
+          modelId,
+          modelRuntime,
+        }),
+      3,
+      '[Verifier]',
+    );
   }
 
   /**
@@ -248,45 +244,5 @@ export class ModelRouterService {
       provider: this.JEMMIA_PROVIDER,
       reason: 'explicit-fallback',
     };
-  }
-
-  /**
-   * Helper to extract chunks from the XML-formatted system prompt
-   */
-  public static extractChunks(content: string): any[] {
-    const chunkRegex =
-      /<chunk\s+fileId="([^"]+)"\s+fileName="([^"]+)"\s+similarity="([^"]+)">([\s\S]*?)<\/chunk>/g;
-    const chunks = [];
-    let match;
-
-    while ((match = chunkRegex.exec(content)) !== null) {
-      chunks.push({
-        content: match[4],
-        fileId: match[1],
-        fileName: match[2],
-        id: chunks.length.toString(), // Assign numeric ID for the skimmer
-        rawContent: match[0], // Store the exact raw string for safe replacement later
-        similarity: match[3],
-        source: match[2],
-      });
-    }
-
-    return chunks;
-  }
-
-  private static rebuildSystemPrompt(
-    originalContent: string,
-    allChunks: any[],
-    selectedIds: string[],
-  ): string {
-    const chunkRegex =
-      /<chunk\s+fileId="([^"]+)"\s+fileName="([^"]+)"\s+similarity="([^"]+)">([\s\S]*?)<\/chunk>/g;
-
-    return originalContent
-      .replaceAll(chunkRegex, (match) => {
-        const chunk = allChunks.find((c) => c.rawContent === match);
-        return chunk && selectedIds.includes(chunk.id) ? match : '';
-      })
-      .trim();
   }
 }

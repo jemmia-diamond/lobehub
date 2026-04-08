@@ -2,25 +2,25 @@ import { type ModelRuntime, safeParseJSON } from '@lobechat/model-runtime';
 import { agenticSkimmerSystemPrompt, agenticSkimmerUserPrompt } from '@lobechat/prompts';
 import debug from 'debug';
 
-const log = debug('lobechat:agentic-navigator');
+import { withRateLimitRetry } from '@/utils/retryPolicy';
 
-export interface NavigatedContext {
-  modelId: string;
-  reasoning: string;
-  relevantChunkIds: string[];
-}
+import type { AgenticChunk, NavigatedContext } from './types';
+
+const log = debug('lobechat:agentic-navigator');
 
 export class AgenticNavigatorService {
   private static readonly MAX_DEPTH = 2;
+  private static readonly MAX_CHUNK_LENGTH = 2400;
+  private static readonly CHUNK_OVERLAP = 200;
 
   /**
    * Navigates through chunks using a hierarchical "drill-down" approach.
    * Based on the standard hierarchical 'Expert Document Navigator' pattern for long-context RAG.
    */
   public static async navigateChunks(params: {
-    chunks: any[];
-    models: { EXPERT: string; FAST: string; THINKING: string };
+    chunks: AgenticChunk[];
     modelRuntime: ModelRuntime;
+    models: { EXPERT: string; FAST: string; THINKING: string };
     query: string;
   }): Promise<NavigatedContext> {
     const { query, chunks, modelRuntime, models } = params;
@@ -44,8 +44,8 @@ export class AgenticNavigatorService {
 
     // Fallback: return all chunks if hierarchical navigation fails
     return {
-      modelId: models.THINKING,
-      reasoning: 'Navigation failed, falling back to all chunks.',
+      modelId: models.FAST,
+      reasoning: 'Navigation failed, falling back to all chunks with workhorse tier.',
       relevantChunkIds: chunks.map((c, i) => (c.id || i).toString()),
     };
   }
@@ -54,7 +54,7 @@ export class AgenticNavigatorService {
    * Internal recursive helper to refine chunk selection.
    */
   private static async navigateRecursive(params: {
-    chunks: any[];
+    chunks: AgenticChunk[];
     depth: number;
     modelRuntime: ModelRuntime;
     models: { EXPERT: string; FAST: string; THINKING: string };
@@ -62,45 +62,54 @@ export class AgenticNavigatorService {
     scratchpad: string;
   }): Promise<NavigatedContext> {
     const { query, chunks, modelRuntime, models, depth, scratchpad } = params;
+    const chunksForPrompt = this.prepareChunksForNavigation(chunks, depth);
 
-    console.info(`[Agentic Navigator] Depth ${depth}: Evaluating ${chunks.length} chunks...`);
+    console.info(
+      `[Agentic Navigator] Depth ${depth}: Evaluating ${chunksForPrompt.length} chunks...`,
+    );
 
-    const result = await modelRuntime.generateObject({
-      messages: [
-        { content: agenticSkimmerSystemPrompt(query), role: 'system' },
-        {
-          content: `${scratchpad ? `REASONING SO FAR:\n${scratchpad}\n\n` : ''}${agenticSkimmerUserPrompt(
-            chunks.map((c) => ({ ...c, content: c.content?.slice(0, 10000) })),
-          )}`,
-          role: 'user',
-        },
-      ],
-      model: models.FAST,
-      schema: {
-        name: 'agentic_skimmer',
-        schema: {
-          properties: {
-            modelId: {
-              description:
-                'Selected model tier for final synthesis. Use THINKING for standard retrieval-augmented answers and EXPERT for complex analysis.',
-              enum: [models.THINKING, models.EXPERT],
-              type: 'string',
+    const result = await withRateLimitRetry(
+      () =>
+        modelRuntime.generateObject({
+          messages: [
+            { content: agenticSkimmerSystemPrompt(query), role: 'system' },
+            {
+              content: `${scratchpad ? `REASONING SO FAR:\n${scratchpad}\n\n` : ''}${agenticSkimmerUserPrompt(
+                chunksForPrompt.map((c) => ({ ...c, content: c.content?.slice(0, 10000) })),
+              )}`,
+              role: 'user',
             },
-            relevantChunkIds: {
-              description: 'The IDs of the context chunks required to answer the query accurately.',
-              items: { type: 'string' },
-              type: 'array',
-            },
-            scratchpad: {
-              description: 'Step-by-step reasoning for chunk selection and model tier choice.',
-              type: 'string',
+          ],
+          model: models.FAST,
+          schema: {
+            name: 'agentic_skimmer',
+            schema: {
+              properties: {
+                modelId: {
+                  description:
+                    'Selected model tier for final synthesis. Use FAST for standard workhorse tasks, THINKING for high-quality RAG answers, and EXPERT for complex analysis.',
+                  enum: [models.FAST, models.THINKING, models.EXPERT],
+                  type: 'string',
+                },
+                relevantChunkIds: {
+                  description:
+                    'The IDs of the context chunks required to answer the query accurately.',
+                  items: { type: 'string' },
+                  type: 'array',
+                },
+                scratchpad: {
+                  description: 'Step-by-step reasoning for chunk selection and model tier choice.',
+                  type: 'string',
+                },
+              },
+              required: ['scratchpad', 'relevantChunkIds', 'modelId'],
+              type: 'object',
             },
           },
-          required: ['scratchpad', 'relevantChunkIds', 'modelId'],
-          type: 'object',
-        },
-      },
-    });
+        }),
+      3,
+      '[Navigator Skimmer]',
+    );
 
     // Use defensive JSON extraction to handle potential LLM conversational filler
     const parsed = safeParseJSON<{
@@ -114,10 +123,13 @@ export class AgenticNavigatorService {
     }
 
     const { relevantChunkIds, scratchpad: newScratchpad, modelId } = parsed;
-    const selectedChunks = chunks.filter((c) => relevantChunkIds.includes(c.id));
+    const selectedChunks = chunksForPrompt.filter((c) => relevantChunkIds.includes(c.id));
+    const normalizedChunkIds = Array.from(
+      new Set(selectedChunks.map((chunk) => chunk.parentId ?? chunk.id)),
+    );
 
     console.info(
-      `[Agentic Navigator] Depth ${depth}: LLM selected ${selectedChunks.length} chunks. Next tier: ${modelId}. Reasoning: ${newScratchpad.slice(0, 100)}...`,
+      `[Agentic Navigator] Depth ${depth}: LLM selected ${selectedChunks.length} chunks (mapped to ${normalizedChunkIds.length} original chunks). Next tier: ${modelId}. Reasoning: ${newScratchpad.slice(0, 100)}...`,
     );
 
     log(`[Navigator Depth ${depth}] Selected ${selectedChunks.length} chunks.`);
@@ -127,7 +139,7 @@ export class AgenticNavigatorService {
       return {
         modelId,
         reasoning: newScratchpad,
-        relevantChunkIds,
+        relevantChunkIds: normalizedChunkIds,
       };
     }
 
@@ -139,5 +151,55 @@ export class AgenticNavigatorService {
       query,
       scratchpad: newScratchpad,
     });
+  }
+
+  private static prepareChunksForNavigation(chunks: AgenticChunk[], depth: number): AgenticChunk[] {
+    if (depth >= this.MAX_DEPTH || chunks.length <= 8) {
+      return chunks;
+    }
+
+    return chunks.flatMap((chunk) => {
+      const segments = this.splitTextIntoChunks(
+        chunk.content,
+        this.MAX_CHUNK_LENGTH,
+        this.CHUNK_OVERLAP,
+      );
+      if (segments.length <= 1) {
+        return chunk;
+      }
+
+      return segments.map((segment, index) => ({
+        ...chunk,
+        id: `${chunk.id}-${depth}-${index}`,
+        parentId: chunk.parentId || chunk.id,
+        content: segment,
+      }));
+    });
+  }
+
+  private static splitTextIntoChunks(text: string, maxSize: number, overlap: number): string[] {
+    const normalizedText = text.trim();
+    if (normalizedText.length <= maxSize) return [normalizedText];
+
+    const chunks: string[] = [];
+    let start = 0;
+
+    while (start < normalizedText.length) {
+      let end = Math.min(start + maxSize, normalizedText.length);
+      if (end < normalizedText.length) {
+        const boundary = Math.max(
+          normalizedText.lastIndexOf('\n', end),
+          normalizedText.lastIndexOf(' ', end),
+        );
+        if (boundary > start) {
+          end = boundary;
+        }
+      }
+
+      chunks.push(normalizedText.slice(start, end).trim());
+      start = Math.max(end - overlap, end);
+    }
+
+    return chunks;
   }
 }
