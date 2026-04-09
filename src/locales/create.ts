@@ -86,7 +86,7 @@ export const createI18nNext = (lang?: string) => {
         // Preload default language (vi-VN) synchronously to avoid Suspense on first render
         resources: {
           ...bundledLanguageResources,
-        },
+        } as any,
         // Keep backend loading enabled for namespaces that are not preloaded above.
         partialBundledLanguages: true,
 

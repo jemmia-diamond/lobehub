@@ -14,13 +14,13 @@ describe('PluginStore', () => {
 
   it('should return the index URL for a supported language', () => {
     const pluginStore = new PluginStore(baseURL);
-    const url = pluginStore.getPluginIndexUrl('en-US');
-    expect(url).toBe(`${baseURL}/index.en-US.json`);
+    const url = pluginStore.getPluginIndexUrl('vi-VN');
+    expect(url).toBe(`${baseURL}/index.vi-VN.json`);
   });
 
   it('should return the base URL if the provided language is not supported', () => {
     const pluginStore = new PluginStore(baseURL);
-    const url = pluginStore.getPluginIndexUrl('fr-FR');
-    expect(url).toBe(`${baseURL}/index.fr-FR.json`);
+    const url = pluginStore.getPluginIndexUrl('vi-VN');
+    expect(url).toBe(`${baseURL}/index.vi-VN.json`);
   });
 });

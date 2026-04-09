@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { userService } from '@/services/user';
 import { useChatStore } from '@/store/chat';
 
-type ModeKey = 'fast' | 'deep' | 'expert';
+type ModeKey = 'auto' | 'fast' | 'deep' | 'expert';
 
 interface ModeSelectionProps {
   activeMode?: ModeKey | null;
@@ -163,6 +163,7 @@ const ModeSelection = memo<ModeSelectionProps>(({ activeMode = 'deep', onChangeM
     // Map mode to different ranges of questions
     // Since we have at least 6 questions per department and 40 general questions
     const rangeMap: Record<ModeKey, number[]> = {
+      auto: [1, 2, 3],
       deep: [4, 5, 6],
       expert: [7, 8, 9],
       fast: [1, 2, 3],
