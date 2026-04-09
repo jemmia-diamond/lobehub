@@ -94,9 +94,9 @@ export class ActionTagPlugin {
 
     // Read <skill>, <tool>, and legacy <action> tags
     const readSkill = (xmlElement: any): SerializedActionTagNode => ({
-      actionCategory: (xmlElement.getAttribute('category') || 'skill') as ActionTagCategory,
+      actionCategory: 'skill',
       actionLabel: xmlElement.getAttribute('label') || '',
-      actionType: (xmlElement.getAttribute('type') || 'translate') as ActionTagType,
+      actionType: (xmlElement.getAttribute('name') || '') as ActionTagType,
       type: ActionTagNode.getType(),
       version: 1,
     });
