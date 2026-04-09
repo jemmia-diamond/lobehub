@@ -28,6 +28,8 @@ export const JEMMORA_KB_NAME = 'Jemmia Diamond Knowledge';
  * Automatically scans packages/knowledge-seed/ at startup,
  * creates RAG indices for Markdown, PDF, and DOCX files, and links them to the Default Agent.
  */
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export class KnowledgeBootstrapService {
   private userId: string = '';
   private currentUserId?: string;
@@ -74,6 +76,7 @@ export class KnowledgeBootstrapService {
         .filter((f) => f.endsWith('.md') || f.endsWith('.pdf') || f.endsWith('.docx'));
       for (const filename of seedFiles) {
         await this.syncSeedFile(db, path.join(seedDir, filename), kbId);
+        await sleep(500);
       }
 
       console.info(`[KnowledgeBootstrap] Global Knowledge ready (KB ID: ${kbId})`);
@@ -310,15 +313,18 @@ export class KnowledgeBootstrapService {
     console.info(`[KnowledgeBootstrap] Generating embeddings using ServerEmbeddingService...`);
     const embeddingDbModel = new EmbeddingModel(db, this.userId);
 
-    // Process chunks in batches for efficiency
-    const BATCH_SIZE = 10;
+    // Smaller batch size to reduce tokens-per-request and avoid hitting TPM quota
+    const BATCH_SIZE = 5;
     for (let i = 0; i < savedChunks.length; i += BATCH_SIZE) {
       const batch = savedChunks.slice(i, i + BATCH_SIZE);
+      const batchIndex = Math.floor(i / BATCH_SIZE) + 1;
+      const totalBatches = Math.ceil(savedChunks.length / BATCH_SIZE);
 
-      const embeddings = await ServerEmbeddingService.generateEmbeddings(
+      const embeddings = await this.embedWithBackoff(
         batch.map((c) => c.text ?? ''),
         db,
-        this.userId,
+        batchIndex,
+        totalBatches,
       );
 
       if (!embeddings || embeddings.length === 0) continue;
@@ -329,7 +335,56 @@ export class KnowledgeBootstrapService {
           embeddings: embeddings[index],
         })),
       );
+
+      // Proactive throttle between batches to stay under TPM quota
+      if (i + BATCH_SIZE < savedChunks.length) {
+        await sleep(500);
+      }
     }
+  }
+
+  /**
+   * Wraps ServerEmbeddingService.generateEmbeddings with exponential backoff
+   * to gracefully handle 429 Rate Limit errors from the Gemini Embedding API.
+   */
+  private async embedWithBackoff(
+    texts: string[],
+    db: any,
+    batchIndex: number,
+    totalBatches: number,
+    maxRetries = 5,
+  ): Promise<number[][] | null> {
+    const BASE_DELAY_MS = 10_000; // 10s base — quota window is per-minute
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await ServerEmbeddingService.generateEmbeddings(texts, db, this.userId);
+        return result;
+      } catch (error: any) {
+        const is429 =
+          error?.statusCode === 429 ||
+          error?.message?.includes('429') ||
+          error?.message?.toLowerCase().includes('quota exceeded') ||
+          error?.message?.toLowerCase().includes('resource_exhausted');
+
+        if (!is429 || attempt === maxRetries) {
+          console.error(
+            `[KnowledgeBootstrap] Embedding failed (batch ${batchIndex}/${totalBatches}, attempt ${attempt}):`,
+            error?.message ?? error,
+          );
+          return null;
+        }
+
+        const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1); // 10s, 20s, 40s, 80s, 160s
+        console.warn(
+          `[KnowledgeBootstrap] Rate limited (429) on batch ${batchIndex}/${totalBatches}. ` +
+            `Retrying in ${delay / 1000}s... (attempt ${attempt}/${maxRetries})`,
+        );
+        await sleep(delay);
+      }
+    }
+
+    return null;
   }
 
   private generateHash(content: Buffer): string {

@@ -3,6 +3,7 @@ import {
   ILitexmlService,
   IMarkdownShortCutService,
 } from '@lobehub/editor';
+// @ts-ignore
 import type { IEditorPlugin } from '@lobehub/editor/es/types/kernel';
 import type { LexicalEditor, LexicalNode } from 'lexical';
 

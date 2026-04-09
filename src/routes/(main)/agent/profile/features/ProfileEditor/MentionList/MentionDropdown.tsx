@@ -1,3 +1,4 @@
+// @ts-ignore
 import { type MenuRenderProps } from '@lobehub/editor/es/plugins/slash/react/type';
 import { Flexbox } from '@lobehub/ui';
 import { cssVar } from 'antd-style';
