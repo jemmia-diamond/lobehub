@@ -2,6 +2,7 @@ import type { SearchParams, SearchQuery } from '@lobechat/types';
 import { type Crawler, type CrawlImplType, type CrawlUniformResult } from '@lobechat/web-crawler';
 import pMap from 'p-map';
 
+import { fileEnv } from '@/envs/file';
 import { toolsEnv } from '@/envs/tools';
 import { FileS3 } from '@/server/modules/S3';
 
@@ -24,15 +25,15 @@ const parseImplEnv = (envString: string = '') => {
 export class SearchService {
   private searchImpList: SearchServiceImpl[];
 
-  private get crawlerImpls() {
+  private get crawlerImpls(): string[] {
     return parseImplEnv(toolsEnv.CRAWLER_IMPLS);
   }
 
-  private get crawlConcurrency() {
+  private get crawlConcurrency(): number {
     return toolsEnv.CRAWL_CONCURRENCY ?? DEFAULT_CRAWL_CONCURRENCY;
   }
 
-  private get crawlerRetry() {
+  private get crawlerRetry(): number {
     return toolsEnv.CRAWLER_RETRY ?? DEFAULT_CRAWLER_RETRY;
   }
 
@@ -69,8 +70,17 @@ export class SearchService {
     let lastError: Error | undefined;
 
     // A. Intercept S3/R2 URLs
-    const s3Endpoint = process.env.S3_ENDPOINT;
-    const isS3Url = s3Endpoint && url.includes(new URL(s3Endpoint).host);
+    const s3Endpoint = fileEnv.S3_ENDPOINT;
+    let isS3Url = false;
+    try {
+      if (s3Endpoint) {
+        const urlHost = new URL(url).host;
+        const s3Host = new URL(s3Endpoint).host;
+        isS3Url = urlHost === s3Host;
+      }
+    } catch {
+      isS3Url = false;
+    }
 
     if (isS3Url) {
       try {
@@ -79,8 +89,8 @@ export class SearchService {
         let key = urlObj.pathname.startsWith('/') ? urlObj.pathname.slice(1) : urlObj.pathname;
 
         // Path style support (bucket name in path)
-        if (process.env.S3_ENABLE_PATH_STYLE === '1' && process.env.S3_BUCKET) {
-          const bucketPrefix = `${process.env.S3_BUCKET}/`;
+        if (fileEnv.S3_ENABLE_PATH_STYLE && fileEnv.S3_BUCKET) {
+          const bucketPrefix = `${fileEnv.S3_BUCKET}/`;
           if (key.startsWith(bucketPrefix)) {
             key = key.slice(bucketPrefix.length);
           }
