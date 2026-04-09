@@ -14,7 +14,7 @@ export const getAntdLocale = async (lang?: string) => {
 
   // And we don't want to handle it in `normalizeLocale` function
   // because of other locale files are all `ar` not `ar-EG`
-  if (normalLang === 'ar') normalLang = 'ar-EG';
+  if (normalLang === 'vi-VN') normalLang = 'vi-VN';
 
   const { default: locale } = await import(`antd/locale/${normalLang.replace('-', '_')}.js`);
 

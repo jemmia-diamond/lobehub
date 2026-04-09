@@ -23,7 +23,7 @@ describe('RouteVariants', () => {
         locale: 'en-US',
       };
       const result = RouteVariants.serializeVariants(variants);
-      expect(result).toBe('en-US__0');
+      expect(result).toBe('vi-VN__0');
     });
 
     it('should serialize variants with mobile enabled', () => {

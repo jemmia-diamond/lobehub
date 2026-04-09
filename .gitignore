@@ -97,6 +97,7 @@ robots.txt
 
 # Documents and media
 *.pdf
+!packages/knowledge-seed/**/*.pdf
 
 # Cloud service keys
 vertex-ai-key.json
@@ -126,7 +127,9 @@ scripts/clerk-to-betterauth/prod/*.json
 # Misc
 ./packages/lobe-ui
 *.ppt*
+!packages/knowledge-seed/**/*.ppt*
 *.doc*
+!packages/knowledge-seed/**/*.doc*
 *.xls*
 e2e/reports
 out

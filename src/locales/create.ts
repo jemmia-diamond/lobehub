@@ -77,19 +77,27 @@ export const createI18nNext = (lang?: string) => {
         debug: debugMode,
         defaultNS: ['error', 'common', 'chat'],
         fallbackLng: DEFAULT_LANG,
+        initAsync,
+        // Keep init synchronous so components can render with bundled vi-VN resources
+        // before the user's actual language finishes loading in the background.
+        ns: [],
+
+        // Preload default language (vi-VN) synchronously to avoid Suspense on first render
+        resources: {
+          ...bundledLanguageResources,
+        } as any,
+        // Keep backend loading enabled for namespaces that are not preloaded above.
+        partialBundledLanguages: true,
+
         interpolation: {
           escapeValue: false,
         },
-        initAsync,
         keySeparator: false,
         lng: initialLang,
-        ns: [],
-        partialBundledLanguages: true,
         react: {
           bindI18nStore: 'added',
           useSuspense: false,
         },
-        resources: bundledLanguageResources,
       });
 
       if (initialLang !== DEFAULT_LANG) {
