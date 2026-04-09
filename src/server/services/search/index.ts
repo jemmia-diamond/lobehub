@@ -1,8 +1,9 @@
 import type { SearchParams, SearchQuery } from '@lobechat/types';
-import type { Crawler, CrawlImplType, CrawlUniformResult } from '@lobechat/web-crawler';
+import { type Crawler, type CrawlImplType, type CrawlUniformResult } from '@lobechat/web-crawler';
 import pMap from 'p-map';
 
 import { toolsEnv } from '@/envs/tools';
+import { FileS3 } from '@/server/modules/S3';
 
 import { type SearchImplType, type SearchServiceImpl } from './impls';
 import { createSearchServiceImpl } from './impls';
@@ -67,6 +68,44 @@ export class SearchService {
     let lastResult: CrawlUniformResult | undefined;
     let lastError: Error | undefined;
 
+    // A. Intercept S3/R2 URLs
+    const s3Endpoint = process.env.S3_ENDPOINT;
+    const isS3Url = s3Endpoint && url.includes(new URL(s3Endpoint).host);
+
+    if (isS3Url) {
+      try {
+        const s3 = new FileS3();
+        const urlObj = new URL(url);
+        let key = urlObj.pathname.startsWith('/') ? urlObj.pathname.slice(1) : urlObj.pathname;
+
+        // Path style support (bucket name in path)
+        if (process.env.S3_ENABLE_PATH_STYLE === '1' && process.env.S3_BUCKET) {
+          const bucketPrefix = `${process.env.S3_BUCKET}/`;
+          if (key.startsWith(bucketPrefix)) {
+            key = key.slice(bucketPrefix.length);
+          }
+        }
+
+        const rawKey = decodeURIComponent(key);
+        console.info(`[SearchService] Crawling private S3 key: ${rawKey}`);
+        const content = await s3.getFileContent(rawKey);
+
+        return {
+          crawler: 's3',
+          data: {
+            content,
+            contentType: 'text',
+            title: rawKey.split('/').pop() || 'S3 Object',
+          },
+          originalUrl: url,
+        };
+      } catch (e) {
+        console.warn(`[SearchService] Failed to crawl S3 URL ${url}:`, e);
+        // Fallthrough to standard crawler if S3 fails
+      }
+    }
+
+    // B. Standard Web Crawler
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         const result = await crawler.crawl({ impls, url });

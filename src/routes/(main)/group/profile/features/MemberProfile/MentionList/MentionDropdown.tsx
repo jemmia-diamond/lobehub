@@ -1,5 +1,4 @@
-// @ts-ignore
-import { type MenuRenderProps } from '@lobehub/editor/es/plugins/slash/react/type';
+import { type MenuRenderProps } from '@lobehub/editor';
 import { Flexbox } from '@lobehub/ui';
 import { cssVar } from 'antd-style';
 import { type ReactNode } from 'react';
