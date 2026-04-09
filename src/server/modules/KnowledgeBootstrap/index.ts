@@ -26,7 +26,7 @@ export const JEMMORA_KB_NAME = 'Jemmia Diamond Knowledge';
  * KnowledgeBootstrapService
  *
  * Automatically scans packages/knowledge-seed/ at startup,
- * creates RAG indices for Markdown files, and links them to the Default Agent.
+ * creates RAG indices for Markdown, PDF, and DOCX files, and links them to the Default Agent.
  */
 export class KnowledgeBootstrapService {
   private userId: string = '';
@@ -68,10 +68,12 @@ export class KnowledgeBootstrapService {
       const kbId = await this.ensureKnowledgeBase(db, true);
       KnowledgeBootstrapService.globalKbId = kbId;
 
-      // 3. Scan and Ingest Markdown Files
-      const mdFiles = fs.readdirSync(seedDir).filter((f) => f.endsWith('.md'));
-      for (const filename of mdFiles) {
-        await this.syncMarkdownFile(db, path.join(seedDir, filename), kbId);
+      // 3. Scan and Ingest Seed Files
+      const seedFiles = fs
+        .readdirSync(seedDir)
+        .filter((f) => f.endsWith('.md') || f.endsWith('.pdf') || f.endsWith('.docx'));
+      for (const filename of seedFiles) {
+        await this.syncSeedFile(db, path.join(seedDir, filename), kbId);
       }
 
       console.info(`[KnowledgeBootstrap] Global Knowledge ready (KB ID: ${kbId})`);
@@ -200,12 +202,9 @@ export class KnowledgeBootstrapService {
     return id;
   }
 
-  private async syncMarkdownFile(
-    db: any,
-    filePath: string,
-    kbId: string,
-  ): Promise<string | undefined> {
+  private async syncSeedFile(db: any, filePath: string, kbId: string): Promise<string | undefined> {
     const filename = path.basename(filePath);
+    const fileType = this.getMimeType(filename);
     const content = fs.readFileSync(filePath);
     const fileHash = this.generateHash(content);
 
@@ -241,7 +240,7 @@ export class KnowledgeBootstrapService {
     if (!existingGlobal) {
       await db.insert(globalFiles).values({
         creator: this.userId,
-        fileType: 'text/markdown',
+        fileType,
         hashId: fileHash,
         size: content.length,
         url: `local://${filename}`, // Placeholder for internal seed files
@@ -254,7 +253,7 @@ export class KnowledgeBootstrapService {
     const fileId = uuidv4();
     await db.insert(files).values({
       fileHash,
-      fileType: 'text/markdown',
+      fileType,
       id: fileId,
       name: filename,
       size: content.length,
@@ -271,7 +270,7 @@ export class KnowledgeBootstrapService {
 
     // 3. Process RAG (Chunking + Embedding)
     try {
-      await this.processRAG(db, fileId, filename, content);
+      await this.processRAG(db, fileId, filename, content, fileType);
       return fileId;
     } catch (error) {
       console.error(`[KnowledgeBootstrap] RAG processing failed for ${filename}:`, error);
@@ -279,13 +278,19 @@ export class KnowledgeBootstrapService {
     }
   }
 
-  private async processRAG(db: any, fileId: string, filename: string, content: Buffer) {
+  private async processRAG(
+    db: any,
+    fileId: string,
+    filename: string,
+    content: Buffer,
+    fileType: string,
+  ) {
     // A. Chunking
     const chunker = new ContentChunk();
     const { chunks: chunkItems } = await chunker.chunkContent({
       content: new Uint8Array(content),
       filename,
-      fileType: 'text/markdown',
+      fileType,
     });
 
     if (chunkItems.length === 0) return;
@@ -330,5 +335,20 @@ export class KnowledgeBootstrapService {
   private generateHash(content: Buffer): string {
     const crypto = require('node:crypto');
     return crypto.createHash('sha256').update(content).digest('hex');
+  }
+
+  private getMimeType(filename: string): string {
+    const ext = path.extname(filename).toLowerCase();
+    switch (ext) {
+      case '.pdf': {
+        return 'application/pdf';
+      }
+      case '.docx': {
+        return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      }
+      default: {
+        return 'text/markdown';
+      }
+    }
   }
 }
