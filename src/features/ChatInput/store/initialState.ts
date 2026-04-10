@@ -13,6 +13,7 @@ export type SendButtonHandler = (params: {
 }) => Promise<void> | void;
 
 export interface SendButtonProps {
+  className?: string;
   disabled?: boolean;
   generating: boolean;
   onStop: (params: { editor: IEditor }) => void;

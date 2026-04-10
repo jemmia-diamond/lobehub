@@ -8,11 +8,15 @@ const SendButton = memo(() => {
   const sendMenu = useChatInputStore((s) => s.sendMenu);
   const shape = useChatInputStore((s) => s.sendButtonProps?.shape);
   const size = useChatInputStore((s) => s.sendButtonProps?.size);
+  const className = useChatInputStore((s) => s.sendButtonProps?.className);
   const { generating, disabled } = useChatInputStore(selectors.sendButtonProps, isEqual);
   const [send, handleStop] = useChatInputStore((s) => [s.handleSendButton, s.handleStop]);
 
+  const finalClassName = [className, generating && 'is-generating'].filter(Boolean).join(' ');
+
   return (
     <Send
+      className={finalClassName || undefined}
       disabled={disabled}
       generating={generating}
       menu={sendMenu as any}
