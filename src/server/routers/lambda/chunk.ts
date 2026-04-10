@@ -270,8 +270,12 @@ export const chunkRouter = router({
           topK: input.topK,
         });
 
+        console.info(
+          `[SemanticSearchForChat] Search complete. Files: ${finalFileIds.length} | Chunks Found: ${chunks.length}`,
+        );
+
         // Group chunks by file and calculate relevance scores
-        const fileResults = groupAndRankFiles(chunks, input.topK || 15);
+        const fileResults = groupAndRankFiles(chunks, input.topK || 30);
 
         // TODO: need to rerank the chunks
 

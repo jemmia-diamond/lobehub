@@ -1,7 +1,10 @@
 import { calculateMessageTokens } from '@lobechat/agent-runtime';
-import { type ModelRuntime } from '@lobechat/model-runtime';
+import { type ModelRuntime, safeParseJSON } from '@lobechat/model-runtime';
 import { intelligentRoutingSystemPrompt, intelligentRoutingUserPrompt } from '@lobechat/prompts';
 import debug from 'debug';
+
+import { AgenticNavigatorService } from './AgenticNavigatorService';
+import { AgenticVerifierService } from './AgenticVerifierService';
 
 const log = debug('lobechat:model-router');
 
@@ -16,6 +19,7 @@ export type JemmiaMode = 'auto' | 'fast' | 'thinking' | 'expert' | (string & {})
 export interface ModelRoute {
   model: string;
   provider: string;
+  reason?: string;
 }
 
 export class ModelRouterService {
@@ -25,7 +29,7 @@ export class ModelRouterService {
     return provider === this.JEMMIA_PROVIDER;
   }
 
-  public static isJemmiaModeOrModel(input: string): boolean {
+  public static isRoutingModeOrModel(input: string): boolean {
     const i = input.toLowerCase();
     return (
       i === 'auto' ||
@@ -40,16 +44,84 @@ export class ModelRouterService {
     messages: any[];
     modelRuntime: ModelRuntime;
     tools: any[];
-  }): Promise<ModelRoute> {
+  }): Promise<ModelRoute & { messages?: any[] }> {
     const { messages, tools, modelRuntime } = params;
 
     try {
       log('Evaluating intelligent routing...');
 
+      // 1. Context Analysis: Check for RAG context in system prompt
+      const systemMessage = messages.find((m) => m.role === 'system');
+      const systemContent = typeof systemMessage?.content === 'string' ? systemMessage.content : '';
+      const containsChunks = systemContent.includes('<chunk') && systemContent.includes('</chunk>');
+
+      // 2. Navigation Phase: If RAG chunks are present, perform hierarchical filtering
+      if (containsChunks) {
+        const chunks = this.extractChunks(systemContent);
+
+        if (chunks.length > 0) {
+          console.info(
+            `[Jemmora Routing] RAG Chunks detected (${chunks.length}). Starting Agentic Navigator...`,
+          );
+          const userMessage = messages.findLast((m) => m.role === 'user');
+          const query =
+            typeof userMessage?.content === 'string' ? userMessage.content : 'unknown query';
+
+          const navigation = await AgenticNavigatorService.navigateChunks({
+            chunks,
+            modelRuntime,
+            models: JEMMIA_MODELS,
+            query,
+          });
+
+          // Re-construct system prompt with narrowed context
+          const filteredSystemContent = this.rebuildSystemPrompt(
+            systemContent,
+            chunks,
+            navigation.relevantChunkIds,
+          );
+
+          const navigatedMessages = messages.map((m) =>
+            m === systemMessage ? { ...m, content: filteredSystemContent } : m,
+          );
+
+          return {
+            messages: navigatedMessages,
+            model: navigation.modelId,
+            provider: this.JEMMIA_PROVIDER,
+            reason: `agentic-navigation: ${navigation.relevantChunkIds.length}/${chunks.length} chunks`,
+          };
+        } else {
+          console.info('[Jemmora Routing] No valid RAG chunks extracted from system prompt.');
+        }
+      }
+
+      // 3. Triage Phase: General intent routing using the FAST tier model
+      const totalTokens = calculateMessageTokens(messages);
+      const totalFiles = messages.reduce((acc, m) => {
+        if (Array.isArray(m.content)) {
+          return (
+            acc +
+            (m.content as any[]).filter((c) => c.type === 'file' || c.type === 'image_url').length
+          );
+        }
+        return acc;
+      }, 0);
+
+      console.info(
+        `[Jemmora Routing] Triage Metrics: ${totalTokens} tokens, ${totalFiles} files. Selecting tier...`,
+      );
+
       const result = await modelRuntime.generateObject({
         messages: [
           { content: intelligentRoutingSystemPrompt, role: 'system' },
-          { content: intelligentRoutingUserPrompt(messages, tools), role: 'user' },
+          {
+            content: intelligentRoutingUserPrompt(messages, tools, {
+              files: totalFiles,
+              tokens: totalTokens,
+            }),
+            role: 'user',
+          },
         ],
         model: JEMMIA_MODELS.FAST,
         schema: {
@@ -61,117 +133,160 @@ export class ModelRouterService {
                 enum: Object.values(JEMMIA_MODELS),
                 type: 'string',
               },
+              scratchpad: {
+                description: 'Reasoning for the triage decision',
+                type: 'string',
+              },
             },
-            required: ['modelId'],
+            required: ['modelId', 'scratchpad'],
             type: 'object',
           },
         },
       });
 
-      let modelId = (result as any)?.modelId;
+      let modelId: string | undefined;
+      let scratchpad: string | undefined;
 
-      // Fallback for cases where generateObject returns a string or malformed JSON
-      if (!modelId && typeof result === 'string') {
-        const match = result.match(/gemini-2\.5-(pro|flash-lite|flash)/);
+      // Handle structured output or defensive JSON extraction
+      const parsed = safeParseJSON<{ modelId: string; scratchpad: string }>(result);
+      if (!parsed) {
+        console.error(`[Jemmora Routing] Triage Parse FAILED. Raw Result: ${result}`);
+      }
+      console.info(
+        `[Jemmora Routing] Triage Result: ${parsed?.modelId || 'FALLBACK: FAST'}. Scratchpad: ${parsed?.scratchpad || 'N/A'}`,
+      );
+
+      if (parsed) {
+        modelId = parsed.modelId;
+        scratchpad = parsed.scratchpad;
+      } else if (typeof result === 'string') {
+        const modelIds = Object.values(JEMMIA_MODELS).join('|').replaceAll('.', '\\.');
+        const match = result.match(new RegExp(`(${modelIds})`));
         if (match) modelId = match[0];
       }
 
       if (modelId) {
-        console.info(`[Jemmora Intelligent Routing] Selected Model: ${modelId}`);
-        return { model: modelId, provider: this.JEMMIA_PROVIDER };
+        log(`[Router Triage] Reasoning: ${scratchpad || 'N/A'}`);
+        log(`[Router Triage] Selected Model: ${modelId}`);
+        return { model: modelId, provider: this.JEMMIA_PROVIDER, reason: 'intelligent-routing' };
       }
     } catch (error) {
-      console.error(
-        '[Jemmora Intelligent Routing] Evaluation failed, falling back to resolve:',
-        error,
-      );
+      console.error('[Jemmora Routing] Evaluation failed, falling back to default:', error);
     }
 
-    return this.resolve({ messages, tools });
+    return {
+      model: JEMMIA_MODELS.FAST,
+      provider: this.JEMMIA_PROVIDER,
+      reason: 'fallback-gemini-fast',
+    };
   }
 
-  public static resolve(params: {
-    agentConfig?: any;
-    messages: any[];
-    tools: any[];
-    mode?: string;
-  }): ModelRoute {
-    const { messages, tools, mode = 'auto' } = params;
+  /**
+   * Triggers the verification phase for agentic responses.
+   */
+  public static async verify(params: {
+    answer: string;
+    chunks: any[];
+    modelId: string;
+    modelRuntime: ModelRuntime;
+    query: string;
+  }): Promise<any> {
+    const { modelId, modelRuntime, ...rest } = params;
+
+    // Skip verification for manually selected models or variants
+    if (
+      modelId === JEMMIA_MODELS.FAST ||
+      modelId === JEMMIA_MODELS.THINKING ||
+      modelId === JEMMIA_MODELS.EXPERT
+    ) {
+      log('Explicit mode detected. Skipping orchestration verification.');
+      return { issues: [], isValid: true };
+    }
+
+    log('Triggering Agentic Verifier for automated reasoning response...');
+    return AgenticVerifierService.verifyAnswer({
+      ...rest,
+      modelId,
+      modelRuntime,
+    });
+  }
+
+  /**
+   * Resolves explicit user-requested modes or models.
+   */
+  public static resolve(params: { messages?: any[]; mode?: string; tools?: any[] }): ModelRoute {
+    const { mode = 'auto' } = params;
     const requestedMode = mode.toLowerCase();
 
+    // Map UI modes to specific model identifiers
     if (requestedMode === 'fast' || requestedMode === JEMMIA_MODELS.FAST) {
-      console.info(`[Jemmora Mode] Mode: FAST → Model: ${JEMMIA_MODELS.FAST}`);
-      return { model: JEMMIA_MODELS.FAST, provider: this.JEMMIA_PROVIDER };
+      return {
+        model: JEMMIA_MODELS.FAST,
+        provider: this.JEMMIA_PROVIDER,
+        reason: 'explicit-fast',
+      };
     }
 
     if (requestedMode === 'thinking' || requestedMode === JEMMIA_MODELS.THINKING) {
-      console.info(`[Jemmora Mode] Mode: THINKING → Model: ${JEMMIA_MODELS.THINKING}`);
-      return { model: JEMMIA_MODELS.THINKING, provider: this.JEMMIA_PROVIDER };
+      return {
+        model: JEMMIA_MODELS.THINKING,
+        provider: this.JEMMIA_PROVIDER,
+        reason: 'explicit-thinking',
+      };
     }
 
     if (requestedMode === 'expert' || requestedMode === JEMMIA_MODELS.EXPERT) {
-      console.info(`[Jemmora Mode] Mode: EXPERT → Model: ${JEMMIA_MODELS.EXPERT}`);
-      return { model: JEMMIA_MODELS.EXPERT, provider: this.JEMMIA_PROVIDER };
+      return {
+        model: JEMMIA_MODELS.EXPERT,
+        provider: this.JEMMIA_PROVIDER,
+        reason: 'explicit-expert',
+      };
     }
 
-    const systemMessages = messages.filter((m) => m.role === 'system');
-    const nonSystemMessages = messages.filter((m) => m.role !== 'system');
+    return {
+      model: JEMMIA_MODELS.FAST,
+      provider: this.JEMMIA_PROVIDER,
+      reason: 'explicit-fallback',
+    };
+  }
 
-    const systemRoleTokens = calculateMessageTokens(systemMessages as any);
-    const conversationTokens = calculateMessageTokens(nonSystemMessages as any);
+  /**
+   * Helper to extract chunks from the XML-formatted system prompt
+   */
+  public static extractChunks(content: string): any[] {
+    const chunkRegex =
+      /<chunk\s+fileId="([^"]+)"\s+fileName="([^"]+)"\s+similarity="([^"]+)">([\s\S]*?)<\/chunk>/g;
+    const chunks = [];
+    let match;
 
-    let totalFiles = 0;
-    for (const msg of messages) {
-      if (Array.isArray(msg.content)) {
-        for (const part of msg.content) {
-          if (part.type === 'image_url' || part.type === 'file_url') {
-            totalFiles += 1;
-          }
-        }
-      }
+    while ((match = chunkRegex.exec(content)) !== null) {
+      chunks.push({
+        content: match[4],
+        fileId: match[1],
+        fileName: match[2],
+        id: chunks.length.toString(), // Assign numeric ID for the skimmer
+        rawContent: match[0], // Store the exact raw string for safe replacement later
+        similarity: match[3],
+        source: match[2],
+      });
     }
 
-    const systemMessage = messages.find((m) => m.role === 'system');
-    const systemContent = typeof systemMessage?.content === 'string' ? systemMessage.content : '';
-    const hasKnowledgeInjected =
-      systemContent.includes('Knowledge Base') || systemRoleTokens > 2000;
-    const hasLarkIntegration =
-      messages.some(
-        (m) => typeof m.content === 'string' && m.content.includes('Lark Document ID'),
-      ) || tools.some((t) => t.identifier === 'lobe-lark-doc');
+    return chunks;
+  }
 
-    const toolNames =
-      tools?.map((t: any) => t.function?.name || t.identifier || t.type).join(', ') || 'none';
-    log(
-      `[Jemmora Auto Debug] Conversation: ${conversationTokens} tokens, Files: ${totalFiles}, Tools: ${tools?.length || 0} [${toolNames}]`,
-    );
+  private static rebuildSystemPrompt(
+    originalContent: string,
+    allChunks: any[],
+    selectedIds: string[],
+  ): string {
+    const chunkRegex =
+      /<chunk\s+fileId="([^"]+)"\s+fileName="([^"]+)"\s+similarity="([^"]+)">([\s\S]*?)<\/chunk>/g;
 
-    // Tier 3 — EXPERT: massive complexity (3+ files, extreme token count, or deep long-range reasoning)
-    if (totalFiles >= 3 || conversationTokens > 256_000) {
-      console.info(
-        `[Jemmora Auto] Mode: AUTO → Model: ${JEMMIA_MODELS.EXPERT} (Reason: massive complexity – ${totalFiles} files, ${conversationTokens} tokens)`,
-      );
-      return { model: JEMMIA_MODELS.EXPERT, provider: this.JEMMIA_PROVIDER };
-    }
-
-    // Tier 2 — THINKING: RAG/Knowledge Base queries, multi-step reasoning,
-    //          1-2 files, Lark integration, or long conversation history
-    if (
-      totalFiles > 0 ||
-      hasKnowledgeInjected ||
-      hasLarkIntegration ||
-      conversationTokens > 128_000
-    ) {
-      console.info(
-        `[Jemmora Auto] Mode: AUTO → Model: ${JEMMIA_MODELS.THINKING} (Reason: KB/RAG/files/Lark)`,
-      );
-      return { model: JEMMIA_MODELS.THINKING, provider: this.JEMMIA_PROVIDER };
-    }
-
-    // Tier 1 — FAST (default workhorse): direct questions, greetings, single-doc summaries, standard context
-    console.info(
-      `[Jemmora Auto] Mode: AUTO → Model: ${JEMMIA_MODELS.FAST} (Reason: standard interaction)`,
-    );
-    return { model: JEMMIA_MODELS.FAST, provider: this.JEMMIA_PROVIDER };
+    return originalContent
+      .replaceAll(chunkRegex, (match) => {
+        const chunk = allChunks.find((c) => c.rawContent === match);
+        return chunk && selectedIds.includes(chunk.id) ? match : '';
+      })
+      .trim();
   }
 }

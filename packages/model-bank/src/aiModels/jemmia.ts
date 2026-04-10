@@ -135,15 +135,6 @@ const jemmiaChatModels: (AIChatModelCard | AIEmbeddingModelCard)[] = [
     type: 'chat',
   },
   {
-    contextWindowTokens: 8192,
-    description: 'The standard embedding model from OpenAI.',
-    displayName: 'OpenAI Embedding (Small)',
-    enabled: true,
-    id: 'text-embedding-3-small',
-    maxDimension: 1536,
-    type: 'embedding',
-  },
-  {
     contextWindowTokens: 2048,
     description: 'High-performance embedding model for RAG and search.',
     displayName: 'Gemini Embedding',

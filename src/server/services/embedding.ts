@@ -41,6 +41,10 @@ export class ServerEmbeddingService {
     const { model, provider } =
       getServerDefaultFilesConfig().embeddingModel || DEFAULT_FILE_EMBEDDING_MODEL_ITEM;
 
+    console.info(
+      `${logPrefix} Model: ${model} | Dimensions: ${VECTOR_DIMENSIONS} | Mode: ${this.getMode()}`,
+    );
+
     if (this.getMode() === 'sdk') {
       const result = await withRateLimitRetry(
         () =>
@@ -87,6 +91,10 @@ export class ServerEmbeddingService {
   ): Promise<number[][]> {
     const { model, provider } =
       getServerDefaultFilesConfig().embeddingModel || DEFAULT_FILE_EMBEDDING_MODEL_ITEM;
+
+    console.info(
+      `${logPrefix} Model: ${model} | Dimensions: ${VECTOR_DIMENSIONS} | Mode: ${this.getMode()}`,
+    );
 
     if (this.getMode() === 'sdk') {
       const result = await withRateLimitRetry(
