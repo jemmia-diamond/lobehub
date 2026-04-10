@@ -13,6 +13,7 @@ import { briefRuntime } from './brief';
 import { calculatorRuntime } from './calculator';
 import { cloudSandboxRuntime } from './cloudSandbox';
 import { credsRuntime } from './creds';
+import { cronRuntime } from './cron';
 import { larkDocRuntime } from './larkDoc';
 import { larkMessageRuntime } from './larkMessage';
 import { localSystemRuntime } from './localSystem';
@@ -64,6 +65,7 @@ registerRuntimes([
   larkMessageRuntime,
   userInteractionRuntime,
   credsRuntime,
+  cronRuntime,
   webOnboardingRuntime,
 ]);
 

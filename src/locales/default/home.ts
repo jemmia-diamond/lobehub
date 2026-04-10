@@ -12,7 +12,7 @@ export default {
   'starter.developing': 'Coming soon',
   'starter.image': 'Image',
   'starter.imageGeneration': 'Image Generation',
-  'starter.videoGeneration': 'Video Generation',
+  'starter.videoGeneration': 'Seedance 2.0',
   'starter.write': 'Write',
   'home.footer': 'Jemmora may make mistakes. Please check important information.',
   'modeSelection.title': 'Welcome to Jemmora. Choose the mode that fits your task.',

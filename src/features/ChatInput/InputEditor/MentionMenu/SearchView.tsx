@@ -12,6 +12,21 @@ interface SearchViewProps {
   options: ISlashMenuOption[];
 }
 
+const SEARCH_RESULT_CATEGORY_LABEL: Record<string, string> = {
+  agent: 'Agent',
+  member: 'Member',
+  skill: 'Skill',
+  tool: 'Tool',
+  topic: 'Topic',
+};
+
+const getSearchResultCategoryLabel = (item: ISlashMenuOption): string | undefined => {
+  const metadata = item.metadata as Record<string, unknown> | undefined;
+  const type = metadata?.type;
+
+  return typeof type === 'string' ? SEARCH_RESULT_CATEGORY_LABEL[type] : undefined;
+};
+
 const SearchView = memo<SearchViewProps>(({ options, activeKey, onSelectItem, categories }) => {
   if (options.length === 0) {
     return <div className={styles.empty}>No results</div>;
@@ -20,6 +35,7 @@ const SearchView = memo<SearchViewProps>(({ options, activeKey, onSelectItem, ca
   return (
     <div className={styles.scrollArea}>
       {options.map((item, index) => {
+        const categoryLabel = getSearchResultCategoryLabel(item);
         const prevItem = options[index - 1];
         const currentCategoryId = (item.metadata as any)?.type;
         const prevCategoryId = (prevItem?.metadata as any)?.type;
@@ -30,7 +46,16 @@ const SearchView = memo<SearchViewProps>(({ options, activeKey, onSelectItem, ca
         return (
           <div key={item.key}>
             {showHeader && category && <div className={styles.categoryTitle}>{category.label}</div>}
-            <MenuItem active={String(item.key) === activeKey} item={item} onClick={onSelectItem} />
+            <MenuItem 
+            active={String(item.key) === activeKey} 
+            item={item} 
+            key={item.key}
+            extra={
+              categoryLabel ? (
+                <span className={styles.categoryExtra}>{categoryLabel}</span>
+              ) : undefined
+            }
+            onClick={onSelectItem} />
           </div>
         );
       })}

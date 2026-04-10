@@ -32,8 +32,11 @@ declare global {
       };
     };
     lobeEnv?: {
+      chromeVersion?: string;
       darwinMajorVersion?: number;
+      electronVersion?: string;
       isMacTahoe?: boolean;
+      nodeVersion?: string;
       platform?: NodeJS.Platform;
     };
   }
