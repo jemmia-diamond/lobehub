@@ -1,5 +1,5 @@
 import type * as LobechatConstModule from '@lobechat/const';
-import { type LobeChatPluginManifest } from '@lobehub/chat-plugin-sdk';
+import { type ToolManifest } from '@lobechat/types';
 import { type PluginItem } from '@lobehub/market-sdk';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -230,7 +230,7 @@ describe('mcpStore actions', () => {
   });
 
   describe('testMcpConnection', () => {
-    const mockManifest: LobeChatPluginManifest = {
+    const mockManifest: ToolManifest = {
       api: [],
       gateway: '',
       identifier: 'test-plugin',
@@ -550,7 +550,7 @@ describe('mcpStore actions', () => {
       };
 
       vi.spyOn(discoverService, 'getMCPPluginList').mockResolvedValue(mockData);
-      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('en-US');
+      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('vi-VN');
 
       const { result } = renderHook(() =>
         useToolStore.getState().useFetchMCPPluginList({ page: 1, pageSize: 20 }),
@@ -583,7 +583,7 @@ describe('mcpStore actions', () => {
       };
 
       vi.spyOn(discoverService, 'getMCPPluginList').mockResolvedValue(mockData);
-      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('en-US');
+      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('vi-VN');
 
       act(() => {
         useToolStore.setState({ isMcpListInit: false });
@@ -603,7 +603,7 @@ describe('mcpStore actions', () => {
     });
 
     it('should convert page to number', async () => {
-      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('en-US');
+      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('vi-VN');
       vi.spyOn(discoverService, 'getMCPPluginList').mockResolvedValue({
         items: [],
         categories: [],
@@ -624,7 +624,7 @@ describe('mcpStore actions', () => {
     });
 
     it('should include locale and parameters in SWR key', async () => {
-      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('zh-CN');
+      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('vi-VN');
       vi.spyOn(discoverService, 'getMCPPluginList').mockResolvedValue({
         items: [],
         categories: [],
@@ -662,7 +662,7 @@ describe('mcpStore actions', () => {
       };
 
       try {
-        vi.spyOn(desktopGlobalHelpers, 'getCurrentLanguage').mockReturnValue('en-US');
+        vi.spyOn(desktopGlobalHelpers, 'getCurrentLanguage').mockReturnValue('vi-VN');
         const fetchSpy = vi
           .spyOn(desktopDiscoverService, 'getMCPPluginList')
           .mockResolvedValue(mockData);
@@ -717,7 +717,7 @@ describe('mcpStore actions', () => {
       },
     };
 
-    const mockServerManifest: LobeChatPluginManifest = {
+    const mockServerManifest: ToolManifest = {
       api: [],
       gateway: '',
       identifier: 'test-plugin',
@@ -1170,7 +1170,7 @@ describe('mcpStore actions', () => {
           version: '1.5.0',
         };
 
-        const serverManifestWithVersion: LobeChatPluginManifest = {
+        const serverManifestWithVersion: ToolManifest = {
           api: [],
           gateway: '',
           identifier: 'test-plugin',

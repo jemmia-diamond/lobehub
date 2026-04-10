@@ -3,13 +3,13 @@
 import { KLAVIS_SERVER_TYPES, LOBEHUB_SKILL_PROVIDERS } from '@lobechat/const';
 import { type ItemType } from '@lobehub/ui';
 import { Avatar, Button, Flexbox, Icon } from '@lobehub/ui';
+import { McpIcon, SkillsIcon } from '@lobehub/ui/icons';
 import { cssVar } from 'antd-style';
 import isEqual from 'fast-deep-equal';
-import { PlusIcon, ToyBrick } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import React, { memo, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import PluginAvatar from '@/components/Plugins/PluginAvatar';
 import ActionDropdown from '@/features/ChatInput/ActionBar/components/ActionDropdown';
 import KlavisServerItem from '@/features/ChatInput/ActionBar/Tools/KlavisServerItem';
 import KlavisSkillIcon, {
@@ -17,7 +17,10 @@ import KlavisSkillIcon, {
 } from '@/features/ChatInput/ActionBar/Tools/KlavisSkillIcon';
 import LobehubSkillIcon from '@/features/ChatInput/ActionBar/Tools/LobehubSkillIcon';
 import LobehubSkillServerItem from '@/features/ChatInput/ActionBar/Tools/LobehubSkillServerItem';
+import MarketAgentSkillPopoverContent from '@/features/ChatInput/ActionBar/Tools/MarketAgentSkillPopoverContent';
+import MarketSkillIcon from '@/features/ChatInput/ActionBar/Tools/MarketSkillIcon';
 import ToolItem from '@/features/ChatInput/ActionBar/Tools/ToolItem';
+import ToolItemDetailPopover from '@/features/ChatInput/ActionBar/Tools/ToolItemDetailPopover';
 import { createSkillStoreModal } from '@/features/SkillStore';
 import { useCheckPluginsIsInstalled } from '@/hooks/useCheckPluginsIsInstalled';
 import { useFetchInstalledPlugins } from '@/hooks/useFetchInstalledPlugins';
@@ -116,19 +119,16 @@ const AgentTool = memo<AgentToolProps>(
 
     // Fetch plugins
     const [
-      useFetchPluginStore,
       useFetchUserKlavisServers,
       useFetchLobehubSkillConnections,
       useFetchUninstalledBuiltinTools,
       useFetchAgentSkills,
     ] = useToolStore((s) => [
-      s.useFetchPluginStore,
       s.useFetchUserKlavisServers,
       s.useFetchLobehubSkillConnections,
       s.useFetchUninstalledBuiltinTools,
       s.useFetchAgentSkills,
     ]);
-    useFetchPluginStore();
     useFetchInstalledPlugins();
     useFetchUninstalledBuiltinTools(true);
     useFetchAgentSkills(true);
@@ -269,9 +269,20 @@ const AgentTool = memo<AgentToolProps>(
                   serverName={type.serverName}
                 />
               ),
+              popoverContent: (
+                <ToolItemDetailPopover
+                  icon={<KlavisSkillIcon icon={type.icon} label={type.label} size={36} />}
+                  identifier={type.identifier}
+                  sourceLabel={type.author}
+                  title={type.label}
+                  description={t(`tools.klavis.servers.${type.identifier}.description` as any, {
+                    defaultValue: type.description,
+                  })}
+                />
+              ),
             }))
           : [],
-      [isKlavisEnabledInEnv, allKlavisServers, effectiveAgentId],
+      [isKlavisEnabledInEnv, allKlavisServers, effectiveAgentId, t],
     );
 
     // LobeHub Skill Provider list items
@@ -294,9 +305,20 @@ const AgentTool = memo<AgentToolProps>(
                   provider={provider.id}
                 />
               ),
+              popoverContent: (
+                <ToolItemDetailPopover
+                  icon={<LobehubSkillIcon icon={provider.icon} label={provider.label} size={36} />}
+                  identifier={provider.id}
+                  sourceLabel={provider.author}
+                  title={provider.label}
+                  description={t(`tools.lobehubSkill.providers.${provider.id}.description` as any, {
+                    defaultValue: provider.description,
+                  })}
+                />
+              ),
             }))
           : [],
-      [isLobehubSkillEnabled, allLobehubSkillServers, effectiveAgentId],
+      [isLobehubSkillEnabled, allLobehubSkillServers, effectiveAgentId, t],
     );
 
     // Handle plugin remove via Tag close - use byId actions
@@ -320,12 +342,10 @@ const AgentTool = memo<AgentToolProps>(
     const builtinAgentSkillItems = useMemo(
       () =>
         installedBuiltinSkills.map((skill) => ({
-          icon: (
-            <Avatar
-              avatar={skill.avatar || '🧩'}
-              size={SKILL_ICON_SIZE}
-              style={{ marginInlineEnd: 0 }}
-            />
+          icon: skill.avatar ? (
+            <Avatar avatar={skill.avatar} size={SKILL_ICON_SIZE} style={{ marginInlineEnd: 0 }} />
+          ) : (
+            <Icon icon={SkillsIcon} size={SKILL_ICON_SIZE} />
           ),
           key: skill.identifier,
           label: (
@@ -340,15 +360,44 @@ const AgentTool = memo<AgentToolProps>(
               }}
             />
           ),
+          popoverContent: (
+            <ToolItemDetailPopover
+              identifier={skill.identifier}
+              sourceLabel={t('skillStore.tabs.lobehub')}
+              description={t(`tools.builtins.${skill.identifier}.description` as any, {
+                defaultValue: skill.description,
+              })}
+              icon={
+                skill.avatar ? (
+                  <Avatar
+                    avatar={skill.avatar}
+                    size={36}
+                    style={{ flex: 'none', marginInlineEnd: 0 }}
+                  />
+                ) : (
+                  <Icon icon={SkillsIcon} size={36} />
+                )
+              }
+              title={t(`tools.builtins.${skill.identifier}.title` as any, {
+                defaultValue: skill.name,
+              })}
+            />
+          ),
         })),
-      [installedBuiltinSkills, isToolEnabled, handleToggleTool],
+      [installedBuiltinSkills, isToolEnabled, handleToggleTool, t],
     );
 
     // Market Agent Skills list items (grouped under Community)
     const marketAgentSkillItems = useMemo(
       () =>
         marketAgentSkills.map((skill) => ({
-          icon: <Avatar avatar={'🧩'} size={SKILL_ICON_SIZE} style={{ marginInlineEnd: 0 }} />,
+          icon: (
+            <MarketSkillIcon
+              identifier={skill.identifier}
+              name={skill.name}
+              size={SKILL_ICON_SIZE}
+            />
+          ),
           key: skill.identifier,
           label: (
             <ToolItem
@@ -362,15 +411,23 @@ const AgentTool = memo<AgentToolProps>(
               }}
             />
           ),
+          popoverContent: (
+            <MarketAgentSkillPopoverContent
+              description={skill.description}
+              identifier={skill.identifier}
+              name={skill.name}
+              sourceLabel={t('skillStore.tabs.community')}
+            />
+          ),
         })),
-      [marketAgentSkills, isToolEnabled, handleToggleTool],
+      [marketAgentSkills, isToolEnabled, handleToggleTool, t],
     );
 
     // User Agent Skills list items (grouped under Custom)
     const userAgentSkillItems = useMemo(
       () =>
         userAgentSkills.map((skill) => ({
-          icon: <Avatar avatar={'🧩'} size={SKILL_ICON_SIZE} style={{ marginInlineEnd: 0 }} />,
+          icon: <Icon icon={SkillsIcon} size={SKILL_ICON_SIZE} />,
           key: skill.identifier,
           label: (
             <ToolItem
@@ -384,8 +441,17 @@ const AgentTool = memo<AgentToolProps>(
               }}
             />
           ),
+          popoverContent: (
+            <ToolItemDetailPopover
+              description={skill.description}
+              icon={<Icon icon={SkillsIcon} size={36} />}
+              identifier={skill.identifier}
+              sourceLabel={t('skillStore.tabs.custom')}
+              title={skill.name}
+            />
+          ),
         })),
-      [userAgentSkills, isToolEnabled, handleToggleTool],
+      [userAgentSkills, isToolEnabled, handleToggleTool, t],
     );
 
     // Merge Builtin Agent Skills, builtin tools, LobeHub Skill Providers, and Klavis servers
@@ -415,6 +481,25 @@ const AgentTool = memo<AgentToolProps>(
               }}
             />
           ),
+          popoverContent: (
+            <ToolItemDetailPopover
+              identifier={item.identifier}
+              sourceLabel={t('skillStore.tabs.lobehub')}
+              description={t(`tools.builtins.${item.identifier}.description` as any, {
+                defaultValue: item.meta?.description || '',
+              })}
+              icon={
+                <Avatar
+                  avatar={item.meta.avatar}
+                  size={36}
+                  style={{ flex: 'none', marginInlineEnd: 0 }}
+                />
+              }
+              title={t(`tools.builtins.${item.identifier}.title` as any, {
+                defaultValue: item.meta?.title || item.identifier,
+              })}
+            />
+          ),
         })),
         // 3. LobeHub Skill Providers
         ...lobehubSkillItems,
@@ -428,6 +513,7 @@ const AgentTool = memo<AgentToolProps>(
         lobehubSkillItems,
         isToolEnabled,
         handleToggleTool,
+        t,
       ],
     );
 
@@ -437,31 +523,51 @@ const AgentTool = memo<AgentToolProps>(
 
     // Function to generate plugin list items
     const mapPluginToItem = useCallback(
-      (item: (typeof installedPluginList)[0]) => ({
-        icon: item?.avatar ? (
-          <PluginAvatar
-            avatar={item.avatar}
-            size={SKILL_ICON_SIZE}
-            style={{ marginInlineEnd: 0 }}
-          />
-        ) : (
-          <Icon icon={ToyBrick} size={SKILL_ICON_SIZE} />
-        ),
-        key: item.identifier,
-        label: (
-          <ToolItem
-            checked={plugins.includes(item.identifier)}
-            id={item.identifier}
-            label={item.title}
-            onUpdate={async () => {
-              setUpdating(true);
-              await togglePlugin(item.identifier);
-              setUpdating(false);
-            }}
-          />
-        ),
-      }),
-      [plugins, togglePlugin],
+      (item: (typeof installedPluginList)[0]) => {
+        const isMcp = item?.avatar === 'MCP_AVATAR' || !item?.avatar;
+        const isCustom = item.type === 'customPlugin';
+        return {
+          icon: isMcp ? (
+            <Icon icon={McpIcon} size={SKILL_ICON_SIZE} />
+          ) : (
+            <Avatar avatar={item.avatar} shape={'square'} size={SKILL_ICON_SIZE} />
+          ),
+          key: item.identifier,
+          label: (
+            <ToolItem
+              checked={plugins.includes(item.identifier)}
+              id={item.identifier}
+              label={item.title}
+              onUpdate={async () => {
+                setUpdating(true);
+                await togglePlugin(item.identifier);
+                setUpdating(false);
+              }}
+            />
+          ),
+          popoverContent: (
+            <ToolItemDetailPopover
+              description={item.description}
+              identifier={item.identifier}
+              sourceLabel={isCustom ? t('skillStore.tabs.custom') : t('skillStore.tabs.community')}
+              title={item.title}
+              icon={
+                isMcp ? (
+                  <Icon icon={McpIcon} size={36} />
+                ) : (
+                  <Avatar
+                    avatar={item.avatar}
+                    shape={'square'}
+                    size={36}
+                    style={{ flex: 'none', marginInlineEnd: 0 }}
+                  />
+                )
+              }
+            />
+          ),
+        };
+      },
+      [plugins, togglePlugin, t],
     );
 
     // Community plugin list items
@@ -556,6 +662,25 @@ const AgentTool = memo<AgentToolProps>(
               }}
             />
           ),
+          popoverContent: (
+            <ToolItemDetailPopover
+              identifier={item.identifier}
+              sourceLabel={t('skillStore.tabs.lobehub')}
+              description={t(`tools.builtins.${item.identifier}.description` as any, {
+                defaultValue: item.meta?.description || '',
+              })}
+              icon={
+                <Avatar
+                  avatar={item.meta.avatar}
+                  size={36}
+                  style={{ flex: 'none', marginInlineEnd: 0 }}
+                />
+              }
+              title={t(`tools.builtins.${item.identifier}.title` as any, {
+                defaultValue: item.meta?.title || item.identifier,
+              })}
+            />
+          ),
         }));
 
       // Connected and enabled Klavis servers
@@ -572,12 +697,10 @@ const AgentTool = memo<AgentToolProps>(
       const enabledBuiltinAgentSkillItems = installedBuiltinSkills
         .filter((skill) => isToolEnabled(skill.identifier))
         .map((skill) => ({
-          icon: (
-            <Avatar
-              avatar={skill.avatar || '🧩'}
-              size={SKILL_ICON_SIZE}
-              style={{ marginInlineEnd: 0 }}
-            />
+          icon: skill.avatar ? (
+            <Avatar avatar={skill.avatar} size={SKILL_ICON_SIZE} style={{ marginInlineEnd: 0 }} />
+          ) : (
+            <Icon icon={SkillsIcon} size={SKILL_ICON_SIZE} />
           ),
           key: skill.identifier,
           label: (
@@ -590,6 +713,25 @@ const AgentTool = memo<AgentToolProps>(
                 await handleToggleTool(skill.identifier);
                 setUpdating(false);
               }}
+            />
+          ),
+          popoverContent: (
+            <ToolItemDetailPopover
+              description={skill.description}
+              identifier={skill.identifier}
+              sourceLabel={t('skillStore.tabs.lobehub')}
+              title={skill.name}
+              icon={
+                skill.avatar ? (
+                  <Avatar
+                    avatar={skill.avatar}
+                    size={36}
+                    style={{ flex: 'none', marginInlineEnd: 0 }}
+                  />
+                ) : (
+                  <Icon icon={SkillsIcon} size={36} />
+                )
+              }
             />
           ),
         }));
@@ -614,32 +756,61 @@ const AgentTool = memo<AgentToolProps>(
       // Enabled community plugins
       const enabledCommunityPlugins = communityPlugins
         .filter((item) => plugins.includes(item.identifier))
-        .map((item) => ({
-          icon: item?.avatar ? (
-            <PluginAvatar avatar={item.avatar} size={SKILL_ICON_SIZE} />
-          ) : (
-            <Icon icon={ToyBrick} size={SKILL_ICON_SIZE} />
-          ),
-          key: item.identifier,
-          label: (
-            <ToolItem
-              checked={true}
-              id={item.identifier}
-              label={item.title}
-              onUpdate={async () => {
-                setUpdating(true);
-                await togglePlugin(item.identifier);
-                setUpdating(false);
-              }}
-            />
-          ),
-        }));
+        .map((item) => {
+          const isMcp = item?.avatar === 'MCP_AVATAR' || !item?.avatar;
+          return {
+            icon: isMcp ? (
+              <Icon icon={McpIcon} size={SKILL_ICON_SIZE} />
+            ) : (
+              <Avatar avatar={item.avatar} shape={'square'} size={SKILL_ICON_SIZE} />
+            ),
+            key: item.identifier,
+            label: (
+              <ToolItem
+                checked={true}
+                id={item.identifier}
+                label={item.title}
+                onUpdate={async () => {
+                  setUpdating(true);
+                  await togglePlugin(item.identifier);
+                  setUpdating(false);
+                }}
+              />
+            ),
+            popoverContent: (
+              <ToolItemDetailPopover
+                description={item.description}
+                identifier={item.identifier}
+                sourceLabel={t('skillStore.tabs.community')}
+                title={item.title}
+                icon={
+                  isMcp ? (
+                    <Icon icon={McpIcon} size={36} />
+                  ) : (
+                    <Avatar
+                      avatar={item.avatar}
+                      shape={'square'}
+                      size={36}
+                      style={{ flex: 'none', marginInlineEnd: 0 }}
+                    />
+                  )
+                }
+              />
+            ),
+          };
+        });
 
       // Enabled Market Agent Skills
       const enabledMarketAgentSkillItems = marketAgentSkills
         .filter((skill) => isToolEnabled(skill.identifier))
         .map((skill) => ({
-          icon: <Avatar avatar={'🧩'} size={SKILL_ICON_SIZE} style={{ marginInlineEnd: 0 }} />,
+          icon: (
+            <MarketSkillIcon
+              identifier={skill.identifier}
+              name={skill.name}
+              size={SKILL_ICON_SIZE}
+            />
+          ),
           key: skill.identifier,
           label: (
             <ToolItem
@@ -651,6 +822,14 @@ const AgentTool = memo<AgentToolProps>(
                 await handleToggleTool(skill.identifier);
                 setUpdating(false);
               }}
+            />
+          ),
+          popoverContent: (
+            <MarketAgentSkillPopoverContent
+              description={skill.description}
+              identifier={skill.identifier}
+              name={skill.name}
+              sourceLabel={t('skillStore.tabs.community')}
             />
           ),
         }));
@@ -669,32 +848,55 @@ const AgentTool = memo<AgentToolProps>(
       // Enabled custom plugins
       const enabledCustomPlugins = customPlugins
         .filter((item) => plugins.includes(item.identifier))
-        .map((item) => ({
-          icon: item?.avatar ? (
-            <PluginAvatar avatar={item.avatar} size={SKILL_ICON_SIZE} />
-          ) : (
-            <Icon icon={ToyBrick} size={SKILL_ICON_SIZE} />
-          ),
-          key: item.identifier,
-          label: (
-            <ToolItem
-              checked={true}
-              id={item.identifier}
-              label={item.title}
-              onUpdate={async () => {
-                setUpdating(true);
-                await togglePlugin(item.identifier);
-                setUpdating(false);
-              }}
-            />
-          ),
-        }));
+        .map((item) => {
+          const isMcp = item?.avatar === 'MCP_AVATAR' || !item?.avatar;
+          return {
+            icon: isMcp ? (
+              <Icon icon={McpIcon} size={SKILL_ICON_SIZE} />
+            ) : (
+              <Avatar avatar={item.avatar} shape={'square'} size={SKILL_ICON_SIZE} />
+            ),
+            key: item.identifier,
+            label: (
+              <ToolItem
+                checked={true}
+                id={item.identifier}
+                label={item.title}
+                onUpdate={async () => {
+                  setUpdating(true);
+                  await togglePlugin(item.identifier);
+                  setUpdating(false);
+                }}
+              />
+            ),
+            popoverContent: (
+              <ToolItemDetailPopover
+                description={item.description}
+                identifier={item.identifier}
+                sourceLabel={t('skillStore.tabs.custom')}
+                title={item.title}
+                icon={
+                  isMcp ? (
+                    <Icon icon={McpIcon} size={36} />
+                  ) : (
+                    <Avatar
+                      avatar={item.avatar}
+                      shape={'square'}
+                      size={36}
+                      style={{ flex: 'none', marginInlineEnd: 0 }}
+                    />
+                  )
+                }
+              />
+            ),
+          };
+        });
 
       // Enabled User Agent Skills
       const enabledUserAgentSkillItems = userAgentSkills
         .filter((skill) => isToolEnabled(skill.identifier))
         .map((skill) => ({
-          icon: <Avatar avatar={'🧩'} size={SKILL_ICON_SIZE} style={{ marginInlineEnd: 0 }} />,
+          icon: <Icon icon={SkillsIcon} size={SKILL_ICON_SIZE} />,
           key: skill.identifier,
           label: (
             <ToolItem
@@ -706,6 +908,15 @@ const AgentTool = memo<AgentToolProps>(
                 await handleToggleTool(skill.identifier);
                 setUpdating(false);
               }}
+            />
+          ),
+          popoverContent: (
+            <ToolItemDetailPopover
+              description={skill.description}
+              icon={<Icon icon={SkillsIcon} size={36} />}
+              identifier={skill.identifier}
+              sourceLabel={t('skillStore.tabs.custom')}
+              title={skill.name}
             />
           ),
         }));

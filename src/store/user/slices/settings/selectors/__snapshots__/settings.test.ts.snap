@@ -56,17 +56,27 @@ exports[`settingsSelectors > currentSystemAgent > should merge DEFAULT_SYSTEM_AG
   },
   "enableAutoReply": true,
   "generationTopic": {
-    "model": "gemini-1.5-flash-latest",
-    "provider": "google",
+    "model": "gpt-5.4-mini",
+    "provider": "openai",
   },
   "historyCompress": {
     "model": "gemini-3-flash-preview",
     "provider": "google",
   },
+  "inputCompletion": {
+    "enabled": false,
+    "model": "gpt-5.4-mini",
+    "provider": "openai",
+  },
+  "promptRewrite": {
+    "enabled": true,
+    "model": "gpt-5.4-mini",
+    "provider": "openai",
+  },
   "queryRewrite": {
     "enabled": true,
-    "model": "gemini-1.5-flash-latest",
-    "provider": "google",
+    "model": "gpt-5.4-mini",
+    "provider": "openai",
   },
   "replyMessage": "Custom auto reply",
   "thread": {
@@ -74,12 +84,12 @@ exports[`settingsSelectors > currentSystemAgent > should merge DEFAULT_SYSTEM_AG
     "provider": "google",
   },
   "topic": {
-    "model": "gemini-1.5-flash-latest",
-    "provider": "google",
+    "model": "gpt-5.4-mini",
+    "provider": "openai",
   },
   "translation": {
-    "model": "gemini-1.5-flash-latest",
-    "provider": "google",
+    "model": "gpt-5.4-mini",
+    "provider": "openai",
   },
 }
 `;

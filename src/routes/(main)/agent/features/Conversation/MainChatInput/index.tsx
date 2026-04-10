@@ -11,7 +11,7 @@ import { userGeneralSettingsSelectors } from '@/store/user/selectors';
 
 import { useSendMenuItems } from './useSendMenuItems';
 
-const rightActions: ActionKeys[] = [];
+const rightActions: ActionKeys[] = ['promptTransform'];
 
 /**
  * MainChatInput

@@ -96,11 +96,11 @@ const ProSettingsStep = memo<ProSettingsStepProps>(({ onBack }) => {
     return 'deep';
   }, [defaultAgentConfig]);
 
-  const handleFinish = useCallback(() => {
+  const handleFinish = useCallback(async () => {
     if (isNavigatingRef.current) return;
     isNavigatingRef.current = true;
     setIsNavigating(true);
-    finishOnboarding();
+    await finishOnboarding();
     navigate('/');
   }, [finishOnboarding, navigate]);
 
@@ -116,7 +116,6 @@ const ProSettingsStep = memo<ProSettingsStepProps>(({ onBack }) => {
       <LobeMessage
         sentences={[t('proSettings.title'), t('proSettings.title2'), t('proSettings.title3')]}
       />
-      {/* Default Model Section */}
       <Flexbox gap={16}>
         <Text color={cssVar.colorTextSecondary}>{t('proSettings.model.title')}</Text>
         <ModelSwitchPanel
@@ -138,7 +137,6 @@ const ProSettingsStep = memo<ProSettingsStepProps>(({ onBack }) => {
         </ModelSwitchPanel>
       </Flexbox>
 
-      {/* Connectors Section (only show if Klavis is enabled) */}
       {enableKlavis && (
         <Flexbox gap={16}>
           <Text color={cssVar.colorTextSecondary}>{t('proSettings.connectors.title')}</Text>
@@ -162,7 +160,7 @@ const ProSettingsStep = memo<ProSettingsStepProps>(({ onBack }) => {
           disabled={isNavigating}
           style={{ minWidth: 120 }}
           type="primary"
-          onClick={handleFinish}
+          onClick={() => void handleFinish()}
         >
           {t('finish')}
         </Button>

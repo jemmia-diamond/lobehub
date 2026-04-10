@@ -278,10 +278,11 @@ describe('StreamingExecutor actions', () => {
       // Verify only one LLM call was made (no tool execution happened)
       expect(streamCallCount).toBe(1);
 
-      // Verify the agent runtime completed (not just cancelled mid-flight)
+      // Verify the operation preserves cancelled status (user intentionally stopped it)
+      // even though tools were gracefully resolved after cancellation
       const operations = Object.values(result.current.operations);
       const execOperation = operations.find((op) => op.type === 'execAgentRuntime');
-      expect(execOperation?.status).toBe('completed');
+      expect(execOperation?.status).toBe('cancelled');
 
       streamSpy.mockRestore();
     });
@@ -893,8 +894,61 @@ describe('StreamingExecutor actions', () => {
 
       expect(generateToolsDetailed).toHaveBeenCalledWith(
         expect.objectContaining({
-          skipDefaultTools: false,
+          skipDefaultTools: undefined,
           toolIds: ['lobe-artifacts', 'lobe-notebook'],
+        }),
+      );
+    });
+
+    it('should preserve default model/provider payload when initialContext is provided', () => {
+      act(() => {
+        useChatStore.setState({ internal_execAgentRuntime: realExecAgentRuntime });
+      });
+
+      const { result } = renderHook(() => useChatStore());
+      const userMessage = {
+        id: TEST_IDS.USER_MESSAGE_ID,
+        role: 'user',
+        content: TEST_CONTENT.USER_MESSAGE,
+        sessionId: TEST_IDS.SESSION_ID,
+        topicId: TEST_IDS.TOPIC_ID,
+      } as UIChatMessage;
+
+      vi.spyOn(agentConfigResolver, 'resolveAgentConfig').mockReturnValue({
+        agentConfig: createMockAgentConfig({
+          model: 'claude-sonnet-4-6',
+          provider: 'lobehub',
+        }),
+        chatConfig: createMockChatConfig(),
+        isBuiltinAgent: false,
+        plugins: [],
+      });
+      vi.spyOn(toolEngineering, 'createAgentToolsEngine').mockReturnValue({
+        generateToolsDetailed: vi.fn().mockReturnValue({
+          enabledManifests: [],
+          enabledToolIds: [],
+          tools: [],
+        }),
+      } as any);
+
+      const { context } = result.current.internal_createAgentState({
+        messages: [userMessage],
+        parentMessageId: userMessage.id,
+        agentId: TEST_IDS.SESSION_ID,
+        topicId: TEST_IDS.TOPIC_ID,
+        initialContext: {
+          phase: 'init',
+          initialContext: {
+            selectedTools: [{ identifier: 'lobe-notebook', name: 'Notebook' }],
+          },
+        },
+      });
+
+      expect(context.payload).toEqual(
+        expect.objectContaining({
+          model: 'claude-sonnet-4-6',
+          parentMessageId: TEST_IDS.USER_MESSAGE_ID,
+          provider: 'lobehub',
         }),
       );
     });

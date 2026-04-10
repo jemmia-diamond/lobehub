@@ -1,13 +1,17 @@
 /* eslint-disable perfectionist/sort-interfaces */
 import type {
   AgentBuilderContext,
+  AgentContextDocument,
   AgentManagementContext,
+  BotPlatformContext,
   DiscordContext,
   EvalContext,
   FileContent,
   KnowledgeBaseInfo,
   LobeToolManifest,
+  OnboardingContext,
   SkillMeta,
+  ToolDiscoveryConfig,
   TopicReferenceItem,
   UserMemoryData,
 } from '@lobechat/context-engine';
@@ -65,6 +69,8 @@ export interface ServerUserMemoryConfig {
 export interface ServerMessagesEngineParams {
   /** Additional variable values to merge with defaults (e.g. device paths) */
   additionalVariables?: Record<string, string>;
+  /** Agent documents to inject into context based on load rules and positions */
+  agentDocuments?: AgentContextDocument[];
   /** User's timezone for time-related variables (e.g. 'Asia/Shanghai') */
   userTimezone?: string;
   // ========== Extended contexts ==========
@@ -75,11 +81,16 @@ export interface ServerMessagesEngineParams {
   // ========== Capability injection ==========
   /** Model capability checkers */
   capabilities?: ServerModelCapabilities;
+  /** Bot platform context for injecting platform capabilities (e.g. markdown support) */
+  botPlatformContext?: BotPlatformContext;
   /** Discord context for injecting channel/guild info */
   discordContext?: DiscordContext;
   // ========== Eval context ==========
   /** Eval context for injecting environment prompts into system message */
   evalContext?: EvalContext;
+  // ========== Onboarding context ==========
+  /** Onboarding context for injecting phase guidance and documents */
+  onboardingContext?: OnboardingContext;
 
   // ========== Agent configuration ==========
   /** Whether to enable history message count limit */
@@ -118,6 +129,8 @@ export interface ServerMessagesEngineParams {
   // ========== Skills ==========
   /** Skills configuration for <available_skills> injection */
   skillsConfig?: { enabledSkills?: SkillMeta[] };
+  /** Tool discovery configuration for <available_tools> injection */
+  toolDiscoveryConfig?: ToolDiscoveryConfig;
   // ========== Tools ==========
   /** Tools configuration */
   toolsConfig?: ServerToolsConfig;
@@ -133,7 +146,9 @@ export interface ServerMessagesEngineParams {
 
 export {
   type AgentBuilderContext,
+  type AgentContextDocument,
   type AgentManagementContext,
+  type BotPlatformContext,
   type DiscordContext,
   type EvalContext,
   type FileContent,

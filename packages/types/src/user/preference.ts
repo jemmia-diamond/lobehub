@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import type { Plans } from '../subscription';
 import { TopicDisplayMode } from '../topic';
+import type { UserAgentOnboarding } from './agentOnboarding';
 import type { UserOnboarding } from './onboarding';
 import type { UserSettings } from './settings';
 
@@ -38,6 +39,10 @@ export const UserGuideSchema = z.object({
 export type UserGuide = z.infer<typeof UserGuideSchema>;
 
 export const UserLabSchema = z.object({
+  /**
+   * enable server-side agent execution via Gateway WebSocket
+   */
+  enableGatewayMode: z.boolean().optional(),
   /**
    * enable multi-agent group chat mode
    */
@@ -81,6 +86,7 @@ export type ReferralStatusString =
   | 'revoked';
 
 export interface UserInitializationState {
+  agentOnboarding?: UserAgentOnboarding;
   avatar?: string;
   canEnablePWAGuide?: boolean;
   canEnableTrace?: boolean;

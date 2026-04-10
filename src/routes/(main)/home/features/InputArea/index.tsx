@@ -1,6 +1,6 @@
 import { Flexbox } from '@lobehub/ui';
 import { createStyles } from 'antd-style';
-import { AnimatePresence, m as motion } from 'motion/react';
+import { AnimatePresence, m } from 'motion/react';
 import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -131,7 +131,7 @@ const InputArea = () => {
     const defaultItems = [
       {
         children: (
-          <motion.div
+          <m.div
             animate={{ y: [0, -3, 0] }}
             style={{ alignItems: 'center', cursor: 'pointer', display: 'flex', marginLeft: 8 }}
             transition={{ duration: 2, ease: 'easeInOut', repeat: Infinity }}
@@ -167,7 +167,7 @@ const InputArea = () => {
               />
               <span style={{ position: 'relative', zIndex: 1 }}>{t('larkSelectAction')}</span>
             </div>
-          </motion.div>
+          </m.div>
         ),
         key: 'lark-picker',
       },
@@ -274,7 +274,7 @@ const InputArea = () => {
       </div>
       <AnimatePresence mode="popLayout">
         {showSuggestQuestions && (
-          <motion.div
+          <m.div
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.98, y: 8 }}
             initial={{ opacity: 0, scale: 0.98, y: 8 }}
@@ -289,7 +289,7 @@ const InputArea = () => {
               <SuggestQuestions mode={inputActiveMode} />
               <CommunityRecommend mode={inputActiveMode} />
             </Flexbox>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </Flexbox>

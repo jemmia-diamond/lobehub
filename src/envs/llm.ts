@@ -85,6 +85,9 @@ export const getLLMConfig = () => {
       ENABLED_XINFERENCE: z.boolean(),
       XINFERENCE_API_KEY: z.string().optional(),
 
+      ENABLED_LMSTUDIO: z.boolean(),
+      LMSTUDIO_API_KEY: z.string().optional(),
+
       ENABLED_QINIU: z.boolean(),
       QINIU_API_KEY: z.string().optional(),
 
@@ -228,6 +231,9 @@ export const getLLMConfig = () => {
 
       ENABLED_LONGCAT: z.boolean(),
       LONGCAT_API_KEY: z.string().optional(),
+
+      ENABLED_STREAMLAKE: z.boolean(),
+      STREAMLAKE_API_KEY: z.string().optional(),
     },
     runtimeEnv: {
       API_KEY_SELECT_MODE: process.env.API_KEY_SELECT_MODE,
@@ -314,7 +320,10 @@ export const getLLMConfig = () => {
       ENABLED_XINFERENCE: process.env.ENABLED_XINFERENCE === '1',
       XINFERENCE_API_KEY: process.env.XINFERENCE_API_KEY,
 
-      ENABLED_QINIU: process.env.ENABLED_QINIU === '1',
+      ENABLED_LMSTUDIO: !!process.env.LMSTUDIO_API_KEY,
+      LMSTUDIO_API_KEY: process.env.LMSTUDIO_API_KEY,
+
+      ENABLED_QINIU: !!process.env.QINIU_API_KEY,
       QINIU_API_KEY: process.env.QINIU_API_KEY,
 
       ENABLED_QWEN: process.env.ENABLED_QWEN === '1',
@@ -454,6 +463,9 @@ export const getLLMConfig = () => {
 
       ENABLED_LONGCAT: process.env.ENABLED_LONGCAT === '1',
       LONGCAT_API_KEY: process.env.LONGCAT_API_KEY,
+
+      ENABLED_STREAMLAKE: !!process.env.STREAMLAKE_API_KEY,
+      STREAMLAKE_API_KEY: process.env.STREAMLAKE_API_KEY,
     },
   });
 };

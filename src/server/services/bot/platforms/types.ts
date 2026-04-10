@@ -1,6 +1,20 @@
+import type { Chat, Message } from 'chat';
+
+import type { AttachmentSource } from '@/server/services/aiAgent/ingestAttachment';
+
 // ============================================================================
 // Bot Platform Core Types
 // ============================================================================
+
+// --------------- Connection Mode ---------------
+
+/**
+ * How the platform communicates with the server.
+ * - 'webhook': stateless HTTP callbacks (can run in serverless)
+ * - 'websocket': persistent WebSocket connection (e.g. Discord, QQ)
+ * - 'polling': persistent long-polling connection (e.g. WeChat)
+ */
+export type ConnectionMode = 'polling' | 'webhook' | 'websocket';
 
 // --------------- Field Schema ---------------
 
@@ -85,11 +99,40 @@ export interface UsageStats {
  */
 export interface PlatformClient {
   readonly applicationId: string;
+  /**
+   * Apply platform-specific Chat SDK compatibility patches after bot initialization.
+   * Useful for adapter quirks that should stay encapsulated within the platform client.
+   */
+  applyChatPatches?: (chatBot: Chat<any>) => void;
+
   /** Create a Chat SDK adapter config for inbound message handling. */
   createAdapter: () => Record<string, any>;
 
   /** Extract the chat/channel ID from a composite platformThreadId. */
   extractChatId: (platformThreadId: string) => string;
+
+  /**
+   * Resolve attachments on an inbound `Message` into `AttachmentSource[]` for
+   * ingestion by the bridge. Each platform owns its own attachment quirks
+   * here: data-source priority, type-only metadata inference, quoted-message
+   * handling, and re-download paths for data lost during chat-sdk Redis
+   * serialization (functions and buffers don't survive `Message.toJSON`).
+   *
+   * Optional — when omitted, the bridge falls back to its legacy
+   * `extractFiles` implementation. Eventually all platforms will implement
+   * this and the bridge fallback will be deleted.
+   */
+  extractFiles?: (message: Message) => Promise<AttachmentSource[] | undefined>;
+
+  /**
+   * Transform outbound Markdown content into a format the platform can render.
+   * Called before `formatReply` and `splitMessage`.
+   *
+   * Platforms that don't support Markdown (e.g. WeChat, QQ) should strip
+   * formatting to plain text. Platforms with native Markdown support can
+   * omit this method — the content is passed through as-is.
+   */
+  formatMarkdown?: (markdown: string) => string;
 
   /**
    * Format the final outbound reply from body content and optional usage stats.
@@ -99,15 +142,35 @@ export interface PlatformClient {
    */
   formatReply?: (body: string, stats?: UsageStats) => string;
 
+  // --- Runtime Operations ---
+
   /** Get a messenger for a specific thread (outbound messaging). */
   getMessenger: (platformThreadId: string) => PlatformMessenger;
-
-  // --- Runtime Operations ---
 
   readonly id: string;
 
   /** Parse a composite message ID into the platform-native format. */
   parseMessageId: (compositeId: string) => string | number;
+
+  /**
+   * Register bot commands with the platform (e.g., Telegram setMyCommands).
+   * Called once during bot initialization with the list of available commands.
+   * Optional — platforms that don't support command menus can omit this.
+   */
+  registerBotCommands?: (
+    commands: Array<{ command: string; description: string }>,
+  ) => Promise<void>;
+
+  /**
+   * Resolve the correct thread ID for reaction API calls.
+   *
+   * Some platforms (e.g. Discord) need to route reactions to a different channel
+   * than the thread itself — for instance, a thread-starter message lives in
+   * the parent channel, not in the thread.
+   *
+   * When not implemented, `threadId` is used as-is.
+   */
+  resolveReactionThreadId?: (threadId: string, messageId: string) => string;
 
   /** Strip platform-specific bot mention artifacts from user input. */
   sanitizeUserInput?: (text: string) => string;
@@ -192,6 +255,7 @@ export abstract class ClientFactory {
     _credentials: Record<string, string>,
     _settings?: Record<string, unknown>,
     _applicationId?: string,
+    _platform?: string,
   ): Promise<ValidationResult> {
     return { valid: true };
   }
@@ -219,10 +283,20 @@ export interface PlatformDefinition {
   /**
    * Connection mode: how the platform communicates with the server.
    * - 'webhook': stateless HTTP callbacks (can run in serverless)
-   * - 'websocket': persistent connection (requires long-running process)
-   * Defaults to 'webhook'.
+   * - 'websocket': persistent WebSocket connection (e.g. Discord, QQ)
+   * - 'polling': persistent long-polling connection (e.g. WeChat)
+   *
+   * For single-mode platforms this is the runtime mode. For multi-mode
+   * platforms where users can pick per-provider via `settings.connectionMode`,
+   * this represents the *recommended* default for new providers (form initial
+   * value + cron coarse filter).
+   *
+   * For platforms that added multi-mode support after launch (Slack/Feishu/
+   * Lark/QQ), legacy provider rows without an explicit setting fall back to
+   * `'webhook'` instead — see `LEGACY_WEBHOOK_PLATFORMS` and
+   * `getEffectiveConnectionMode` in `./utils.ts`.
    */
-  connectionMode?: 'webhook' | 'websocket';
+  connectionMode: ConnectionMode;
 
   /** The description of the platform. */
   description?: string;
@@ -241,6 +315,14 @@ export interface PlatformDefinition {
 
   /** Whether to show webhook URL for manual configuration. When true, the UI displays the webhook endpoint for the user to copy. */
   showWebhookUrl?: boolean;
+
+  /**
+   * Whether the platform supports rendering Markdown in messages.
+   * When false, outbound markdown is converted to plain text before sending,
+   * and the AI is instructed to avoid markdown formatting.
+   * Defaults to true.
+   */
+  supportsMarkdown?: boolean;
 
   /**
    * Whether the platform supports editing sent messages.

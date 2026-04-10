@@ -14,6 +14,7 @@ import SuggestQuestions from '@/routes/(main)/home/features/SuggestQuestions';
 import { useAgentStore } from '@/store/agent';
 import { agentByIdSelectors } from '@/store/agent/selectors';
 import { useChatStore } from '@/store/chat';
+import { operationSelectors } from '@/store/chat/selectors';
 import { fileChatSelectors, useFileStore } from '@/store/file';
 import { useHomeStore } from '@/store/home';
 import {
@@ -31,40 +32,47 @@ import { useSend } from './hooks/useSend';
 
 const useStyles = createStyles(({ css }) => ({
   chatInputWrapper: css`
-    .ant-btn-primary {
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .jem-send-button {
+      overflow: hidden !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
 
       aspect-ratio: 1 / 1 !important;
       width: 36px !important;
       min-width: 36px !important;
+      max-width: 36px !important;
       height: 36px !important;
+      min-height: 36px !important;
+      max-height: 36px !important;
       padding: 0 !important;
       border: none !important;
       border-radius: 50% !important;
 
+      color: #fff !important;
+
+      background: #171717 !important;
       box-shadow: none !important;
     }
 
-    .ant-btn-primary[disabled] {
-      color: #fff !important;
+    /* Override colors for Generating/Stop state */
+    .jem-send-button.is-generating {
+      border: 1px solid rgb(0 0 0 / 10%) !important;
+      color: #000 !important;
+      background: #fff !important;
+    }
+
+    .jem-send-button[disabled] {
       opacity: 0.3 !important;
-      background: #171717 !important;
     }
 
-    .ant-btn-primary:not([disabled]) {
-      color: #fff !important;
-      background: #171717 !important;
-    }
-
-    .ant-btn-primary:not(.ant-btn-loading) svg,
-    .ant-btn-primary:not(.ant-btn-loading) .anticon {
+    .jem-send-button svg,
+    .jem-send-button .anticon {
       display: none !important;
       opacity: 0 !important;
     }
 
-    .ant-btn-primary:not(.ant-btn-loading)::after {
+    .jem-send-button::after {
       content: '';
 
       position: absolute;
@@ -75,20 +83,43 @@ const useStyles = createStyles(({ css }) => ({
       width: 18px;
       height: 18px;
 
-      background: currentcolor;
+      background: currentcolor !important;
     }
 
     /* Send Icon (Arrow Up) */
-    .ant-btn-primary:not(.ant-btn-loading, [ant-click-animating-without-extra-node='true'])::after {
+    .jem-send-button:not(.is-generating, [ant-click-animating-without-extra-node='true'])::after {
       mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z'/%3E%3C/svg%3E")
         no-repeat center / contain;
     }
 
     /* Stop Icon (Square) - Triggered when generating */
-    .ant-btn-primary.ant-btn-loading::after,
-    .ant-btn-primary[ant-click-animating-without-extra-node='true']::after {
-      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Crect width='16' height='16' x='4' y='4' rx='2'/%3E%3C/svg%3E")
+    .jem-send-button.is-generating::after,
+    .jem-send-button[ant-click-animating-without-extra-node='true']::after {
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Crect width='12' height='12' x='6' y='6'/%3E%3C/svg%3E")
         no-repeat center / contain;
+    }
+
+    /* Loading Ring (Arc) */
+    .jem-send-button.is-generating::before {
+      content: '';
+
+      position: absolute;
+      inset: 4px;
+
+      border: 2px solid transparent;
+      border-block-start: 2px solid #000;
+      border-radius: 50%;
+
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
     }
   `,
 }));
@@ -102,7 +133,7 @@ interface JemChatInputProps {
 
 const JemChatInput = memo<JemChatInputProps>(({ agentId, showStarters, threadId, topicId }) => {
   const { styles } = useStyles();
-  const { loading, send, inboxAgentId } = useSend({ agentId, threadId, topicId });
+  const { send, inboxAgentId } = useSend({ agentId, threadId, topicId });
   const inputActiveMode = useHomeStore((s) => s.inputActiveMode);
   const [searchDocsModalOpen, setSearchDocsModalOpen] = useState<boolean>(false);
 
@@ -153,13 +184,24 @@ const JemChatInput = memo<JemChatInputProps>(({ agentId, showStarters, threadId,
     showHomeSuggestion &&
     (!inputActiveMode || ['agent', 'group', 'write'].includes(inputActiveMode));
 
-  const inputMessage = useChatStore((s) => s.inputMessage);
+  const [inputMessage, stopGenerateMessage] = useChatStore((s) => [
+    s.inputMessage,
+    s.stopGenerateMessage,
+  ]);
   const hasFiles = useFileStore(fileChatSelectors.chatUploadFileListHasItem);
   const hasContext = useFileStore(fileChatSelectors.chatContextSelectionHasItem);
   const isUploading = useFileStore(fileChatSelectors.isUploadingFiles);
 
+  const isGenerating = useChatStore(
+    operationSelectors.isInputLoadingByContext({
+      agentId: activeAgentId,
+      threadId,
+      topicId,
+    }),
+  );
+
   const isSendDisabled =
-    loading || isUploading || (!inputMessage?.trim() && !hasFiles && !hasContext);
+    (isUploading || (!inputMessage?.trim() && !hasFiles && !hasContext)) && !isGenerating;
 
   return (
     <Flexbox gap={16} style={{ marginBottom: 16 }}>
@@ -192,9 +234,10 @@ const JemChatInput = memo<JemChatInputProps>(({ agentId, showStarters, threadId,
               ] as ActionKeys[]
             }
             sendButtonProps={{
+              className: `jem-send-button ${isGenerating ? 'is-generating' : ''}`,
               disabled: isSendDisabled,
-              generating: loading,
-              onStop: () => {},
+              generating: isGenerating,
+              onStop: stopGenerateMessage,
               shape: 'default',
             }}
             onSend={send}

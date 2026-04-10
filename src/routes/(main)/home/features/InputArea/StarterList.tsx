@@ -104,12 +104,12 @@ const StarterList = memo(() => {
   const handleClick = useCallback(
     (key: StarterMode) => {
       if (key === 'video') {
-        navigate?.('/video');
+        navigate?.('/video?model=doubao-seedance-2-0-260128');
         return;
       }
 
       if (key === 'image') {
-        navigate?.('/image?model=gemini-3.1-flash-image-preview:image');
+        navigate?.('/image');
         return;
       }
 

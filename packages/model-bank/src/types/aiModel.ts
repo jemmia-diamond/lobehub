@@ -153,6 +153,7 @@ export type PricingUnitType =
   | 'millionTokens' // per 1M tokens
   | 'millionCharacters' // per 1M characters
   | 'image' // per image
+  | 'video' // per video
   | 'megapixel' // per megapixel
   | 'second'; // per second
 
@@ -241,6 +242,8 @@ export type ModelSearchImplementType = 'tool' | 'params' | 'internal';
 
 export type ExtendParamsType =
   | 'reasoningBudgetToken'
+  | 'reasoningBudgetToken32k'
+  | 'reasoningBudgetToken80k'
   | 'enableReasoning'
   | 'enableAdaptiveThinking'
   | 'disableContextCaching'
@@ -277,6 +280,8 @@ export interface AiModelSettings {
 
 export const ExtendParamsTypeSchema = z.enum([
   'reasoningBudgetToken',
+  'reasoningBudgetToken32k',
+  'reasoningBudgetToken80k',
   'enableReasoning',
   'enableAdaptiveThinking',
   'disableContextCaching',
