@@ -3,7 +3,7 @@
 import { MAX_ONBOARDING_STEPS } from '@lobechat/types';
 import { Flexbox } from '@lobehub/ui';
 import { memo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import {useNavigate  } from 'react-router-dom';
 
 import Loading from '@/components/Loading/BrandTextLoading';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';

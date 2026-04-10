@@ -25,6 +25,9 @@ Desktop.ini
 *.code-workspace
 .vscode/sessions.json
 prd
+# Recordings
+.records/
+
 # Temporary files
 .temp/
 temp/
@@ -52,6 +55,7 @@ bun.lockb
 
 # Build outputs
 dist/
+public/_spa/
 public/spa/
 es/
 lib/
@@ -96,6 +100,7 @@ robots.txt
 
 # Documents and media
 *.pdf
+!packages/knowledge-seed/**/*.pdf
 
 # Cloud service keys
 vertex-ai-key.json
@@ -125,7 +130,9 @@ scripts/clerk-to-betterauth/prod/*.json
 # Misc
 ./packages/lobe-ui
 *.ppt*
+!packages/knowledge-seed/**/*.ppt*
 *.doc*
+!packages/knowledge-seed/**/*.doc*
 *.xls*
 e2e/reports
 out
@@ -135,4 +142,11 @@ i18n-unused-keys-report.json
 pnpm-lock.yaml
 .turbo
 spaHtmlTemplates.ts
-.trae/.ignore
+
+# Embedded CLI bundle (built at pack time)
+apps/desktop/resources/bin/lobe-cli.js
+apps/desktop/resources/cli-package.json
+
+# Superpowers plugin brainstorm/spec outputs (local only; do not commit)
+.superpowers/
+docs/superpowers/

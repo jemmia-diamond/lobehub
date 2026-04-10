@@ -36,7 +36,7 @@ export function defineConfig(config: CustomNextConfig) {
         ...(buildWithDocker
           ? [
               // Exclude SPA/desktop/mobile build artifacts from serverless functions
-              'public/spa/**',
+              'public/_spa/**',
               'dist/desktop/**',
               'dist/mobile/**',
 
@@ -210,7 +210,7 @@ export function defineConfig(config: CustomNextConfig) {
               value: 'public, max-age=31536000, immutable',
             },
           ],
-          source: '/favicon-32x32.ico',
+          source: '/favicon-32x32.png',
         },
         {
           headers: [
@@ -369,12 +369,18 @@ export function defineConfig(config: CustomNextConfig) {
 
     transpilePackages: ['mermaid', 'better-auth-harmony'],
     turbopack: {
-      rules: isTest
-        ? void 0
-        : codeInspectorPlugin({
-            bundler: 'turbopack',
-            hotKeys: ['altKey', 'ctrlKey'],
-          }),
+      rules: {
+        ...(isTest
+          ? void 0
+          : codeInspectorPlugin({
+              bundler: 'turbopack',
+              hotKeys: ['altKey', 'ctrlKey'],
+            })),
+        '*.md': {
+          as: '*.js',
+          loaders: ['raw-loader'],
+        },
+      },
       ...config.turbopack,
     },
 

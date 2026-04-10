@@ -12,6 +12,12 @@ export default {
   'channel.connectionConfig': 'Connection Configuration',
   'channel.copied': 'Copied to clipboard',
   'channel.copy': 'Copy',
+  'channel.deleteAllChannels': 'Remove All Channels',
+  'channel.deleteAllConfirm': 'Are you sure you want to remove all channels?',
+  'channel.deleteAllConfirmDesc':
+    'This action will permanently remove all message channels and their configurations for this agent. This cannot be undone.',
+  'channel.deleteAllSuccess': 'All channels removed',
+  'channel.deleteAllFailed': 'Failed to remove all channels',
   'channel.deleteConfirm': 'Are you sure you want to remove this channel?',
   'channel.deleteConfirmDesc':
     'This action will permanently remove this message channel and its configuration. This cannot be undone.',
@@ -22,17 +28,27 @@ export default {
   'channel.discord.description':
     'Connect this assistant to Discord server for channel chat and direct messages.',
   'channel.documentation': 'Documentation',
+  'channel.exportConfig': 'Export Configuration',
+  'channel.importConfig': 'Import Configuration',
+  'channel.importSuccess': 'Configuration imported successfully',
+  'channel.importFailed': 'Failed to import configuration',
+  'channel.importInvalidFormat': 'Invalid configuration file format',
   'channel.enabled': 'Enabled',
   'channel.encryptKey': 'Encrypt Key',
   'channel.encryptKeyHint': 'Optional. Used to decrypt encrypted event payloads.',
   'channel.encryptKeyPlaceholder': 'Optional encryption key',
   'channel.connectFailed': 'Bot connection failed',
+  'channel.connectQueued': 'Bot connection queued. It will start shortly.',
+  'channel.connectStarting': 'Bot is starting. Please wait a moment.',
   'channel.connectSuccess': 'Bot connected successfully',
   'channel.connecting': 'Connecting...',
   'channel.endpointUrl': 'Webhook URL',
   'channel.endpointUrlHint':
     'Please copy this URL and paste it into the <bold>{{fieldName}}</bold> field in the {{name}} Developer Portal.',
   'channel.feishu.description': 'Connect this assistant to Feishu for private and group chats.',
+  'channel.feishu.webhookMigrationTitle': 'Consider migrating to WebSocket mode',
+  'channel.feishu.webhookMigrationDesc':
+    'WebSocket mode provides real-time event delivery without needing a public callback URL. To migrate, switch the Connection Mode to WebSocket in Advanced Settings. No additional configuration is needed on the Feishu/Lark Open Platform.',
   'channel.lark.description': 'Connect this assistant to Lark for private and group chats.',
   'channel.openPlatform': 'Open Platform',
   'channel.platforms': 'Platforms',
@@ -41,6 +57,27 @@ export default {
   'channel.publicKeyPlaceholder': 'Required for interaction verification',
   'channel.qq.appIdHint': 'Your QQ Bot App ID from QQ Open Platform',
   'channel.qq.description': 'Connect this assistant to QQ for group chats and direct messages.',
+  'channel.qq.webhookMigrationTitle': 'Consider migrating to WebSocket mode',
+  'channel.qq.webhookMigrationDesc':
+    'WebSocket mode provides real-time event delivery and automatic reconnection without needing a callback URL. To migrate, create a new bot on QQ Open Platform without configuring a callback URL, then switch the Connection Mode to WebSocket in Advanced Settings.',
+  'channel.wechat.description':
+    'Connect this assistant to WeChat via iLink Bot for private and group chats.',
+  'channel.wechatQrExpired': 'QR code expired. Please refresh to get a new one.',
+  'channel.wechatQrRefresh': 'Refresh QR Code',
+  'channel.wechatQrScaned': 'QR code scanned. Please confirm the login in WeChat.',
+  'channel.wechatQrWait': 'Open WeChat and scan the QR code to connect.',
+  'channel.wechatBotId': 'Bot ID',
+  'channel.wechatConnectedInfo': 'Connected WeChat Account',
+  'channel.wechatManagedCredentials':
+    'This channel is already connected through QR code authorization. Credentials are managed automatically.',
+  'channel.wechatRebind': 'Rebind via QR Code',
+  'channel.wechatScanTitle': 'Connect WeChat Bot',
+  'channel.wechatScanToConnect': 'Scan QR Code to Connect',
+  'channel.wechatTips':
+    'Please update WeChat to the latest version and restart it. The ClawBot plugin is in gradual rollout, so check Settings > Plugins to confirm access.',
+  'channel.wechatUserId': 'WeChat User ID',
+  'channel.wechatBotIdHint': 'Bot identifier assigned after QR code authorization.',
+  'channel.wechatUserIdHint': 'WeChat account identifier returned by the authorization flow.',
   'channel.removeChannel': 'Remove Channel',
   'channel.removed': 'Channel removed',
   'channel.removeFailed': 'Failed to remove channel',
@@ -51,8 +88,14 @@ export default {
   'channel.saved': 'Configuration saved successfully',
   'channel.secretToken': 'Webhook Secret Token',
   'channel.slack.appIdHint': 'Your Slack App ID from the Slack API dashboard (starts with A).',
+  'channel.slack.appToken': 'App-Level Token',
+  'channel.slack.appTokenHint':
+    'Required for Socket Mode (WebSocket). Generate an app-level token (xapp-...) under Basic Information in your Slack app settings.',
   'channel.slack.description':
     'Connect this assistant to Slack for channel conversations and direct messages.',
+  'channel.slack.webhookMigrationTitle': 'Consider migrating to Socket Mode (WebSocket)',
+  'channel.slack.webhookMigrationDesc':
+    'Socket Mode provides real-time event delivery via WebSocket without exposing a public HTTP endpoint. To migrate, enable Socket Mode in your Slack app settings, generate an App-Level Token, then switch the Connection Mode to WebSocket in Advanced Settings.',
   'channel.secretTokenHint': 'Optional. Used to verify webhook requests from Telegram.',
   'channel.secretTokenPlaceholder': 'Optional secret for webhook verification',
   'channel.telegram.description': 'Connect this assistant to Telegram for private and group chats.',
@@ -67,10 +110,20 @@ export default {
 
   'channel.appSecretHint':
     'The App Secret of your bot application. It will be encrypted and stored securely.',
+  'channel.connectionMode': 'Connection Mode',
+  'channel.connectionModeHint':
+    'WebSocket is recommended for new bots. Use Webhook if your bot already has a callback URL configured on QQ Open Platform.',
+  'channel.connectionModeWebSocket': 'WebSocket',
+  'channel.connectionModeWebhook': 'Webhook',
   'channel.charLimit': 'Character Limit',
   'channel.charLimitHint': 'Maximum number of characters per message',
+  'channel.concurrency': 'Concurrency Mode',
+  'channel.concurrencyDebounce': 'Debounce',
+  'channel.concurrencyHint':
+    'Queue processes messages one at a time; Debounce waits for a burst of messages to finish before processing',
+  'channel.concurrencyQueue': 'Queue',
   'channel.credentials': 'Credentials',
-  'channel.debounceMs': 'Message Merge Window (ms)',
+  'channel.debounceMs': 'Debounce Window (ms)',
   'channel.debounceMsHint':
     'How long to wait for additional messages before dispatching to the agent (ms)',
   'channel.dm': 'Direct Messages',
@@ -88,4 +141,16 @@ export default {
   'channel.signingSecretHint': 'Used to verify webhook requests.',
   'channel.showUsageStats': 'Show Usage Stats',
   'channel.showUsageStatsHint': 'Show token usage, cost, and duration stats in bot replies',
+  'channel.displayToolCalls': 'Display Tool Calls',
+  'channel.displayToolCallsHint':
+    'Show tool call details during AI responses. When disabled, only the final response is displayed for a cleaner experience.',
+  'channel.historyLimit': 'History Message Limit',
+  'channel.historyLimitHint': 'Default number of messages to fetch when reading channel history',
+  'channel.serverId': 'Default Server / Guild ID',
+  'channel.serverIdHint':
+    'Your default server or guild ID on this platform. The AI uses it to list channels without asking.',
+  'channel.userId': 'Your Platform User ID',
+  'channel.userIdHint':
+    'Your user ID on this platform. The AI can use it to send you direct messages.',
+  'channel.runtimeDisconnected': 'Bot disconnected',
 } as const;

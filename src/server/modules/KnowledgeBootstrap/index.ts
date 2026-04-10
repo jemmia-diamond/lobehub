@@ -26,8 +26,10 @@ export const JEMMORA_KB_NAME = 'Jemmia Diamond Knowledge';
  * KnowledgeBootstrapService
  *
  * Automatically scans packages/knowledge-seed/ at startup,
- * creates RAG indices for Markdown files, and links them to the Default Agent.
+ * creates RAG indices for Markdown, PDF, and DOCX files, and links them to the Default Agent.
  */
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export class KnowledgeBootstrapService {
   private userId: string = '';
   private currentUserId?: string;
@@ -68,10 +70,13 @@ export class KnowledgeBootstrapService {
       const kbId = await this.ensureKnowledgeBase(db, true);
       KnowledgeBootstrapService.globalKbId = kbId;
 
-      // 3. Scan and Ingest Markdown Files
-      const mdFiles = fs.readdirSync(seedDir).filter((f) => f.endsWith('.md'));
-      for (const filename of mdFiles) {
-        await this.syncMarkdownFile(db, path.join(seedDir, filename), kbId);
+      // 3. Scan and Ingest Seed Files
+      const seedFiles = fs
+        .readdirSync(seedDir)
+        .filter((f) => f.endsWith('.md') || f.endsWith('.pdf') || f.endsWith('.docx'));
+      for (const filename of seedFiles) {
+        await this.syncSeedFile(db, path.join(seedDir, filename), kbId);
+        await sleep(500);
       }
 
       console.info(`[KnowledgeBootstrap] Global Knowledge ready (KB ID: ${kbId})`);
@@ -200,12 +205,9 @@ export class KnowledgeBootstrapService {
     return id;
   }
 
-  private async syncMarkdownFile(
-    db: any,
-    filePath: string,
-    kbId: string,
-  ): Promise<string | undefined> {
+  private async syncSeedFile(db: any, filePath: string, kbId: string): Promise<string | undefined> {
     const filename = path.basename(filePath);
+    const fileType = this.getMimeType(filename);
     const content = fs.readFileSync(filePath);
     const fileHash = this.generateHash(content);
 
@@ -241,7 +243,7 @@ export class KnowledgeBootstrapService {
     if (!existingGlobal) {
       await db.insert(globalFiles).values({
         creator: this.userId,
-        fileType: 'text/markdown',
+        fileType,
         hashId: fileHash,
         size: content.length,
         url: `local://${filename}`, // Placeholder for internal seed files
@@ -254,7 +256,7 @@ export class KnowledgeBootstrapService {
     const fileId = uuidv4();
     await db.insert(files).values({
       fileHash,
-      fileType: 'text/markdown',
+      fileType,
       id: fileId,
       name: filename,
       size: content.length,
@@ -271,7 +273,7 @@ export class KnowledgeBootstrapService {
 
     // 3. Process RAG (Chunking + Embedding)
     try {
-      await this.processRAG(db, fileId, filename, content);
+      await this.processRAG(db, fileId, filename, content, fileType);
       return fileId;
     } catch (error) {
       console.error(`[KnowledgeBootstrap] RAG processing failed for ${filename}:`, error);
@@ -279,13 +281,19 @@ export class KnowledgeBootstrapService {
     }
   }
 
-  private async processRAG(db: any, fileId: string, filename: string, content: Buffer) {
+  private async processRAG(
+    db: any,
+    fileId: string,
+    filename: string,
+    content: Buffer,
+    fileType: string,
+  ) {
     // A. Chunking
     const chunker = new ContentChunk();
     const { chunks: chunkItems } = await chunker.chunkContent({
       content: new Uint8Array(content),
       filename,
-      fileType: 'text/markdown',
+      fileType,
     });
 
     if (chunkItems.length === 0) return;
@@ -305,15 +313,18 @@ export class KnowledgeBootstrapService {
     console.info(`[KnowledgeBootstrap] Generating embeddings using ServerEmbeddingService...`);
     const embeddingDbModel = new EmbeddingModel(db, this.userId);
 
-    // Process chunks in batches for efficiency
-    const BATCH_SIZE = 10;
+    // Smaller batch size to reduce tokens-per-request and avoid hitting TPM quota
+    const BATCH_SIZE = 5;
     for (let i = 0; i < savedChunks.length; i += BATCH_SIZE) {
       const batch = savedChunks.slice(i, i + BATCH_SIZE);
+      const batchIndex = Math.floor(i / BATCH_SIZE) + 1;
+      const totalBatches = Math.ceil(savedChunks.length / BATCH_SIZE);
 
-      const embeddings = await ServerEmbeddingService.generateEmbeddings(
+      const embeddings = await this.embedWithBackoff(
         batch.map((c) => c.text ?? ''),
         db,
-        this.userId,
+        batchIndex,
+        totalBatches,
       );
 
       if (!embeddings || embeddings.length === 0) continue;
@@ -324,11 +335,75 @@ export class KnowledgeBootstrapService {
           embeddings: embeddings[index],
         })),
       );
+
+      // Proactive throttle between batches to stay under TPM quota
+      if (i + BATCH_SIZE < savedChunks.length) {
+        await sleep(500);
+      }
     }
+  }
+
+  /**
+   * Wraps ServerEmbeddingService.generateEmbeddings with exponential backoff
+   * to gracefully handle 429 Rate Limit errors from the Gemini Embedding API.
+   */
+  private async embedWithBackoff(
+    texts: string[],
+    db: any,
+    batchIndex: number,
+    totalBatches: number,
+    maxRetries = 5,
+  ): Promise<number[][] | null> {
+    const BASE_DELAY_MS = 10_000; // 10s base — quota window is per-minute
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await ServerEmbeddingService.generateEmbeddings(texts, db, this.userId);
+        return result;
+      } catch (error: any) {
+        const is429 =
+          error?.statusCode === 429 ||
+          error?.message?.includes('429') ||
+          error?.message?.toLowerCase().includes('quota exceeded') ||
+          error?.message?.toLowerCase().includes('resource_exhausted');
+
+        if (!is429 || attempt === maxRetries) {
+          console.error(
+            `[KnowledgeBootstrap] Embedding failed (batch ${batchIndex}/${totalBatches}, attempt ${attempt}):`,
+            error?.message ?? error,
+          );
+          return null;
+        }
+
+        const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1); // 10s, 20s, 40s, 80s, 160s
+        console.warn(
+          `[KnowledgeBootstrap] Rate limited (429) on batch ${batchIndex}/${totalBatches}. ` +
+            `Retrying in ${delay / 1000}s... (attempt ${attempt}/${maxRetries})`,
+        );
+        await sleep(delay);
+      }
+    }
+
+    return null;
   }
 
   private generateHash(content: Buffer): string {
     const crypto = require('node:crypto');
     return crypto.createHash('sha256').update(content).digest('hex');
+  }
+
+  private getMimeType(filename: string): string {
+    const ext = path.extname(filename).toLowerCase();
+    switch (ext) {
+      case '.pdf': {
+        return 'application/pdf';
+      }
+      case '.docx': {
+        return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      }
+      default: {
+        return 'text/markdown';
+      }
+    }
   }
 }

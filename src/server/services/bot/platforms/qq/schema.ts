@@ -1,5 +1,8 @@
-import { DEFAULT_DEBOUNCE_MS, MAX_DEBOUNCE_MS } from '../const';
+import { MAX_BOT_DEBOUNCE_MS } from '@lobechat/const';
+
+import { displayToolCallsField, userIdField } from '../const';
 import type { FieldSchema } from '../types';
+import { DEFAULT_QQ_CONNECTION_MODE } from './const';
 
 export const schema: FieldSchema[] = [
   {
@@ -28,6 +31,15 @@ export const schema: FieldSchema[] = [
     label: 'channel.settings',
     properties: [
       {
+        key: 'connectionMode',
+        default: DEFAULT_QQ_CONNECTION_MODE,
+        description: 'channel.connectionModeHint',
+        enum: ['websocket', 'webhook'],
+        enumLabels: ['channel.connectionModeWebSocket', 'channel.connectionModeWebhook'],
+        label: 'channel.connectionMode',
+        type: 'string',
+      },
+      {
         key: 'charLimit',
         default: 2000,
         description: 'channel.charLimitHint',
@@ -37,13 +49,23 @@ export const schema: FieldSchema[] = [
         type: 'number',
       },
       {
+        key: 'concurrency',
+        default: 'queue',
+        description: 'channel.concurrencyHint',
+        enum: ['queue', 'debounce'],
+        enumLabels: ['channel.concurrencyQueue', 'channel.concurrencyDebounce'],
+        label: 'channel.concurrency',
+        type: 'string',
+      },
+      {
         key: 'debounceMs',
-        default: DEFAULT_DEBOUNCE_MS,
+        default: 5000,
         description: 'channel.debounceMsHint',
         label: 'channel.debounceMs',
-        maximum: MAX_DEBOUNCE_MS,
-        minimum: 0,
+        maximum: MAX_BOT_DEBOUNCE_MS,
+        minimum: 100,
         type: 'number',
+        visibleWhen: { field: 'concurrency', value: 'debounce' },
       },
       {
         key: 'showUsageStats',
@@ -52,6 +74,8 @@ export const schema: FieldSchema[] = [
         label: 'channel.showUsageStats',
         type: 'boolean',
       },
+      displayToolCallsField,
+      userIdField,
       // TODO: DM schema - not implemented yet
       // {
       //   key: 'dm',

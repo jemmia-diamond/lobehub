@@ -1,8 +1,11 @@
 // @vitest-environment node
+import {
+  DocumentLoadFormat,
+  DocumentLoadPosition,
+  DocumentLoadRule,
+  DocumentTemplateManager,
+} from '@lobechat/agent-templates';
 import { describe, expect, it } from 'vitest';
-
-import { DocumentTemplateManager } from '../template';
-import { DocumentLoadFormat, DocumentLoadPosition, DocumentLoadRule } from '../types';
 
 describe('DocumentTemplateManager', () => {
   describe('validate', () => {
@@ -66,6 +69,7 @@ describe('DocumentTemplateManager', () => {
         loadPosition: undefined,
         loadRules: undefined,
         metadata: undefined,
+        policyLoad: undefined,
         policyLoadFormat: undefined,
         title: 'Agent Notes',
       });
@@ -96,6 +100,7 @@ describe('DocumentTemplateManager', () => {
         loadPosition: DocumentLoadPosition.BEFORE_SYSTEM,
         loadRules,
         metadata: { scope: 'team' },
+        policyLoad: undefined,
         policyLoadFormat: DocumentLoadFormat.FILE,
         title: 'Profile',
       });
@@ -150,6 +155,7 @@ describe('DocumentTemplateManager', () => {
           scope: 'private',
           variables: ['name'],
         },
+        policyLoad: undefined,
         policyLoadFormat: undefined,
         title: 'Prompt',
       });
@@ -179,6 +185,7 @@ describe('DocumentTemplateManager', () => {
           scope: 'team',
           variables: ['name', 'team'],
         },
+        policyLoad: undefined,
         policyLoadFormat: undefined,
         title: 'Cloned',
       });

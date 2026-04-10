@@ -353,7 +353,7 @@ const FileUpload = memo(() => {
       icon={Paperclip}
       loading={updating}
       open={dropdownOpen}
-      showTooltip={false}
+      style={{ paddingLeft: 0 }}
       title={t('upload.action.tooltip')}
       trigger={'both'}
       dropdown={

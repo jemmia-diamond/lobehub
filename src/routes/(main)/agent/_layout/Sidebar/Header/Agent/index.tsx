@@ -1,5 +1,6 @@
 'use client';
 
+import { ASSISTANT_NAME } from '@lobechat/business-const';
 import { ActionIcon, Avatar, Block, Text } from '@lobehub/ui';
 import { ChevronsUpDownIcon } from 'lucide-react';
 import { type PropsWithChildren } from 'react';
@@ -24,7 +25,9 @@ const Agent = memo<PropsWithChildren>(() => {
     agentSelectors.currentAgentBackgroundColor(s),
   ]);
 
-  const displayTitle = isInbox ? 'Jemmora' : title || t('defaultSession', { ns: 'common' });
+  const displayTitle = isInbox
+    ? title || ASSISTANT_NAME
+    : title || t('defaultSession', { ns: 'common' });
 
   if (isLoading) return <SkeletonItem height={32} padding={0} />;
 
@@ -43,7 +46,7 @@ const Agent = memo<PropsWithChildren>(() => {
         }}
       >
         <Avatar
-          avatar={isInbox ? DEFAULT_INBOX_AVATAR : avatar || DEFAULT_AVATAR}
+          avatar={isInbox ? avatar || DEFAULT_INBOX_AVATAR : avatar || DEFAULT_AVATAR}
           background={backgroundColor || undefined}
           shape={'square'}
           size={28}

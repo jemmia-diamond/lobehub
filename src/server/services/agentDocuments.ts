@@ -1,31 +1,35 @@
+import {
+  type AgentDocumentPolicy,
+  type DOCUMENT_TEMPLATES,
+  DocumentLoadPosition,
+  type DocumentLoadRules,
+  type DocumentTemplateSet,
+  getDocumentTemplate,
+  type PolicyLoad,
+} from '@lobechat/agent-templates';
 import type { LobeChatDatabase } from '@lobechat/database';
 
 import {
   AgentDocumentModel,
-  type AgentDocumentPolicy,
   type AgentDocumentWithRules,
-  DocumentLoadPosition,
-  type DocumentLoadRules,
   type ToolUpdateLoadRule,
 } from '@/database/models/agentDocuments';
 import { buildDocumentFilename } from '@/database/models/agentDocuments';
-import type {
-  DOCUMENT_TEMPLATES,
-  DocumentTemplateSet,
-} from '@/database/models/agentDocuments/templates';
-import { getDocumentTemplate } from '@/database/models/agentDocuments/templates';
 
 const MAX_UNIQUE_FILENAME_ATTEMPTS = 1000;
 
 interface UpsertDocumentParams {
   agentId: string;
   content: string;
+  createdAt?: Date;
   filename: string;
   loadPosition?: DocumentLoadPosition;
   loadRules?: DocumentLoadRules;
   metadata?: Record<string, any>;
   policy?: AgentDocumentPolicy;
+  policyLoad?: PolicyLoad;
   templateId?: string;
+  updatedAt?: Date;
 }
 
 /**
@@ -43,11 +47,13 @@ export class AgentDocumentsService {
     agentId: string,
     title: string,
     content: string,
-    loadPosition?: DocumentLoadPosition,
-    loadRules?: DocumentLoadRules,
-    templateId?: string,
-    metadata?: Record<string, any>,
-    policy?: AgentDocumentPolicy,
+    params?: {
+      loadPosition?: DocumentLoadPosition;
+      loadRules?: DocumentLoadRules;
+      metadata?: Record<string, any>;
+      policy?: AgentDocumentPolicy;
+      templateId?: string;
+    },
   ) {
     const baseFilename = buildDocumentFilename(title);
     const extensionMatch = baseFilename.match(/(\.[^./\\]+)$/);
@@ -68,16 +74,7 @@ export class AgentDocumentsService {
       suffix += 1;
     }
 
-    return this.agentDocumentModel.create(
-      agentId,
-      filename,
-      content,
-      loadPosition,
-      loadRules,
-      templateId,
-      metadata,
-      policy,
-    );
+    return this.agentDocumentModel.create(agentId, filename, content, params);
   }
 
   /**
@@ -90,22 +87,16 @@ export class AgentDocumentsService {
     const templateSet = getDocumentTemplate(templateId);
 
     for (const template of templateSet.templates) {
-      await this.agentDocumentModel.upsert(
-        agentId,
-        template.filename,
-        template.content,
-        template.loadPosition,
-        template.loadRules,
-        templateId,
-        template.metadata,
-        template.policyLoadFormat
-          ? {
-              context: {
-                policyLoadFormat: template.policyLoadFormat,
-              },
-            }
+      await this.agentDocumentModel.upsert(agentId, template.filename, template.content, {
+        loadPosition: template.loadPosition,
+        loadRules: template.loadRules,
+        metadata: template.metadata,
+        policy: template.policyLoadFormat
+          ? { context: { policyLoadFormat: template.policyLoadFormat } }
           : undefined,
-      );
+        policyLoad: template.policyLoad,
+        templateId,
+      });
     }
   }
 
@@ -114,22 +105,16 @@ export class AgentDocumentsService {
    */
   async initializeFromCustomTemplate(agentId: string, templateSet: DocumentTemplateSet) {
     for (const template of templateSet.templates) {
-      await this.agentDocumentModel.upsert(
-        agentId,
-        template.filename,
-        template.content,
-        template.loadPosition,
-        template.loadRules,
-        templateSet.id,
-        template.metadata,
-        template.policyLoadFormat
-          ? {
-              context: {
-                policyLoadFormat: template.policyLoadFormat,
-              },
-            }
+      await this.agentDocumentModel.upsert(agentId, template.filename, template.content, {
+        loadPosition: template.loadPosition,
+        loadRules: template.loadRules,
+        metadata: template.metadata,
+        policy: template.policyLoadFormat
+          ? { context: { policyLoadFormat: template.policyLoadFormat } }
           : undefined,
-      );
+        policyLoad: template.policyLoad,
+        templateId: templateSet.id,
+      });
     }
   }
 
@@ -207,17 +192,20 @@ export class AgentDocumentsService {
     templateId,
     metadata,
     policy,
+    policyLoad,
+    createdAt,
+    updatedAt,
   }: UpsertDocumentParams) {
-    return this.agentDocumentModel.upsert(
-      agentId,
-      filename,
-      content,
+    return this.agentDocumentModel.upsert(agentId, filename, content, {
+      createdAt,
       loadPosition,
       loadRules,
-      templateId,
       metadata,
       policy,
-    );
+      policyLoad,
+      templateId,
+      updatedAt,
+    });
   }
 
   async createDocument(agentId: string, title: string, content: string) {
@@ -321,11 +309,37 @@ export class AgentDocumentsService {
     }
   }
 
+  async listDocuments(agentId: string) {
+    const docs = await this.agentDocumentModel.findByAgent(agentId);
+    return docs.map((d) => ({
+      filename: d.filename,
+      id: d.id,
+      loadPosition: d.policy?.context?.position,
+      title: d.title,
+    }));
+  }
+
+  async getDocumentByFilename(agentId: string, filename: string) {
+    return this.agentDocumentModel.findByFilename(agentId, filename);
+  }
+
+  async upsertDocumentByFilename({
+    agentId,
+    filename,
+    content,
+  }: {
+    agentId: string;
+    content: string;
+    filename: string;
+  }) {
+    return this.agentDocumentModel.upsert(agentId, filename, content);
+  }
+
   async editDocumentById(documentId: string, content: string, expectedAgentId?: string) {
     const doc = await this.getDocumentByIdInAgent(documentId, expectedAgentId);
     if (!doc) return undefined;
 
-    await this.agentDocumentModel.update(documentId, content);
+    await this.agentDocumentModel.update(documentId, { content });
     return this.agentDocumentModel.findById(documentId);
   }
 

@@ -14,7 +14,7 @@ export const getAntdLocale = async (lang?: string) => {
 
   // And we don't want to handle it in `normalizeLocale` function
   // because of other locale files are all `ar` not `ar-EG`
-  if (normalLang === 'ar') normalLang = 'ar-EG';
+  if (normalLang === 'vi-VN') normalLang = 'vi-VN';
 
   const { default: locale } = await import(`antd/locale/${normalLang.replace('-', '_')}.js`);
 
@@ -38,12 +38,12 @@ export const parseBrowserLanguage = (headers: Headers, defaultLang: string = DEF
   let browserLang: string = resolveAcceptLanguage(
     headers.get('accept-language') || '',
     //  Invalid locale identifier 'ar'. A valid locale should follow the BCP 47 'language-country' format.
-    locales.map((locale) => (locale === 'ar' ? 'ar-EG' : locale)),
+    locales.map((locale) => (locale === 'vi-VN' ? 'vi-VN' : locale)),
     defaultLang,
   );
 
   // if match the ar-EG then fallback to ar
-  if (browserLang === 'ar-EG') browserLang = 'ar';
+  if (browserLang === 'vi-VN') browserLang = 'vi';
 
   return browserLang;
 };

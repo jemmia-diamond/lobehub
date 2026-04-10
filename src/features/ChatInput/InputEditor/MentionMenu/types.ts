@@ -1,7 +1,7 @@
 import type { ISlashMenuOption } from '@lobehub/editor';
 import type { ReactNode } from 'react';
 
-export type MentionCategoryId = 'agent' | 'topic' | 'member' | 'lark-user' | 'lark-doc';
+export type MentionCategoryId = 'agent' | 'topic' | 'member' | 'skill' | 'tool' |'lark-user' | 'lark-doc';
 
 export interface MentionCategory {
   icon: ReactNode;

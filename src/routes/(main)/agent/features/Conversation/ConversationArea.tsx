@@ -27,6 +27,7 @@ import MessageFromUrl from './MainChatInput/MessageFromUrl';
 import ThreadHydration from './ThreadHydration';
 import { useActionsBarConfig } from './useActionsBarConfig';
 import { useAgentContext } from './useAgentContext';
+import { useGatewayReconnect } from './useGatewayReconnect';
 
 const log = debug('lobe-render:agent:ConversationArea');
 
@@ -132,6 +133,9 @@ const Conversation = memo(() => {
 
   // Get operation state from ChatStore for reactive updates
   const operationState = useOperationState(context);
+
+  // Auto-reconnect to running Gateway operation on topic load
+  useGatewayReconnect(context.topicId);
 
   return (
     <ConversationProvider

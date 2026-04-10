@@ -44,9 +44,6 @@ const loadAuthNamespace = async (lng: string, ns: string) => {
   const safeNamespace = isAllowedNamespace(ns) ? ns : 'auth';
   const normalizedLocale = normalizeLocale(lng);
 
-  // If the requested locale is English, load from the default TypeScript-based namespace
-  if (normalizedLocale === 'en-US') return loadDefaultNamespace(safeNamespace);
-
   const isSupported = (locales as readonly string[]).includes(normalizedLocale);
   if (!isSupported) return loadDefaultNamespace(safeNamespace);
 

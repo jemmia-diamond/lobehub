@@ -60,8 +60,8 @@ describe('AssistantStore', () => {
 
   it('should return the agent URL for a supported language', () => {
     const agentMarket = new AssistantStore();
-    const url = agentMarket.getAgentUrl('agent-123', 'zh-CN');
-    expect(url).toBe(`${baseURL}/agent-123.zh-CN.json`);
+    const url = agentMarket.getAgentUrl('agent-123', 'vi-VN');
+    expect(url).toBe(`${baseURL}/agent-123.vi-VN.json`);
   });
 
   it('should return the agent URL without language suffix if the provided language is not supported', () => {
@@ -177,7 +177,7 @@ describe('AssistantStore', () => {
     EdgeConfig.isEnabled.mockReturnValue(false);
 
     const store = new AssistantStore();
-    const result = await store.getAgentIndex('zh-CN');
+    const result = await store.getAgentIndex('vi-VN');
     expect(result).toEqual([
       { identifier: 'agent1', meta: {}, author: '', createAt: '', createdAt: '', homepage: '' },
     ]);
@@ -188,7 +188,6 @@ describe('AssistantStore', () => {
     global.fetch = vi.fn().mockRejectedValue(new Error('something else'));
     const store = new AssistantStore();
 
-     
     vi.spyOn(console, 'error').mockImplementation(() => {});
 
     await expect(store.getAgentIndex()).rejects.toThrow('something else');
