@@ -210,7 +210,7 @@ export function defineConfig(config: CustomNextConfig) {
               value: 'public, max-age=31536000, immutable',
             },
           ],
-          source: '/favicon-32x32.ico',
+          source: '/favicon-32x32.png',
         },
         {
           headers: [
