@@ -17,6 +17,8 @@
   "starter.developing": "正在开发中",
   "starter.image": "绘画",
   "starter.imageGeneration": "图像生成",
+  "starter.videoGeneration": "Seedance 2.0",
+  "starter.write": "写作",
   "thinkingMode.auto.description": "自动根据问题内容和附件文档选择最优模型。",
   "thinkingMode.auto.subtitle": "自动模式",
   "thinkingMode.auto.title": "自动",
@@ -25,7 +27,5 @@
   "thinkingMode.expert.description": "专家级的复杂任务处理。",
   "thinkingMode.expert.title": "专家",
   "thinkingMode.fast.description": "立即回答。适用于简单任务，不需要计算或逻辑。",
-  "thinkingMode.fast.title": "快速",
-  "starter.videoGeneration": "Seedance 2.0",
-  "starter.write": "写作"
+  "thinkingMode.fast.title": "快速"
 }

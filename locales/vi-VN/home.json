@@ -39,6 +39,8 @@
   "starter.developing": "Sắp ra mắt",
   "starter.image": "Hình ảnh",
   "starter.imageGeneration": "Tạo hình ảnh",
+  "starter.videoGeneration": "Seedance 2.0",
+  "starter.write": "Viết",
   "thinkingMode.auto.description": "Tự động chọn chế độ phù hợp",
   "thinkingMode.auto.subtitle": "Tự động",
   "thinkingMode.auto.title": "Tự động",
@@ -50,7 +52,5 @@
   "thinkingMode.expert.title": "Chuyên Gia",
   "thinkingMode.fast.description": "Trả lời ngay lập tức. Dành cho các vụ đơn giản, không yêu cầu tính toán, logic.",
   "thinkingMode.fast.subtitle": "Fast Response",
-  "thinkingMode.fast.title": "Nhanh",
-  "starter.videoGeneration": "Seedance 2.0",
-  "starter.write": "Viết"
+  "thinkingMode.fast.title": "Nhanh"
 }

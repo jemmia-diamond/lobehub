@@ -39,6 +39,8 @@
   "starter.developing": "Coming soon",
   "starter.image": "Image",
   "starter.imageGeneration": "Image Generation",
+  "starter.videoGeneration": "Seedance 2.0",
+  "starter.write": "Write",
   "thinkingMode.auto.description": "Automatically select the appropriate mode.",
   "thinkingMode.auto.subtitle": "Auto",
   "thinkingMode.auto.title": "Auto",
@@ -50,7 +52,5 @@
   "thinkingMode.expert.title": "Expert",
   "thinkingMode.fast.description": "Instant responses. For simple tasks that do not require calculation or logic.",
   "thinkingMode.fast.subtitle": "Fast Response",
-  "thinkingMode.fast.title": "Fast",
-  "starter.videoGeneration": "Seedance 2.0",
-  "starter.write": "Write"
+  "thinkingMode.fast.title": "Fast"
 }
