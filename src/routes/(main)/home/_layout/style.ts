@@ -1,7 +1,7 @@
 import { createStaticStyles } from 'antd-style';
 
 export const styles = createStaticStyles(({ css, cssVar }) => ({
-  // 绝对定位容器，占满父容器
+  // Absolutely positioned container, fills parent
   absoluteContainer: css`
     position: absolute;
     inset: 0;

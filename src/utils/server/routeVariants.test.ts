@@ -41,7 +41,7 @@ describe('RouteVariants', () => {
         locale: 'vi-VN',
       };
       const result = RouteVariants.serializeVariants(variants);
-      expect(result).toBe('ja-JP__0');
+      expect(result).toBe('vi-VN__0');
     });
 
     it('should serialize variants with custom colors', () => {
@@ -242,7 +242,7 @@ describe('RouteVariants', () => {
       });
       expect(result).toEqual({
         isMobile: true,
-        locale: 'ja-JP',
+        locale: 'vi-VN',
       });
     });
 
@@ -267,7 +267,7 @@ describe('RouteVariants', () => {
       });
       expect(result).toEqual({
         isMobile: true,
-        locale: 'zh-CN',
+        locale: 'vi-VN',
         neutralColor: '#aaaaaa',
         primaryColor: '#00ff00',
       });

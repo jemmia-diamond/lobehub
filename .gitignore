@@ -52,6 +52,7 @@ bun.lockb
 
 # Build outputs
 dist/
+public/_spa/
 public/spa/
 es/
 lib/
@@ -138,4 +139,6 @@ i18n-unused-keys-report.json
 pnpm-lock.yaml
 .turbo
 spaHtmlTemplates.ts
-.trae/.ignore
+
+.superpowers/
+docs/superpowers

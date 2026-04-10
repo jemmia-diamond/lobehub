@@ -3,12 +3,20 @@ import debug from 'debug';
 import { AgentBotProviderModel } from '@/database/models/agentBotProvider';
 import { TopicModel } from '@/database/models/topic';
 import { type LobeChatDatabase } from '@/database/type';
+import { getAgentRuntimeRedisClient } from '@/server/modules/AgentRuntime/redis';
 import { KeyVaultsGateKeeper } from '@/server/modules/KeyVaultsEncrypt';
 import { SystemAgentService } from '@/server/services/systemAgent';
 
+import { AgentBridgeService } from './AgentBridgeService';
 import type { BotProviderConfig, PlatformClient, PlatformMessenger, UsageStats } from './platforms';
 import { platformRegistry } from './platforms';
-import { renderError, renderFinalReply, renderStepProgress, splitMessage } from './replyTemplate';
+import {
+  renderError,
+  renderFinalReply,
+  renderStepProgress,
+  renderStopped,
+  splitMessage,
+} from './replyTemplate';
 
 const log = debug('lobe-server:bot:callback');
 
@@ -27,7 +35,7 @@ export interface BotCallbackBody {
   lastToolsCalling?: any;
   llmCalls?: number;
   platformThreadId: string;
-  progressMessageId: string;
+  progressMessageId?: string;
   reason?: string;
   reasoning?: string;
   shouldContinue?: boolean;
@@ -72,13 +80,23 @@ export class BotCallbackService {
     const canEdit = entry?.supportsMessageEdit !== false;
 
     if (type === 'step') {
-      // Skip step progress updates for platforms that can't edit messages
-      if (canEdit) {
+      if (canEdit && progressMessageId) {
         await this.handleStep(body, messenger, progressMessageId, client);
       }
     } else if (type === 'completion') {
-      await this.handleCompletion(body, messenger, progressMessageId, client, charLimit, canEdit);
-      await this.removeEyesReaction(body, messenger);
+      await this.handleCompletion(
+        body,
+        messenger,
+        progressMessageId ?? '',
+        client,
+        charLimit,
+        canEdit,
+      );
+      await this.removeEyesReaction(body, client, platformThreadId);
+      // Clear the active thread tracker so the thread can accept new messages.
+      // In queue mode, the bridge handler's finally block skips this cleanup
+      // to keep the thread marked active while the agent runs on the job queue.
+      AgentBridgeService.clearActiveThread(platformThreadId);
       this.summarizeTopicTitle(body, messenger);
     }
   }
@@ -121,7 +139,9 @@ export class BotCallbackService {
       settings: settings || {},
     };
 
-    const client = entry.clientFactory.createClient(config, {});
+    const client = entry.clientFactory.createClient(config, {
+      redisClient: getAgentRuntimeRedisClient() as any,
+    });
     const messenger = client.getMessenger(platformThreadId);
 
     return { charLimit, messenger, client };
@@ -160,7 +180,8 @@ export class BotCallbackService {
       totalTokens: body.totalTokens ?? 0,
     };
 
-    const progressText = client.formatReply?.(msgBody, stats) ?? msgBody;
+    const formatted = client.formatMarkdown?.(msgBody) ?? msgBody;
+    const progressText = client.formatReply?.(formatted, stats) ?? formatted;
 
     const isLlmFinalResponse =
       body.stepType === 'call_llm' && !body.toolsCalling?.length && body.content;
@@ -188,13 +209,23 @@ export class BotCallbackService {
     if (reason === 'error') {
       const errorText = renderError(errorMessage || 'Agent execution failed');
       try {
-        if (canEdit) {
+        if (canEdit && progressMessageId) {
           await messenger.editMessage(progressMessageId, errorText);
         } else {
           await messenger.createMessage(errorText);
         }
       } catch (error) {
         log('handleCompletion: failed to send error message: %O', error);
+      }
+      return;
+    }
+
+    if (reason === 'interrupted') {
+      const stoppedText = renderStopped(errorMessage || 'Execution stopped.');
+      try {
+        await messenger.createMessage(stoppedText);
+      } catch (error) {
+        log('handleCompletion: failed to send interrupted message: %O', error);
       }
       return;
     }
@@ -214,17 +245,18 @@ export class BotCallbackService {
       totalTokens: body.totalTokens ?? 0,
     };
 
-    const finalText = client.formatReply?.(msgBody, stats) ?? msgBody;
+    const formattedBody = client.formatMarkdown?.(msgBody) ?? msgBody;
+    const finalText = client.formatReply?.(formattedBody, stats) ?? formattedBody;
     const chunks = splitMessage(finalText, charLimit);
 
     try {
-      if (canEdit) {
+      if (canEdit && progressMessageId) {
         await messenger.editMessage(progressMessageId, chunks[0]);
         for (let i = 1; i < chunks.length; i++) {
           await messenger.createMessage(chunks[i]);
         }
       } else {
-        // Platform doesn't support edit — send all chunks as new messages
+        // No progress message to edit or platform doesn't support edit — send all chunks as new messages
         for (const chunk of chunks) {
           await messenger.createMessage(chunk);
         }
@@ -236,10 +268,17 @@ export class BotCallbackService {
 
   private async removeEyesReaction(
     body: BotCallbackBody,
-    messenger: PlatformMessenger,
+    client: PlatformClient,
+    platformThreadId: string,
   ): Promise<void> {
     const { userMessageId } = body;
     if (!userMessageId) return;
+
+    // Thread-starter messages may live in the parent channel (e.g. Discord),
+    // so resolve the correct thread ID before obtaining the messenger.
+    const reactionThreadId =
+      client.resolveReactionThreadId?.(platformThreadId, userMessageId) ?? platformThreadId;
+    const messenger = client.getMessenger(reactionThreadId);
 
     try {
       await messenger.removeReaction(userMessageId, '👀');
@@ -250,7 +289,16 @@ export class BotCallbackService {
 
   private summarizeTopicTitle(body: BotCallbackBody, messenger: PlatformMessenger): void {
     const { reason, topicId, userId, userPrompt, lastAssistantContent } = body;
-    if (reason === 'error' || !topicId || !userId || !userPrompt || !lastAssistantContent) return;
+    if (
+      reason === 'error' ||
+      reason === 'interrupted' ||
+      !topicId ||
+      !userId ||
+      !userPrompt ||
+      !lastAssistantContent
+    ) {
+      return;
+    }
 
     const topicModel = new TopicModel(this.db, userId);
     topicModel

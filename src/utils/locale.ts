@@ -43,7 +43,7 @@ export const parseBrowserLanguage = (headers: Headers, defaultLang: string = DEF
   );
 
   // if match the ar-EG then fallback to ar
-  if (browserLang === 'vi-VN') browserLang = 'vi-VN';
+  if (browserLang === 'vi-VN') browserLang = 'vi';
 
   return browserLang;
 };

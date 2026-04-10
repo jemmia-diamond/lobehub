@@ -1,3 +1,4 @@
+export const DEFAULT_ONBOARDING_MODEL = 'gemini-2.5-flash-lite';
 export const DEFAULT_MODEL = 'auto';
 export const DEFAULT_MINI_MODEL = 'gemini-2.5-flash-lite';
 

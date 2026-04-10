@@ -1,8 +1,8 @@
 'use client';
 
 import { DraggablePanel, Freeze } from '@lobehub/ui';
-import { createStaticStyles } from 'antd-style';
-import { AnimatePresence, motion, useIsPresent } from 'motion/react';
+import { createStaticStyles  } from 'antd-style';
+import { AnimatePresence,motion, useIsPresent } from 'motion/react';
 import { type ReactNode } from 'react';
 import { memo, Suspense, useLayoutEffect, useMemo, useRef } from 'react';
 
