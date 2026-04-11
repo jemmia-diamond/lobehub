@@ -59,6 +59,18 @@ export interface PublicFileUploadRequest {
   skipExist?: boolean;
 }
 
+/**
+ * Global content indexing request type (supports both file and text)
+ */
+export interface ContentIndexingRequest extends PublicFileUploadRequest {
+  /** File object (optional if text is provided) */
+  file?: File;
+  /** Custom name for indexing (optional) */
+  name?: string;
+  /** Raw text to index (optional if file is provided) */
+  text?: string;
+}
+
 // ==================== File Management Types ====================
 
 /**

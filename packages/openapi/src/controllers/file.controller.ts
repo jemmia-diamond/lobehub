@@ -186,21 +186,22 @@ export class FileController extends BaseController {
   }
 
   /**
-   * Upload a file and create a knowledge indexing task
+   * Index content (file or raw text) into a knowledge base
    * POST /files/index
    */
-  async uploadAndIndexFile(c: Context) {
+  async indexContent(c: Context) {
     try {
-      const userId = this.getUserId(c)!; // requireAuth middleware ensures userId exists
+      const userId = this.getUserId(c)!;
 
       const db = await this.getDatabase();
       const fileService = new FileUploadService(db, userId);
 
       const formData = await this.getFormData(c);
       const file = formData.get('file') as File | null;
+      const text = formData.get('text') as string | null;
 
-      if (!file) {
-        return this.error(c, 'No file provided', 400);
+      if (!file && !text) {
+        return this.error(c, 'Either file or text must be provided', 400);
       }
 
       const knowledgeBaseId = (formData.get('knowledgeBaseId') as string | null) || null;
@@ -211,7 +212,19 @@ export class FileController extends BaseController {
       const skipDeduplication = formData.get('skipDeduplication') === 'true';
       const autoEmbedding = formData.get('autoEmbedding') === 'true';
       const skipExist = formData.get('skipExist') === 'true';
+      const name = (formData.get('name') as string | null) || null;
 
+      // Handle raw text indexing
+      if (text) {
+        const result = await fileService.indexRawText(text, {
+          knowledgeBaseId: knowledgeBaseId || undefined,
+          name: name || undefined,
+          skipExist,
+        });
+        return this.success(c, result, 'Text indexed successfully');
+      }
+
+      // Handle file upload and indexing
       const options: PublicFileUploadRequest = {
         agentId: agentId || undefined,
         directory: directory || undefined,
@@ -223,9 +236,9 @@ export class FileController extends BaseController {
         skipExist,
       };
 
-      const result = await fileService.uploadFileAndIndex(file, options);
+      const result = await fileService.uploadFileAndIndex(file!, options);
 
-      return this.success(c, result, 'File uploaded and indexing task created successfully');
+      return this.success(c, result, 'File uploaded and indexed successfully');
     } catch (error) {
       return this.handleError(c, error);
     }

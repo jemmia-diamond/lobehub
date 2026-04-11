@@ -2,14 +2,12 @@ import type { FileMetadata } from '@lobechat/types';
 import { AsyncTaskStatus, AsyncTaskType } from '@lobechat/types';
 import { and, count, desc, eq, gte, ilike, inArray, lte, sum } from 'drizzle-orm';
 import { sha256 } from 'js-sha256';
-import { v4 as uuidv4 } from 'uuid';
 
 import type { PERMISSION_ACTIONS } from '@/const/rbac';
 import { ALL_SCOPE } from '@/const/rbac';
 import { AsyncTaskModel } from '@/database/models/asyncTask';
 import { ChunkModel } from '@/database/models/chunk';
 import { DocumentModel } from '@/database/models/document';
-import { EmbeddingModel } from '@/database/models/embedding';
 import { FileModel } from '@/database/models/file';
 import { KnowledgeBaseModel } from '@/database/models/knowledgeBase';
 import type { FileItem } from '@/database/schemas';
@@ -22,12 +20,11 @@ import {
   users,
 } from '@/database/schemas';
 import type { LobeChatDatabase } from '@/database/type';
-import { ContentChunk } from '@/server/modules/ContentChunk';
 import type { S3 } from '@/server/modules/S3';
 import { FileS3 } from '@/server/modules/S3';
 import { DocumentService } from '@/server/services/document';
-import { ServerEmbeddingService } from '@/server/services/embedding';
 import { FileService as CoreFileService } from '@/server/services/file';
+import { RagService } from '@/server/services/rag';
 import { isChunkingUnsupported } from '@/utils/isChunkingUnsupported';
 import { nanoid } from '@/utils/uuid';
 
@@ -58,8 +55,6 @@ import type {
   MoveKnowledgeBaseFilesRequest,
   MoveKnowledgeBaseFilesResponse,
 } from '../types/knowledge-base.type';
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * File upload service class
@@ -807,13 +802,14 @@ export class FileUploadService extends BaseService {
     if (options.autoEmbedding) {
       try {
         const content = await file.arrayBuffer();
-        await this.syncProcessRAG(
+        const ragService = new RagService(this.db, this.userId);
+        await ragService.processIndexing({
+          content: Buffer.from(content),
           fileId,
-          file.name,
-          Buffer.from(content),
-          file.type,
-          options.skipExist,
-        );
+          fileType: file.type,
+          filename: file.name,
+          skipExist: options.skipExist,
+        });
 
         return {
           chunk: {
@@ -843,134 +839,52 @@ export class FileUploadService extends BaseService {
   }
 
   /**
-   * Synchronous RAG processing (Chunking + Embedding)
-   * Pattern matched from KnowledgeBootstrapService
+   * Directly index raw text into a knowledge base
    */
-  private async syncProcessRAG(
-    fileId: string,
-    filename: string,
-    content: Buffer,
-    fileType: string,
-    skipExist?: boolean,
-  ) {
-    // If skipExist is true, check if chunks already exist for this file
-    if (skipExist) {
-      const existingChunksCount = await this.chunkModel.countByFileId(fileId);
-      if (existingChunksCount > 0) {
-        this.log('info', 'Skipping synchronous RAG processing as chunks already exist', { fileId });
-        return;
-      }
-    }
+  async indexRawText(
+    text: string,
+    options: {
+      knowledgeBaseId?: string;
+      name?: string;
+      skipExist?: boolean;
+    } = {},
+  ): Promise<{ fileId: string; message: string; success: boolean }> {
+    const filename = options.name || `text_${nanoid(8)}.md`;
+    const content = Buffer.from(text);
+    const hash = sha256(content);
 
-    // 1. Chunking
-    const chunker = new ContentChunk();
-    const { chunks: chunkItems } = await chunker.chunkContent({
-      content: new Uint8Array(content),
+    // 1. Create a virtual file record
+    const fileRecord = {
+      chunkTaskId: null,
+      clientId: null,
+      embeddingTaskId: null,
+      fileHash: hash,
+      fileType: 'text/markdown',
+      knowledgeBaseId: options.knowledgeBaseId,
+      metadata: { path: `virtual/${filename}`, size: content.length },
+      name: filename,
+      size: content.length,
+      url: `virtual/${filename}`,
+      userId: this.userId,
+    };
+
+    const { id: fileId } = await this.fileModel.create(fileRecord, true);
+
+    // 2. Process RAG
+    const ragService = new RagService(this.db, this.userId);
+    await ragService.processIndexing({
+      content,
+      fileId,
+      fileType: 'text/markdown',
       filename,
-      fileType,
+      skipExist: options.skipExist,
     });
 
-    if (chunkItems.length === 0) return;
-
-    // 2. Save Chunks
-    const savedChunks = await this.chunkModel.bulkCreate(
-      chunkItems.map((item) => ({
-        ...item,
-        id: uuidv4(),
-        userId: this.userId,
-      })),
+    return {
       fileId,
-    );
-
-    // 3. Embedding
-    this.log('info', 'Generating embeddings synchronously...', { fileId, filename });
-    const embeddingDbModel = new EmbeddingModel(this.db, this.userId);
-
-    // Smaller batch size to reduce tokens-per-request and avoid hitting TPM quota
-    const BATCH_SIZE = 5;
-    for (let i = 0; i < savedChunks.length; i += BATCH_SIZE) {
-      const batch = savedChunks.slice(i, i + BATCH_SIZE);
-      const batchIndex = Math.floor(i / BATCH_SIZE) + 1;
-      const totalBatches = Math.ceil(savedChunks.length / BATCH_SIZE);
-
-      const embeddings = await this.embedWithBackoff(
-        batch.map((c) => c.text ?? ''),
-        batchIndex,
-        totalBatches,
-      );
-
-      if (!embeddings || embeddings.length === 0) continue;
-
-      await embeddingDbModel.bulkCreate(
-        batch.map((chunkItem, index) => ({
-          chunkId: chunkItem.id,
-          embeddings: embeddings[index],
-        })),
-      );
-
-      // Proactive throttle between batches to stay under TPM quota
-      if (i + BATCH_SIZE < savedChunks.length) {
-        await sleep(500);
-      }
-    }
-
-    this.log('info', 'Synchronous RAG processing completed', { fileId, filename });
-  }
-
-  /**
-   * Wraps ServerEmbeddingService.generateEmbeddings with exponential backoff
-   * to gracefully handle 429 Rate Limit errors from the Gemini Embedding API.
-   * Pattern matched from KnowledgeBootstrapService
-   */
-  private async embedWithBackoff(
-    texts: string[],
-    batchIndex: number,
-    totalBatches: number,
-    maxRetries = 5,
-  ): Promise<number[][] | null> {
-    const BASE_DELAY_MS = 10_000; // 10s base — quota window is per-minute
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        const result = await ServerEmbeddingService.generateEmbeddings(
-          texts,
-          this.db,
-          this.userId,
-          '[FileUploadSync]',
-        );
-        return result;
-      } catch (error: any) {
-        const is429 =
-          error?.statusCode === 429 ||
-          error?.message?.includes('429') ||
-          error?.message?.toLowerCase().includes('quota exceeded') ||
-          error?.message?.toLowerCase().includes('resource_exhausted');
-
-        if (!is429 || attempt === maxRetries) {
-          this.log(
-            'error',
-            `Embedding failed (batch ${batchIndex}/${totalBatches}, attempt ${attempt})`,
-            {
-              error: error?.message ?? error,
-            },
-          );
-          return null;
-        }
-
-        const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1); // 10s, 20s, 40s, 80s, 160s
-        this.log(
-          'warn',
-          `Rate limited (429) on batch ${batchIndex}/${totalBatches}. Retrying in ${delay / 1000}s...`,
-          {
-            attempt,
-            maxRetries,
-          },
-        );
-        await sleep(delay);
-      }
-    }
-
-    return null;
+      message: 'Text indexed successfully',
+      success: true,
+    };
   }
 
   /**

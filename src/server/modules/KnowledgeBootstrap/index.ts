@@ -5,7 +5,6 @@ import { and, eq } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
 import { ChunkModel } from '@/database/models/chunk';
-import { EmbeddingModel } from '@/database/models/embedding';
 import {
   agents,
   agentsKnowledgeBases,
@@ -16,8 +15,7 @@ import {
   users,
 } from '@/database/schemas';
 import { getServerDB } from '@/database/server';
-import { ContentChunk } from '@/server/modules/ContentChunk';
-import { ServerEmbeddingService } from '@/server/services/embedding';
+import { RagService } from '@/server/services/rag';
 
 export const JEMMORA_ADMIN_ID = 'user_jemmora_admin';
 export const JEMMORA_KB_NAME = 'Jemmia Diamond Knowledge';
@@ -271,120 +269,21 @@ export class KnowledgeBootstrapService {
       userId: this.userId,
     });
 
-    // 3. Process RAG (Chunking + Embedding)
+    // 3. Process RAG (Chunking + Embedding) using shared RagService
     try {
-      await this.processRAG(db, fileId, filename, content, fileType);
+      const ragService = new RagService(db, this.userId);
+      await ragService.processIndexing({
+        content,
+        fileId,
+        fileType,
+        filename,
+        skipExist: true, // For seed files, we always want to avoid re-indexing if already present
+      });
       return fileId;
     } catch (error) {
       console.error(`[KnowledgeBootstrap] RAG processing failed for ${filename}:`, error);
       return undefined;
     }
-  }
-
-  private async processRAG(
-    db: any,
-    fileId: string,
-    filename: string,
-    content: Buffer,
-    fileType: string,
-  ) {
-    // A. Chunking
-    const chunker = new ContentChunk();
-    const { chunks: chunkItems } = await chunker.chunkContent({
-      content: new Uint8Array(content),
-      filename,
-      fileType,
-    });
-
-    if (chunkItems.length === 0) return;
-
-    // B. Save Chunks
-    const chunkModel = new ChunkModel(db, this.userId);
-    const savedChunks = await chunkModel.bulkCreate(
-      chunkItems.map((item) => ({
-        ...item,
-        id: uuidv4(),
-        userId: this.userId,
-      })),
-      fileId,
-    );
-
-    // C. Embedding
-    console.info(`[KnowledgeBootstrap] Generating embeddings using ServerEmbeddingService...`);
-    const embeddingDbModel = new EmbeddingModel(db, this.userId);
-
-    // Smaller batch size to reduce tokens-per-request and avoid hitting TPM quota
-    const BATCH_SIZE = 5;
-    for (let i = 0; i < savedChunks.length; i += BATCH_SIZE) {
-      const batch = savedChunks.slice(i, i + BATCH_SIZE);
-      const batchIndex = Math.floor(i / BATCH_SIZE) + 1;
-      const totalBatches = Math.ceil(savedChunks.length / BATCH_SIZE);
-
-      const embeddings = await this.embedWithBackoff(
-        batch.map((c) => c.text ?? ''),
-        db,
-        batchIndex,
-        totalBatches,
-      );
-
-      if (!embeddings || embeddings.length === 0) continue;
-
-      await embeddingDbModel.bulkCreate(
-        batch.map((chunkItem, index) => ({
-          chunkId: chunkItem.id,
-          embeddings: embeddings[index],
-        })),
-      );
-
-      // Proactive throttle between batches to stay under TPM quota
-      if (i + BATCH_SIZE < savedChunks.length) {
-        await sleep(500);
-      }
-    }
-  }
-
-  /**
-   * Wraps ServerEmbeddingService.generateEmbeddings with exponential backoff
-   * to gracefully handle 429 Rate Limit errors from the Gemini Embedding API.
-   */
-  private async embedWithBackoff(
-    texts: string[],
-    db: any,
-    batchIndex: number,
-    totalBatches: number,
-    maxRetries = 5,
-  ): Promise<number[][] | null> {
-    const BASE_DELAY_MS = 10_000; // 10s base — quota window is per-minute
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        const result = await ServerEmbeddingService.generateEmbeddings(texts, db, this.userId);
-        return result;
-      } catch (error: any) {
-        const is429 =
-          error?.statusCode === 429 ||
-          error?.message?.includes('429') ||
-          error?.message?.toLowerCase().includes('quota exceeded') ||
-          error?.message?.toLowerCase().includes('resource_exhausted');
-
-        if (!is429 || attempt === maxRetries) {
-          console.error(
-            `[KnowledgeBootstrap] Embedding failed (batch ${batchIndex}/${totalBatches}, attempt ${attempt}):`,
-            error?.message ?? error,
-          );
-          return null;
-        }
-
-        const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1); // 10s, 20s, 40s, 80s, 160s
-        console.warn(
-          `[KnowledgeBootstrap] Rate limited (429) on batch ${batchIndex}/${totalBatches}. ` +
-            `Retrying in ${delay / 1000}s... (attempt ${attempt}/${maxRetries})`,
-        );
-        await sleep(delay);
-      }
-    }
-
-    return null;
   }
 
   private generateHash(content: Buffer): string {
