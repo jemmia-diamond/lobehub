@@ -17,6 +17,13 @@ vi.mock('@/envs/tools', () => ({
     SEARCH_PROVIDERS: '',
   },
 }));
+vi.mock('@/envs/file', () => ({
+  fileEnv: {
+    S3_BUCKET: undefined,
+    S3_ENABLE_PATH_STYLE: false,
+    S3_ENDPOINT: undefined,
+  },
+}));
 
 describe('SearchService', () => {
   let searchService: SearchService;

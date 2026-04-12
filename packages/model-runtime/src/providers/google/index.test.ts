@@ -360,7 +360,7 @@ describe('LobeGoogleAI', () => {
       expect(result).toEqual([[0.1, 0.2, 0.3]]);
       expect(instance['client'].models.embedContent).toHaveBeenCalledWith({
         config: { outputDimensionality: undefined },
-        content: { parts: [{ text: 'Hello' }], role: 'user' },
+        contents: { parts: [{ text: 'Hello' }], role: 'user' },
         model: 'gemini-embedding-002-preview',
       });
     });

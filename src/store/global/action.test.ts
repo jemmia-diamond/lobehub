@@ -375,6 +375,10 @@ describe('createPreferenceSlice', () => {
   });
 
   describe('useInitGlobalPreference', () => {
+    beforeEach(() => {
+      useGlobalStore.setState({ status: initialState.status });
+    });
+
     it('should init global status if there is empty object', async () => {
       vi.spyOn(useGlobalStore.getState().statusStorage, 'getFromLocalStorage').mockReturnValueOnce(
         {} as any,
@@ -388,7 +392,10 @@ describe('createPreferenceSlice', () => {
         expect(result.current.data).toEqual({});
       });
 
-      expect(useGlobalStore.getState().status).toEqual(initialState.status);
+      expect(useGlobalStore.getState().status).toEqual({
+        ...initialState.status,
+        showLeftPanel: window.innerWidth >= 1440,
+      });
     });
 
     it('should update with data', async () => {

@@ -24,23 +24,28 @@ The application will be available at **<http://localhost:3010>**.
 ## 🛑 How to Stop
 
 - **Stop the app**: Press `Ctrl + C` in the terminal where `pnpm run dev` is running.
-- **Stop background services**:
+- **Pause background services (Keep Data)**:
+  ```bash
+  pnpm run dev:docker:stop
+  ```
+- **Remove background services (Clean Slate)**:
   ```bash
   pnpm run dev:docker:down
   ```
 
 ---
 
-## 🛠️ Maintenance Commands
+## 🛠️ Maintenance & Troubleshooting
 
+- **Relation "xxx" does not exist**: If you see this error (e.g., `relation "agent_bot_providers" does not exist`), it means the database is fresh but migrations haven't run. Manually run:
+  ```bash
+  pnpm run db:migrate
+  ```
 - **Reset Everything**: Stop all services and delete local database data to start fresh:
   ```bash
   pnpm run dev:docker:reset
   ```
-- **Database Migrations**: Manualy trigger migrations if you change schema:
-  ```bash
-  pnpm run db:migrate
-  ```
+- **DB Persistence**: Use `stop` instead of `down` for Docker services to keep your chat history and settings across restarts.
 
 > \[!IMPORTANT]
 > Ensure your root `.env` file is configured with your AI provider API keys (like `OPENAI_API_KEY`) for full functionality.

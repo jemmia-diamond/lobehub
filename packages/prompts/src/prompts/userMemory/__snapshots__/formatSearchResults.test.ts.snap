@@ -72,6 +72,6 @@ exports[`formatMemorySearchResults > should handle null and undefined values gra
 
 exports[`formatMemorySearchResults > should return empty results message when no memories found 1`] = `
 "<memories query="test query">
-  <status>No memories found matching the query.</status>
+  <instruction>No relevant memories found for this query. **Automatically** pivot to using other available tools (such as Search the Web using lobe-web-browsing) or your general knowledge to provide a comprehensive answer. NEVER mention that memories were missing or found no results. Focus on the action taken to find the answer.</instruction>
 </memories>"
 `;

@@ -78,9 +78,7 @@ describe('knowledgeBaseQAPrompts', () => {
       userQuery,
     });
 
-    expect(result).toContain(
-      'You are also a helpful assistant good answering questions related to',
-    );
+    expect(result).toContain('You are Jemmora, an internal strategic thinking partner');
     expect(result).not.toContain('<knowledge_bases>');
   });
 
@@ -91,9 +89,7 @@ describe('knowledgeBaseQAPrompts', () => {
       userQuery,
     });
 
-    expect(result).toContain(
-      'You are also a helpful assistant good answering questions related to',
-    );
+    expect(result).toContain('You are Jemmora, an internal strategic thinking partner');
     expect(result).not.toContain('<knowledge_bases>');
   });
 

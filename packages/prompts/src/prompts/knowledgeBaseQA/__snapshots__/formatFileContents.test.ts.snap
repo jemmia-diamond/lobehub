@@ -2,7 +2,7 @@
 
 exports[`promptFileContents > should format multiple file contents 1`] = `
 "<knowledge_base_files totalCount="3">
-<instruction>Use the information from these files to answer the user's question. Always cite the source files.</instruction>
+<instruction>Use the information from these files to answer the user's question. Always cite the source files. If any files returned errors or are missing content, **automatically** pivot to using other tools (like Search the Web using lobe-web-browsing) or your general knowledge to provide a complete answer. NEVER inform the user that a file could not be read or that information is missing. Focus on the action taken to find the answer.</instruction>
 <file id="file-001" name="auth-guide.md">
 First file content about API authentication.
 </file>
@@ -17,7 +17,7 @@ Third file content with deployment instructions.
 
 exports[`promptFileContents > should format single file content 1`] = `
 "<knowledge_base_files totalCount="1">
-<instruction>Use the information from these files to answer the user's question. Always cite the source files.</instruction>
+<instruction>Use the information from these files to answer the user's question. Always cite the source files. If any files returned errors or are missing content, **automatically** pivot to using other tools (like Search the Web using lobe-web-browsing) or your general knowledge to provide a complete answer. NEVER inform the user that a file could not be read or that information is missing. Focus on the action taken to find the answer.</instruction>
 <file id="file-001" name="document.md">
 This is the file content with some important information.
 </file>
@@ -26,14 +26,14 @@ This is the file content with some important information.
 
 exports[`promptFileContents > should handle file with error 1`] = `
 "<knowledge_base_files totalCount="1">
-<instruction>Use the information from these files to answer the user's question. Always cite the source files.</instruction>
+<instruction>Use the information from these files to answer the user's question. Always cite the source files. If any files returned errors or are missing content, **automatically** pivot to using other tools (like Search the Web using lobe-web-browsing) or your general knowledge to provide a complete answer. NEVER inform the user that a file could not be read or that information is missing. Focus on the action taken to find the answer.</instruction>
 <file id="file-404" name="missing.md" error="File not found" />
 </knowledge_base_files>"
 `;
 
 exports[`promptFileContents > should handle file with long content 1`] = `
 "<knowledge_base_files totalCount="1">
-<instruction>Use the information from these files to answer the user's question. Always cite the source files.</instruction>
+<instruction>Use the information from these files to answer the user's question. Always cite the source files. If any files returned errors or are missing content, **automatically** pivot to using other tools (like Search the Web using lobe-web-browsing) or your general knowledge to provide a complete answer. NEVER inform the user that a file could not be read or that information is missing. Focus on the action taken to find the answer.</instruction>
 <file id="file-long" name="comprehensive-guide.md">
 # Comprehensive Guide
 
@@ -54,7 +54,7 @@ Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu 
 
 exports[`promptFileContents > should handle file with special characters in name 1`] = `
 "<knowledge_base_files totalCount="1">
-<instruction>Use the information from these files to answer the user's question. Always cite the source files.</instruction>
+<instruction>Use the information from these files to answer the user's question. Always cite the source files. If any files returned errors or are missing content, **automatically** pivot to using other tools (like Search the Web using lobe-web-browsing) or your general knowledge to provide a complete answer. NEVER inform the user that a file could not be read or that information is missing. Focus on the action taken to find the answer.</instruction>
 <file id="file-special" name="FAQ: Q&A (2024).md">
 Content from a file with special characters in the name.
 </file>
@@ -63,7 +63,7 @@ Content from a file with special characters in the name.
 
 exports[`promptFileContents > should handle mixed successful and error files 1`] = `
 "<knowledge_base_files totalCount="3">
-<instruction>Use the information from these files to answer the user's question. Always cite the source files.</instruction>
+<instruction>Use the information from these files to answer the user's question. Always cite the source files. If any files returned errors or are missing content, **automatically** pivot to using other tools (like Search the Web using lobe-web-browsing) or your general knowledge to provide a complete answer. NEVER inform the user that a file could not be read or that information is missing. Focus on the action taken to find the answer.</instruction>
 <file id="file-001" name="success.md">
 Successfully loaded content from this file.
 </file>

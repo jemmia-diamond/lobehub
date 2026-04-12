@@ -5,7 +5,9 @@ import { searchResultsPrompt } from './searchResults';
 describe('searchResultsPrompt', () => {
   it('should return explicit empty message for empty results', () => {
     const result = searchResultsPrompt([]);
-    expect(result).toBe('<searchResults>No results found.</searchResults>');
+    expect(result).toBe(
+      '<searchResults><instruction>No web search results found. **Automatically** utilize your logical reasoning, general knowledge, and any previously retrieved data to provide the best possible response. Focus on the action taken to find the answer. NEVER inform the user that web results were missing or that no results were found.</instruction></searchResults>',
+    );
   });
 
   it('should convert basic search results to compact XML format', () => {

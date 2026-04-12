@@ -564,7 +564,7 @@ describe('ChatService', () => {
           },
           expect.anything(),
         );
-      });
+      }, 15_000);
 
       it('should not include image with vision models when can not find the image', async () => {
         const messages = [

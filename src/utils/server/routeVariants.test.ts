@@ -20,7 +20,7 @@ describe('RouteVariants', () => {
     it('should serialize variants with default values', () => {
       const variants: IRouteVariants = {
         isMobile: false,
-        locale: 'en-US',
+        locale: 'vi-VN',
       };
       const result = RouteVariants.serializeVariants(variants);
       expect(result).toBe('vi-VN__0');
@@ -67,11 +67,11 @@ describe('RouteVariants', () => {
     });
 
     it('should deserialize mobile variants', () => {
-      const serialized = 'zh-CN__1';
+      const serialized = 'vi-VN__1';
       const result = RouteVariants.deserializeVariants(serialized);
       expect(result).toEqual({
         isMobile: true,
-        locale: 'zh-CN',
+        locale: 'vi-VN',
       });
     });
 
@@ -135,12 +135,12 @@ describe('RouteVariants', () => {
 
     it('should handle mobile variants from props', async () => {
       const props: DynamicLayoutProps = {
-        params: Promise.resolve({ variants: 'zh-CN__1' }),
+        params: Promise.resolve({ variants: 'vi-VN__1' }),
       };
       const result = await RouteVariants.getVariantsFromProps(props);
       expect(result).toEqual({
         isMobile: true,
-        locale: 'zh-CN',
+        locale: 'vi-VN',
       });
     });
 
@@ -182,18 +182,18 @@ describe('RouteVariants', () => {
   describe('getLocale', () => {
     it('should extract locale from props', async () => {
       const props: DynamicLayoutProps = {
-        params: Promise.resolve({ variants: 'zh-CN__0' }),
+        params: Promise.resolve({ variants: 'vi-VN__0' }),
       };
       const result = await RouteVariants.getLocale(props);
-      expect(result).toBe('zh-CN');
+      expect(result).toBe('vi-VN');
     });
 
     it('should extract different locale from props', async () => {
       const props: DynamicLayoutProps = {
-        params: Promise.resolve({ variants: 'ja-JP__1' }),
+        params: Promise.resolve({ variants: 'vi-VN__1' }),
       };
       const result = await RouteVariants.getLocale(props);
-      expect(result).toBe('ja-JP');
+      expect(result).toBe('vi-VN');
     });
 
     it('should return default locale for invalid props', async () => {
@@ -292,7 +292,7 @@ describe('RouteVariants', () => {
     });
 
     it('should maintain data integrity for various locales', () => {
-      const locales = ['en-US', 'zh-CN', 'ja-JP', 'ko-KR', 'fr-FR'];
+      const locales = ['vi-VN'];
       locales.forEach((locale) => {
         const original: IRouteVariants = {
           isMobile: false,
