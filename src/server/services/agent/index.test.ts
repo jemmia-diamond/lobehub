@@ -192,7 +192,7 @@ describe('AgentService', () => {
       const result = await newService.getBuiltinAgent('inbox');
 
       // Avatar should be merged from BUILTIN_AGENTS definition
-      expect((result as any)?.avatar).toBe('/avatars/lobe-ai.png');
+      expect((result as any)?.avatar).toBe('/images/jemmate_logo.svg');
     });
 
     it('should not include avatar for non-builtin agents', async () => {
@@ -503,7 +503,7 @@ describe('AgentService', () => {
         // Should keep original config, not override with Redis data
         expect(result?.openingMessage).toBe('Default message');
         // openingQuestions comes from DEFAULT_AGENT_CONFIG (empty array)
-        expect(result?.openingQuestions).toEqual([]);
+        expect(result?.openingQuestions).toEqual(DEFAULT_AGENT_CONFIG.openingQuestions);
         expect(initializeRedisWithPrefix).not.toHaveBeenCalled();
       });
 
@@ -529,7 +529,7 @@ describe('AgentService', () => {
         // No Redis welcome data, so openingMessage remains from DEFAULT_AGENT_CONFIG
         expect(result?.openingMessage).toBeUndefined();
         // openingQuestions comes from DEFAULT_AGENT_CONFIG (empty array)
-        expect(result?.openingQuestions).toEqual([]);
+        expect(result?.openingQuestions).toEqual(DEFAULT_AGENT_CONFIG.openingQuestions);
       });
 
       it('should gracefully fallback when Redis throws error', async () => {

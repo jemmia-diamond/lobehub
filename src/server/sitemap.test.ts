@@ -5,7 +5,7 @@ import { getCanonicalUrl } from '@/server/utils/url';
 
 import { LAST_MODIFIED, Sitemap, SitemapType } from './sitemap';
 
-const LOCALE_COUNT = 18;
+const LOCALE_COUNT = 1;
 
 describe('Sitemap', () => {
   const sitemap = new Sitemap();
@@ -89,12 +89,6 @@ describe('Sitemap', () => {
           lastModified: '2023-01-01T00:00:00.000Z',
         }),
       );
-      expect(assistantsSitemap).toContainEqual(
-        expect.objectContaining({
-          url: getCanonicalUrl('/community/agent/test-assistant?hl=zh-CN'),
-          lastModified: '2023-01-01T00:00:00.000Z',
-        }),
-      );
     });
 
     it('should return a valid assistants sitemap with pagination', async () => {
@@ -145,12 +139,6 @@ describe('Sitemap', () => {
           lastModified: '2023-01-01T00:00:00.000Z',
         }),
       );
-      expect(pluginsSitemap).toContainEqual(
-        expect.objectContaining({
-          url: getCanonicalUrl('/community/plugin/test-plugin?hl=ja-JP'),
-          lastModified: '2023-01-01T00:00:00.000Z',
-        }),
-      );
     });
 
     it('should return a valid plugins sitemap with pagination', async () => {
@@ -189,12 +177,6 @@ describe('Sitemap', () => {
           lastModified: '2023-01-01T00:00:00.000Z',
         }),
       );
-      expect(modelsSitemap).toContainEqual(
-        expect.objectContaining({
-          url: getCanonicalUrl('/community/model/test:model?hl=ko-KR'),
-          lastModified: '2023-01-01T00:00:00.000Z',
-        }),
-      );
     });
 
     it('should return a valid models sitemap with pagination', async () => {
@@ -230,12 +212,6 @@ describe('Sitemap', () => {
       expect(providersSitemap).toContainEqual(
         expect.objectContaining({
           url: getCanonicalUrl('/community/provider/test-provider'),
-          lastModified: '2023-01-01T00:00:00.000Z',
-        }),
-      );
-      expect(providersSitemap).toContainEqual(
-        expect.objectContaining({
-          url: getCanonicalUrl('/community/provider/test-provider?hl=ar'),
           lastModified: '2023-01-01T00:00:00.000Z',
         }),
       );

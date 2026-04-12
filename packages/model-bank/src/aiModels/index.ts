@@ -102,6 +102,7 @@ const buildDefaultModelList = (map: ModelsMap): LobeDefaultAiModelListItem[] => 
 };
 
 export const LOBE_DEFAULT_MODEL_LIST = buildDefaultModelList({
+  jemmia,
   ai21,
   ai302,
   ai360,
@@ -133,7 +134,6 @@ export const LOBE_DEFAULT_MODEL_LIST = buildDefaultModelList({
   hunyuan,
   infiniai,
   internlm,
-  jemmia,
   jina,
   kimicodingplan,
   lmstudio,

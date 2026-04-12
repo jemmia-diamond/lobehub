@@ -51,45 +51,45 @@ exports[`settingsSelectors > currentSettings > should merge DEFAULT_SETTINGS and
 exports[`settingsSelectors > currentSystemAgent > should merge DEFAULT_SYSTEM_AGENT_CONFIG and s.settings.systemAgent correctly 1`] = `
 {
   "agentMeta": {
-    "model": "gemini-3-flash-preview",
-    "provider": "google",
+    "model": "auto",
+    "provider": "jemmia",
   },
   "enableAutoReply": true,
   "generationTopic": {
-    "model": "gpt-5.4-mini",
-    "provider": "openai",
+    "model": "gemini-2.5-flash-lite",
+    "provider": "google",
   },
   "historyCompress": {
-    "model": "gemini-3-flash-preview",
-    "provider": "google",
+    "model": "auto",
+    "provider": "jemmia",
   },
   "inputCompletion": {
     "enabled": false,
-    "model": "gpt-5.4-mini",
-    "provider": "openai",
+    "model": "gemini-2.5-flash-lite",
+    "provider": "google",
   },
   "promptRewrite": {
     "enabled": true,
-    "model": "gpt-5.4-mini",
-    "provider": "openai",
+    "model": "gemini-2.5-flash-lite",
+    "provider": "google",
   },
   "queryRewrite": {
     "enabled": true,
-    "model": "gpt-5.4-mini",
-    "provider": "openai",
+    "model": "gemini-2.5-flash-lite",
+    "provider": "google",
   },
   "replyMessage": "Custom auto reply",
   "thread": {
-    "model": "gemini-3-flash-preview",
-    "provider": "google",
+    "model": "auto",
+    "provider": "jemmia",
   },
   "topic": {
-    "model": "gpt-5.4-mini",
-    "provider": "openai",
+    "model": "gemini-2.5-flash-lite",
+    "provider": "google",
   },
   "translation": {
-    "model": "gpt-5.4-mini",
-    "provider": "openai",
+    "model": "gemini-2.5-flash-lite",
+    "provider": "google",
   },
 }
 `;
@@ -119,13 +119,17 @@ exports[`settingsSelectors > defaultAgent > should merge DEFAULT_AGENT and s.set
       "historyCount": 20,
       "reasoningBudgetToken": 1024,
       "searchFCModel": {
-        "model": "gemini-3-flash-preview",
-        "provider": "google",
+        "model": "auto",
+        "provider": "jemmia",
       },
       "searchMode": "auto",
     },
     "model": "gpt-3.5-turbo",
-    "openingQuestions": [],
+    "openingQuestions": [
+      "Hỗ trợ tôi lên kịch bản xử lý từ chối khách hàng về giá.",
+      "Tra cứu dữ liệu chính sách bảo hành, thu đổi của Jemmia.",
+      "Lên khung sườn cho email báo giá sản phẩm kim cương GIA.",
+    ],
     "params": {
       "frequency_penalty": 0,
       "presence_penalty": 0,
@@ -133,7 +137,7 @@ exports[`settingsSelectors > defaultAgent > should merge DEFAULT_AGENT and s.set
       "top_p": 1,
     },
     "plugins": [],
-    "provider": "google",
+    "provider": "jemmia",
     "systemRole": "user",
     "tts": {
       "showAllLocaleVoice": false,
@@ -164,13 +168,17 @@ exports[`settingsSelectors > defaultAgentConfig > should merge DEFAULT_AGENT_CON
     "historyCount": 20,
     "reasoningBudgetToken": 1024,
     "searchFCModel": {
-      "model": "gemini-3-flash-preview",
-      "provider": "google",
+      "model": "auto",
+      "provider": "jemmia",
     },
     "searchMode": "auto",
   },
   "model": "gpt-4",
-  "openingQuestions": [],
+  "openingQuestions": [
+    "Hỗ trợ tôi lên kịch bản xử lý từ chối khách hàng về giá.",
+    "Tra cứu dữ liệu chính sách bảo hành, thu đổi của Jemmia.",
+    "Lên khung sườn cho email báo giá sản phẩm kim cương GIA.",
+  ],
   "params": {
     "frequency_penalty": 0,
     "presence_penalty": 0,
@@ -178,7 +186,7 @@ exports[`settingsSelectors > defaultAgentConfig > should merge DEFAULT_AGENT_CON
     "top_p": 1,
   },
   "plugins": [],
-  "provider": "google",
+  "provider": "jemmia",
   "systemRole": "custom role",
   "tts": {
     "showAllLocaleVoice": false,

@@ -51,7 +51,7 @@ describe('Metadata', () => {
           description: 'Custom description',
           images: [{ url: 'https://custom-image.com', alt: `Custom Title · ${BRANDING_NAME}` }],
           type: 'article',
-          locale: 'fr-FR',
+          locale: 'vi-VN',
         }),
         twitter: expect.objectContaining({
           title: `Custom Title · ${BRANDING_NAME}`,
@@ -70,7 +70,7 @@ describe('Metadata', () => {
       const result = (meta as any).genAlternateLocales('en', '/test');
 
       expect(result).toHaveProperty('x-default', expect.stringContaining('/test'));
-      expect(result).toHaveProperty('zh-CN', expect.stringContaining('hl=zh-CN'));
+      expect(result).toHaveProperty('vi-VN', expect.stringContaining('hl=vi-VN'));
       expect(result).not.toHaveProperty('en');
     });
   });
@@ -89,7 +89,7 @@ describe('Metadata', () => {
         title: 'Twitter Title',
         description: 'Twitter description',
         images: ['https://twitter-image.com'],
-        site: '@lobehub',
+        site: '@Jemmia Diamond',
         url: 'https://example.com/twitter',
       });
     });
@@ -115,22 +115,7 @@ describe('Metadata', () => {
         type: 'article',
         url: 'https://example.com/og',
         siteName: BRANDING_NAME,
-        alternateLocale: expect.arrayContaining([
-          'ar',
-          'bg-BG',
-          'de-DE',
-          'en-US',
-          'es-ES',
-          'fr-FR',
-          'ja-JP',
-          'ko-KR',
-          'pt-BR',
-          'ru-RU',
-          'tr-TR',
-          'zh-CN',
-          'zh-TW',
-          'vi-VN',
-        ]),
+        alternateLocale: ['vi-VN'],
       });
     });
   });

@@ -22,12 +22,12 @@ describe('selectJemmiaModel', () => {
   it('should select THINKING for medium context (>16k tokens)', () => {
     vi.mocked(agentRuntime.calculateMessageTokens)
       .mockReturnValueOnce(0) // system
-      .mockReturnValueOnce(16001); // conversation
+      .mockReturnValueOnce(128001); // conversation
 
     const payload: any = {
       messages: [
         { role: 'system', content: 'sys' },
-        { role: 'user', content: 'a'.repeat(16001) },
+        { role: 'user', content: 'a'.repeat(128001) },
       ],
     };
 
@@ -38,12 +38,12 @@ describe('selectJemmiaModel', () => {
   it('should select EXPERT for large context (>32k tokens)', () => {
     vi.mocked(agentRuntime.calculateMessageTokens)
       .mockReturnValueOnce(0) // system
-      .mockReturnValueOnce(32001); // conversation
+      .mockReturnValueOnce(256001); // conversation
 
     const payload: any = {
       messages: [
         { role: 'system', content: 'sys' },
-        { role: 'user', content: 'a'.repeat(32001) },
+        { role: 'user', content: 'a'.repeat(256001) },
       ],
     };
 

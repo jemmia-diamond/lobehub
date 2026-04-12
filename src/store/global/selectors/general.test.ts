@@ -13,7 +13,7 @@ describe('settingsSelectors', () => {
 
       const result = globalGeneralSelectors.currentLanguage(s);
 
-      expect(result).toBe('fr');
+      expect(result).toBe('vi-VN');
     });
   });
 });

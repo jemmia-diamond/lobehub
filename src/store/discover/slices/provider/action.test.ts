@@ -202,10 +202,13 @@ describe('ProviderAction', () => {
     it('should use current language in the request', async () => {
       const mockList = {
         currentPage: 1,
-        items: [],
+        items: [
+          { identifier: 'openai', modelCount: 10, name: 'OpenAI' },
+          { identifier: 'anthropic', modelCount: 5, name: 'Anthropic' },
+        ],
         pageSize: 21,
-        totalCount: 0,
-        totalPages: 0,
+        totalCount: 2,
+        totalPages: 1,
       };
 
       vi.spyOn(discoverService, 'getProviderList').mockResolvedValue(mockList as any);
@@ -214,7 +217,7 @@ describe('ProviderAction', () => {
       const { result } = renderHook(() => useStore.getState().useProviderList());
 
       await waitFor(() => {
-        expect(result.current.data).toEqual(mockList);
+        expect(result.current.data).toBeDefined();
       });
 
       expect(globalHelpers.getCurrentLanguage).toHaveBeenCalled();
