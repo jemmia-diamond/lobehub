@@ -6,14 +6,15 @@ export interface LoadI18nNamespaceModuleParams {
 }
 
 export const loadI18nNamespaceModule = async (params: LoadI18nNamespaceModuleParams) => {
-  const { normalizeLocale, lng, ns } = params;
+  const { normalizeLocale, lng, ns, defaultLang } = params;
 
   const normalizedLocale = normalizeLocale(lng);
 
-  // English uses the TypeScript source files in src/locales/default/
-  if (normalizedLocale === 'en-US') return import(`@/locales/default/${ns}`);
+  // The default language uses the TypeScript source files in src/locales/default/
+  // (vi-VN is the default — its translations live there, not in JSON files)
+  if (normalizedLocale === defaultLang) return import(`@/locales/default/${ns}`);
 
-  // All other locales (including vi-VN) load from JSON translation files
+  // All other locales load from JSON translation files
   try {
     return import(`@/../locales/${normalizedLocale}/${ns}.json`);
   } catch {

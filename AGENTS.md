@@ -92,16 +92,21 @@ The app's default language is **`vi-VN` (Vietnamese)**. This has a critical arch
 
 - `vi-VN` translations live in **TypeScript source files** at `src/locales/default/*.ts` — NOT in JSON files
 - All other supported locales (`en-US`, `zh-CN`, `ar-SA`) load from `locales/<locale>/*.json`
-- Any i18n loader that handles `vi-VN` **must short-circuit to the TypeScript defaults** before attempting JSON file loading
+- Any i18n loader that handles `vi-VN` **must route to the TypeScript defaults** when `lng === defaultLang`
 
-**Rule**: When writing or modifying an i18n namespace loader, always add this guard:
+**Rule**: In `loadI18nNamespaceModule`, always guard on `defaultLang`, not a hardcoded locale string:
 
 ```ts
-// vi-VN is the default language — its translations live in TypeScript defaults, not JSON
-if (normalizedLocale === 'vi-VN') return loadDefaultNamespace(safeNamespace);
+// CORRECT — routes default language to TypeScript source files
+if (normalizedLocale === defaultLang) return import(`@/locales/default/${ns}`);
+
+// WRONG — hardcodes en-US, breaks when default language is vi-VN
+if (normalizedLocale === 'en-US') return import(`@/locales/default/${ns}`);
 ```
 
-Removing this guard causes `vi-VN` users to see English (the `fallbackLng`) because the JSON path either fails or returns incomplete data. This was the root cause of the auth pages showing English despite the app defaulting to Vietnamese.
+The vite and desktop variants already do this correctly (`if (lng === defaultLang)`). The base Node.js variant and `createAuthI18n` must follow the same pattern.
+
+Removing or bypassing this guard causes `vi-VN` users to see English (the `fallbackLng`) because the JSON path either fails or returns incomplete data.
 
 ## SPA Routes and Features
 
