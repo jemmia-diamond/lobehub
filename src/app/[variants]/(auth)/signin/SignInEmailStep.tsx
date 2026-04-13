@@ -5,10 +5,9 @@ import { Badge, Divider, Form } from 'antd';
 import { createStaticStyles } from 'antd-style';
 import { ChevronRight, Mail } from 'lucide-react';
 import { useEffect, useRef } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 import AuthIcons from '@/components/AuthIcons';
-import { PRIVACY_URL, TERMS_URL } from '@/const/url';
 
 import AuthCard from '../../../../features/AuthCard';
 
@@ -76,36 +75,8 @@ export const SignInEmailStep = ({
     return t(key, { defaultValue: `Continue with ${normalized}` });
   };
 
-  const footer = (
-    <Text fontSize={13} type={'secondary'}>
-      <Trans
-        i18nKey={'footer.agreement'}
-        ns={'auth'}
-        components={{
-          privacy: (
-            <a
-              href={PRIVACY_URL}
-              style={{ color: 'inherit', cursor: 'pointer', textDecoration: 'underline' }}
-            >
-              {t('footer.terms')}
-            </a>
-          ),
-          terms: (
-            <a
-              href={TERMS_URL}
-              style={{ color: 'inherit', cursor: 'pointer', textDecoration: 'underline' }}
-            >
-              {t('footer.privacy')}
-            </a>
-          ),
-        }}
-      />
-    </Text>
-  );
-
   return (
     <AuthCard
-      footer={null}
       subtitle={t('signin.subtitle', { appName: BRANDING_NAME })}
       title={t('signin.title')}
     >
