@@ -17,6 +17,7 @@ function createMockStore() {
     internal_dispatchMessage: vi.fn(),
     internal_toggleToolCallingStreaming: vi.fn(),
     replaceMessages: vi.fn(),
+    failOperation: vi.fn(),
   };
 }
 

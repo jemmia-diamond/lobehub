@@ -190,6 +190,12 @@ export const createGatewayEventHandler = (
             },
             dispatchContext,
           );
+
+          // Mark operation as failed to clear UI loading state
+          get().failOperation(operationId, {
+            message: errorMsg,
+            type: 'gateway_error',
+          });
         });
         break;
       }

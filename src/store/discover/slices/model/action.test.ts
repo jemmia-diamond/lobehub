@@ -72,14 +72,14 @@ describe('ModelAction', () => {
 
     it('should include locale in SWR key', async () => {
       const mockDetail = {
-        identifier: 'gpt-4',
-        name: 'GPT-4',
+        identifier: 'claude-3',
+        name: 'Claude 3',
       };
 
       vi.spyOn(discoverService, 'getModelDetail').mockResolvedValue(mockDetail as any);
       vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('vi-VN');
 
-      const params = { identifier: 'gpt-4' };
+      const params = { identifier: 'claude-3' };
       const { result } = renderHook(() => useStore.getState().useModelDetail(params));
 
       await waitFor(() => {

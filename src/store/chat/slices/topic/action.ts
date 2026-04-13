@@ -198,43 +198,49 @@ export class ChatTopicActionImpl {
 
     internal_updateTopicTitleInSummary(topicId, LOADING_FLAT);
 
-    let output = '';
+    try {
+      let output = '';
 
-    // Get current agent for topic
-    const topicConfig = systemAgentSelectors.topic(useUserStore.getState());
+      // Get current agent for topic
+      const topicConfig = systemAgentSelectors.topic(useUserStore.getState());
 
-    // Automatically summarize the topic title
-    await chatService.fetchPresetTaskResult({
-      onError: () => {
-        internal_updateTopicTitleInSummary(topicId, topic.title);
-      },
-      onFinish: async (text) => {
-        await this.#get().internal_updateTopic(topicId, { title: text });
-      },
-      onLoadingChange: (loading) => {
-        internal_updateTopicLoading(topicId, loading);
-      },
-      onMessageHandle: (chunk) => {
-        switch (chunk.type) {
-          case 'text': {
-            output += chunk.text;
+      // Automatically summarize the topic title
+      await chatService.fetchPresetTaskResult({
+        onError: () => {
+          internal_updateTopicTitleInSummary(topicId, topic.title);
+        },
+        onFinish: async (text) => {
+          await this.#get().internal_updateTopic(topicId, { title: text });
+        },
+        onLoadingChange: (loading) => {
+          internal_updateTopicLoading(topicId, loading);
+        },
+        onMessageHandle: (chunk) => {
+          switch (chunk.type) {
+            case 'text': {
+              output += chunk.text;
+            }
           }
-        }
 
-        internal_updateTopicTitleInSummary(topicId, output);
-      },
-      params: merge(
-        topicConfig,
-        chainSummaryTitle(
-          messages,
-          userGeneralSettingsSelectors.currentResponseLanguage(useUserStore.getState()),
+          internal_updateTopicTitleInSummary(topicId, output);
+        },
+        params: merge(
+          topicConfig,
+          chainSummaryTitle(
+            messages,
+            userGeneralSettingsSelectors.currentResponseLanguage(useUserStore.getState()),
+          ),
         ),
-      ),
-      trace: this.#get().getCurrentTracePayload({
-        traceName: TraceNameMap.SummaryTopicTitle,
-        topicId,
-      }),
-    });
+        trace: this.#get().getCurrentTracePayload({
+          traceName: TraceNameMap.SummaryTopicTitle,
+          topicId,
+        }),
+      });
+    } catch (error) {
+      console.error('[summaryTopicTitle] Failed:', error);
+      internal_updateTopicTitleInSummary(topicId, topic.title);
+      internal_updateTopicLoading(topicId, false);
+    }
   };
 
   favoriteTopic = async (id: string, favorite: boolean): Promise<void> => {

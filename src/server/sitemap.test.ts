@@ -5,7 +5,7 @@ import { getCanonicalUrl } from '@/server/utils/url';
 
 import { LAST_MODIFIED, Sitemap, SitemapType } from './sitemap';
 
-const LOCALE_COUNT = 1;
+const LOCALE_COUNT = 4;
 
 describe('Sitemap', () => {
   const sitemap = new Sitemap();

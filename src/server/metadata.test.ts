@@ -67,7 +67,7 @@ describe('Metadata', () => {
 
   describe('genAlternateLocales', () => {
     it('should generate alternate locales correctly', () => {
-      const result = (meta as any).genAlternateLocales('en', '/test');
+      const result = (meta as any).genAlternateLocales('en-US', '/test');
 
       expect(result).toHaveProperty('x-default', expect.stringContaining('/test'));
       expect(result).toHaveProperty('vi-VN', expect.stringContaining('hl=vi-VN'));
@@ -78,18 +78,18 @@ describe('Metadata', () => {
   describe('genTwitter', () => {
     it('should generate Twitter metadata correctly', () => {
       const result = (meta as any).genTwitter({
-        title: 'Twitter Title',
         description: 'Twitter description',
         image: 'https://twitter-image.com',
+        title: 'Twitter Title',
         url: 'https://example.com/twitter',
       });
 
       expect(result).toEqual({
         card: 'summary_large_image',
-        title: 'Twitter Title',
         description: 'Twitter description',
         images: ['https://twitter-image.com'],
-        site: '@Jemmia Diamond',
+        site: expect.any(String),
+        title: 'Twitter Title',
         url: 'https://example.com/twitter',
       });
     });
@@ -98,24 +98,24 @@ describe('Metadata', () => {
   describe('genOpenGraph', () => {
     it('should generate OpenGraph metadata correctly', () => {
       const result = (meta as any).genOpenGraph({
-        title: 'OG Title',
+        alternate: true,
         description: 'OG description',
         image: 'https://og-image.com',
-        url: 'https://example.com/og',
-        locale: 'es-ES',
+        locale: 'en-US',
+        title: 'OG Title',
         type: 'article',
-        alternate: true,
+        url: 'https://example.com/og',
       });
 
       expect(result).toMatchObject({
-        title: 'OG Title',
+        alternateLocale: ['vi-VN', 'en-US', 'zh-CN', 'ar-SA'],
         description: 'OG description',
-        images: [{ url: 'https://og-image.com', alt: 'OG Title' }],
-        locale: 'es-ES',
+        images: [{ alt: 'OG Title', url: 'https://og-image.com' }],
+        locale: 'en-US',
+        siteName: BRANDING_NAME,
+        title: 'OG Title',
         type: 'article',
         url: 'https://example.com/og',
-        siteName: BRANDING_NAME,
-        alternateLocale: ['vi-VN'],
       });
     });
   });

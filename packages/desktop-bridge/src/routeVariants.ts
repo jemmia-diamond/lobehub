@@ -3,7 +3,7 @@
 export const DEFAULT_LANG = 'vi-VN';
 
 // Supported locales (keep aligned with web resources)
-export const locales = ['en-US', 'vi-VN'] as const;
+export const locales = ['vi-VN', 'en-US', 'zh-CN', 'ar-SA'] as const;
 
 export type Locales = (typeof locales)[number];
 

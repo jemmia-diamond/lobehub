@@ -1,3 +1,4 @@
+import { DEFAULT_LANG } from '@/const/locale';
 import { normalizeLocale } from '@/locales/resources';
 
 type UILocaleResources = Record<string, Record<string, string>>;
@@ -31,7 +32,7 @@ const loadLobeUIBuiltinResources = async (locale: string): Promise<UILocaleResou
 export const getUILocaleAndResources = async (
   locale: string | 'auto',
 ): Promise<{ locale: string; resources: UILocaleResources }> => {
-  const effectiveLocale = locale === 'auto' ? 'en-US' : locale;
+  const effectiveLocale = locale === 'auto' ? DEFAULT_LANG : locale;
   const normalizedLocale = normalizeLocale(effectiveLocale);
   const uiLocale = getUILocale(normalizedLocale);
 

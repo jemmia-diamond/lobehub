@@ -380,7 +380,7 @@ export default {
   'information': 'Community and News',
   'installPWA': 'Install browser app',
   'labs': 'Labs',
-  'lang.ar': 'Arabic',
+  'lang.ar-SA': 'Arabic',
   'lang.auto': 'Follow system language settings',
   'lang.bg-BG': 'Bulgarian',
   'lang.bn': 'Bengali',

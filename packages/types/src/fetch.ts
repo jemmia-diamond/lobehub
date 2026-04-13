@@ -30,6 +30,7 @@ export const ChatErrorType = {
   ContentNotFound: 404, // Endpoint not found
   MethodNotAllowed: 405, // Method not supported
   TooManyRequests: 429,
+  ClientAbort: 499,
 
   // ******* Server Errors ******* //InvalidPluginArgumentsTransform
   InternalServerError: 500,

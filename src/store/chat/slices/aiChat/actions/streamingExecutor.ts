@@ -512,258 +512,291 @@ export class StreamingExecutorActionImpl {
 
     // Execute the agent runtime loop
     let stepCount = 0;
-    while (state.status !== 'done' && state.status !== 'error') {
-      // Check if operation has been cancelled
-      const currentOperation = this.#get().operations[operationId];
-      if (currentOperation?.status === 'cancelled') {
-        log('[internal_execAgentRuntime] Operation cancelled, marking state as interrupted');
+    try {
+      while (state.status !== 'done' && state.status !== 'error') {
+        // Check if operation has been cancelled
+        const currentOperation = this.#get().operations[operationId];
+        if (currentOperation?.status === 'cancelled') {
+          log('[internal_execAgentRuntime] Operation cancelled, marking state as interrupted');
 
-        // Update state status to 'interrupted' so agent can handle abort
-        state = { ...state, status: 'interrupted' };
+          // Update state status to 'interrupted' so agent can handle abort
+          state = { ...state, status: 'interrupted' };
 
-        // Let agent handle the abort (will clean up pending tools if needed)
+          // Let agent handle the abort (will clean up pending tools if needed)
+          const result = await runtime.step(state, nextContext);
+          state = result.newState;
+
+          log('[internal_execAgentRuntime] Operation cancelled, stopping loop');
+          break;
+        }
+
+        stepCount++;
+
+        // Compute step context from current db messages before each step
+        // Use dbMessagesMap which contains persisted state (including pluginState.todos)
+        const currentDBMessages = this.#get().dbMessagesMap[messageKey] || [];
+        // Use selectTodosFromMessages selector (shared with UI display)
+        const todos = selectTodosFromMessages(currentDBMessages);
+        // Accumulate activated tool ids from lobe-activator messages
+        const activatedToolIds = selectActivatedToolIdsFromMessages(currentDBMessages);
+        // Accumulate activated skills from activateSkill messages
+        const activatedSkills = selectActivatedSkillsFromMessages(currentDBMessages);
+        const hasQueuedMessages = (this.#get().queuedMessages[contextKey]?.length ?? 0) > 0;
+        const stepContext = computeStepContext({
+          activatedSkills,
+          activatedToolIds,
+          hasQueuedMessages,
+          todos,
+        });
+
+        // If page agent is enabled, get the latest XML for stepPageEditor
+        if (nextContext.initialContext?.pageEditor) {
+          try {
+            const pageContentContext = pageAgentRuntime.getPageContentContext('xml');
+            stepContext.stepPageEditor = {
+              xml: pageContentContext.xml || '',
+            };
+          } catch (error) {
+            // Page agent runtime may not be available, ignore errors
+            log('[internal_execAgentRuntime] Failed to get page XML for step: %o', error);
+          }
+        }
+
+        // Inject stepContext into the runtime context for this step
+        nextContext = { ...nextContext, stepContext };
+
+        log(
+          '[internal_execAgentRuntime][step-%d]: phase=%s, status=%s, state.messages=%d, dbMessagesMap[%s]=%d, stepContext=%O',
+          stepCount,
+          stepCount,
+          nextContext.phase,
+          state.status,
+          state.messages.length,
+          messageKey,
+          currentDBMessages.length,
+          stepContext,
+        );
+
         const result = await runtime.step(state, nextContext);
+
+        log(
+          '[internal_execAgentRuntime] Step %d completed, events: %d, newStatus=%s, newState.messages=%d',
+          stepCount,
+          result.events.length,
+          result.newState.status,
+          result.newState.messages.length,
+        );
+
+        // After parallel tool batch completes, refresh messages to ensure all tool results are synced
+        // This fixes the race condition where each tool's replaceMessages may overwrite others
+        // REMEMBER: There is no test for it (too hard to add), if you want to change it , ask @arvinxx first
+        if (
+          result.nextContext?.phase &&
+          ['tasks_batch_result', 'tools_batch_result'].includes(result.nextContext?.phase)
+        ) {
+          log(
+            `[internal_execAgentRuntime] ${result.nextContext?.phase} completed, refreshing messages to sync state`,
+          );
+          await this.#get().refreshMessages(context);
+        }
+
+        // Handle completion and error events
+        for (const event of result.events) {
+          switch (event.type) {
+            case 'done': {
+              log('[internal_execAgentRuntime] Received done event');
+              break;
+            }
+
+            case 'error': {
+              log('[internal_execAgentRuntime] Received error event: %o', event.error);
+              // Find the assistant message to update error
+              const currentMessages = this.#get().messagesMap[messageKey] || [];
+              const assistantMessage = currentMessages.findLast((m) => m.role === 'assistant');
+              if (assistantMessage) {
+                await messageService.updateMessageError(assistantMessage.id, event.error, {
+                  agentId,
+                  groupId,
+                  topicId,
+                });
+              }
+              const finalMessages = this.#get().messagesMap[messageKey] || [];
+              this.#get().replaceMessages(finalMessages, { context });
+              break;
+            }
+          }
+        }
+
         state = result.newState;
 
-        log('[internal_execAgentRuntime] Operation cancelled, stopping loop');
-        break;
+        // Check if operation was cancelled after step completion
+        const operationAfterStep = this.#get().operations[operationId];
+        if (operationAfterStep?.status === 'cancelled') {
+          log(
+            '[internal_execAgentRuntime] Operation cancelled after step %d, marking state as interrupted',
+            stepCount,
+          );
+
+          // Set state.status to 'interrupted' to trigger agent abort handling
+          state = { ...state, status: 'interrupted' };
+
+          // Let agent handle the abort (will clean up pending tools if needed)
+          // Use result.nextContext if available (e.g., llm_result with tool calls)
+          // otherwise fallback to current nextContext
+          const contextForAbort = result.nextContext || nextContext;
+          const abortResult = await runtime.step(state, contextForAbort);
+          state = abortResult.newState;
+
+          log('[internal_execAgentRuntime] Operation cancelled, stopping loop');
+          break;
+        }
+
+        // If no nextContext, stop execution
+        if (!result.nextContext) {
+          log('[internal_execAgentRuntime] No next context, stopping loop');
+          break;
+        }
+
+        // Preserve initialContext when updating nextContext
+        // initialContext is set once at the start and should persist through all steps
+        nextContext = { ...result.nextContext, initialContext: nextContext.initialContext };
       }
 
-      stepCount++;
+      log(
+        '[internal_execAgentRuntime] Agent runtime loop finished, final status: %s, total steps: %d',
+        state.status,
+        stepCount,
+      );
 
-      // Compute step context from current db messages before each step
-      // Use dbMessagesMap which contains persisted state (including pluginState.todos)
-      const currentDBMessages = this.#get().dbMessagesMap[messageKey] || [];
-      // Use selectTodosFromMessages selector (shared with UI display)
-      const todos = selectTodosFromMessages(currentDBMessages);
-      // Accumulate activated tool IDs from lobe-activator messages
-      const activatedToolIds = selectActivatedToolIdsFromMessages(currentDBMessages);
-      // Accumulate activated skills from activateSkill messages
-      const activatedSkills = selectActivatedSkillsFromMessages(currentDBMessages);
-      const hasQueuedMessages = (this.#get().queuedMessages[contextKey]?.length ?? 0) > 0;
-      const stepContext = computeStepContext({
-        activatedSkills,
-        activatedToolIds,
-        hasQueuedMessages,
-        todos,
+      // Execute afterCompletion hooks before completing operation
+      // These are registered by tools (e.g., speak/broadcast/delegate) that need to
+      // trigger actions after the AgentRuntime finishes
+      const operation = this.#get().operations[operationId];
+      const afterCompletionCallbacks = operation?.metadata?.runtimeHooks?.afterCompletionCallbacks;
+      if (afterCompletionCallbacks && afterCompletionCallbacks.length > 0) {
+        log(
+          '[internal_execAgentRuntime] Executing %d afterCompletion callbacks',
+          afterCompletionCallbacks.length,
+        );
+
+        for (const callback of afterCompletionCallbacks) {
+          try {
+            await callback();
+          } catch (error) {
+            console.error('[internal_execAgentRuntime] afterCompletion callback error:', error);
+          }
+        }
+
+        log('[internal_execAgentRuntime] afterCompletion callbacks executed');
+      }
+
+      // If completed successfully and queue has messages, drain and trigger new sendMessage.
+      // Only drain on success — on error the queue is left intact so messages aren't lost.
+      if (state.status === 'done') {
+        const remainingQueued = this.#get().drainQueuedMessages(contextKey);
+        if (remainingQueued.length > 0) {
+          const merged = mergeQueuedMessages(remainingQueued);
+          log(
+            '[internal_execAgentRuntime] %d queued messages after completion, triggering new sendMessage',
+            remainingQueued.length,
+          );
+
+          this.#get().completeOperation(operationId);
+
+          const completedOp = this.#get().operations[operationId];
+          if (completedOp?.context.agentId) {
+            this.#get().markUnreadCompleted(
+              completedOp.context.agentId,
+              completedOp.context.topicId,
+            );
+          }
+
+          const execContext = { ...context };
+          const mergedContent = merged.content;
+          // Convert file id strings — sendMessage only reads f.id from each item
+          const mergedFiles =
+            merged.files.length > 0 ? merged.files.map((id) => ({ id }) as any) : undefined;
+
+          setTimeout(() => {
+            useChatStore
+              .getState()
+              .sendMessage({
+                context: execContext,
+                editorData: merged.editorData,
+                files: mergedFiles,
+                message: mergedContent,
+              })
+              .catch((e: unknown) => {
+                console.error(
+                  '[internal_execAgentRuntime] sendMessage for queued content failed:',
+                  e,
+                );
+              });
+          }, 100);
+
+          return; // Skip the normal completion below
+        }
+      }
+
+      // Complete operation based on final state
+      switch (state.status) {
+        case 'done': {
+          this.#get().completeOperation(operationId);
+          log('[internal_execAgentRuntime] Operation completed successfully');
+
+          // Mark unread completion for background conversations
+          const completedOp = this.#get().operations[operationId];
+          if (completedOp?.context.agentId) {
+            this.#get().markUnreadCompleted(
+              completedOp.context.agentId,
+              completedOp.context.topicId,
+            );
+          }
+          break;
+        }
+        case 'error': {
+          this.#get().failOperation(operationId, {
+            type: 'runtime_error',
+            message: 'Agent runtime execution failed',
+          });
+          log('[internal_execAgentRuntime] Operation failed');
+          break;
+        }
+        case 'waiting_for_human': {
+          // When waiting for human intervention, complete the current operation
+          // A new operation will be created when user approves/rejects
+          this.#get().completeOperation(operationId);
+          log('[internal_execAgentRuntime] Operation paused for human intervention');
+          break;
+        }
+      }
+    } catch (e: any) {
+      log('[internal_execAgentRuntime] Loop crashed with error: %o', e);
+
+      this.#get().failOperation(operationId, {
+        message: e.message || 'Unknown runtime error',
+        type: 'runtime_crash',
       });
 
-      // If page agent is enabled, get the latest XML for stepPageEditor
-      if (nextContext.initialContext?.pageEditor) {
-        try {
-          const pageContentContext = pageAgentRuntime.getPageContentContext('xml');
-          stepContext.stepPageEditor = {
-            xml: pageContentContext.xml || '',
-          };
-        } catch (error) {
-          // Page agent runtime may not be available, ignore errors
-          log('[internal_execAgentRuntime] Failed to get page XML for step: %o', error);
+      // Also try to find the assistant message and update its error in DB
+      try {
+        const currentMessages = this.#get().messagesMap[messageKey] || [];
+        const assistantMessage = currentMessages.findLast((m) => m.role === 'assistant');
+        if (assistantMessage) {
+          await messageService.updateMessageError(
+            assistantMessage.id,
+            { body: { message: e.message }, type: 'AgentRuntimeError' },
+            { agentId, groupId, topicId },
+          );
+          const finalMessages = this.#get().messagesMap[messageKey] || [];
+          this.#get().replaceMessages(finalMessages, { context });
         }
+      } catch {
+        /* ignore second-level errors */
       }
-
-      // Inject stepContext into the runtime context for this step
-      nextContext = { ...nextContext, stepContext };
-
-      log(
-        '[internal_execAgentRuntime][step-%d]: phase=%s, status=%s, state.messages=%d, dbMessagesMap[%s]=%d, stepContext=%O',
-        stepCount,
-        nextContext.phase,
-        state.status,
-        state.messages.length,
-        messageKey,
-        currentDBMessages.length,
-        stepContext,
-      );
-
-      const result = await runtime.step(state, nextContext);
-
-      log(
-        '[internal_execAgentRuntime] Step %d completed, events: %d, newStatus=%s, newState.messages=%d',
-        stepCount,
-        result.events.length,
-        result.newState.status,
-        result.newState.messages.length,
-      );
-
-      // After parallel tool batch completes, refresh messages to ensure all tool results are synced
-      // This fixes the race condition where each tool's replaceMessages may overwrite others
-      // REMEMBER: There is no test for it (too hard to add), if you want to change it , ask @arvinxx first
-      if (
-        result.nextContext?.phase &&
-        ['tasks_batch_result', 'tools_batch_result'].includes(result.nextContext?.phase)
-      ) {
-        log(
-          `[internal_execAgentRuntime] ${result.nextContext?.phase} completed, refreshing messages to sync state`,
-        );
-        await this.#get().refreshMessages(context);
-      }
-
-      // Handle completion and error events
-      for (const event of result.events) {
-        switch (event.type) {
-          case 'done': {
-            log('[internal_execAgentRuntime] Received done event');
-            break;
-          }
-
-          case 'error': {
-            log('[internal_execAgentRuntime] Received error event: %o', event.error);
-            // Find the assistant message to update error
-            const currentMessages = this.#get().messagesMap[messageKey] || [];
-            const assistantMessage = currentMessages.findLast((m) => m.role === 'assistant');
-            if (assistantMessage) {
-              await messageService.updateMessageError(assistantMessage.id, event.error, {
-                agentId,
-                groupId,
-                topicId,
-              });
-            }
-            const finalMessages = this.#get().messagesMap[messageKey] || [];
-            this.#get().replaceMessages(finalMessages, { context });
-            break;
-          }
-        }
-      }
-
-      state = result.newState;
-
-      // Check if operation was cancelled after step completion
-      const operationAfterStep = this.#get().operations[operationId];
-      if (operationAfterStep?.status === 'cancelled') {
-        log(
-          '[internal_execAgentRuntime] Operation cancelled after step %d, marking state as interrupted',
-          stepCount,
-        );
-
-        // Set state.status to 'interrupted' to trigger agent abort handling
-        state = { ...state, status: 'interrupted' };
-
-        // Let agent handle the abort (will clean up pending tools if needed)
-        // Use result.nextContext if available (e.g., llm_result with tool calls)
-        // otherwise fallback to current nextContext
-        const contextForAbort = result.nextContext || nextContext;
-        const abortResult = await runtime.step(state, contextForAbort);
-        state = abortResult.newState;
-
-        log('[internal_execAgentRuntime] Operation cancelled, stopping loop');
-        break;
-      }
-
-      // If no nextContext, stop execution
-      if (!result.nextContext) {
-        log('[internal_execAgentRuntime] No next context, stopping loop');
-        break;
-      }
-
-      // Preserve initialContext when updating nextContext
-      // initialContext is set once at the start and should persist through all steps
-      nextContext = { ...result.nextContext, initialContext: nextContext.initialContext };
+    } finally {
+      log('[internal_execAgentRuntime] completed');
     }
-
-    log(
-      '[internal_execAgentRuntime] Agent runtime loop finished, final status: %s, total steps: %d',
-      state.status,
-      stepCount,
-    );
-
-    // Execute afterCompletion hooks before completing operation
-    // These are registered by tools (e.g., speak/broadcast/delegate) that need to
-    // trigger actions after the AgentRuntime finishes
-    const operation = this.#get().operations[operationId];
-    const afterCompletionCallbacks = operation?.metadata?.runtimeHooks?.afterCompletionCallbacks;
-    if (afterCompletionCallbacks && afterCompletionCallbacks.length > 0) {
-      log(
-        '[internal_execAgentRuntime] Executing %d afterCompletion callbacks',
-        afterCompletionCallbacks.length,
-      );
-
-      for (const callback of afterCompletionCallbacks) {
-        try {
-          await callback();
-        } catch (error) {
-          console.error('[internal_execAgentRuntime] afterCompletion callback error:', error);
-        }
-      }
-
-      log('[internal_execAgentRuntime] afterCompletion callbacks executed');
-    }
-
-    // If completed successfully and queue has messages, drain and trigger new sendMessage.
-    // Only drain on success — on error the queue is left intact so messages aren't lost.
-    if (state.status === 'done') {
-      const remainingQueued = this.#get().drainQueuedMessages(contextKey);
-      if (remainingQueued.length > 0) {
-        const merged = mergeQueuedMessages(remainingQueued);
-        log(
-          '[internal_execAgentRuntime] %d queued messages after completion, triggering new sendMessage',
-          remainingQueued.length,
-        );
-
-        this.#get().completeOperation(operationId);
-
-        const completedOp = this.#get().operations[operationId];
-        if (completedOp?.context.agentId) {
-          this.#get().markUnreadCompleted(completedOp.context.agentId, completedOp.context.topicId);
-        }
-
-        const execContext = { ...context };
-        const mergedContent = merged.content;
-        // Convert file id strings — sendMessage only reads f.id from each item
-        const mergedFiles =
-          merged.files.length > 0 ? merged.files.map((id) => ({ id }) as any) : undefined;
-
-        setTimeout(() => {
-          useChatStore
-            .getState()
-            .sendMessage({
-              context: execContext,
-              editorData: merged.editorData,
-              files: mergedFiles,
-              message: mergedContent,
-            })
-            .catch((e: unknown) => {
-              console.error(
-                '[internal_execAgentRuntime] sendMessage for queued content failed:',
-                e,
-              );
-            });
-        }, 100);
-
-        return; // Skip the normal completion below
-      }
-    }
-
-    // Complete operation based on final state
-    switch (state.status) {
-      case 'done': {
-        this.#get().completeOperation(operationId);
-        log('[internal_execAgentRuntime] Operation completed successfully');
-
-        // Mark unread completion for background conversations
-        const completedOp = this.#get().operations[operationId];
-        if (completedOp?.context.agentId) {
-          this.#get().markUnreadCompleted(completedOp.context.agentId, completedOp.context.topicId);
-        }
-        break;
-      }
-      case 'error': {
-        this.#get().failOperation(operationId, {
-          type: 'runtime_error',
-          message: 'Agent runtime execution failed',
-        });
-        log('[internal_execAgentRuntime] Operation failed');
-        break;
-      }
-      case 'waiting_for_human': {
-        // When waiting for human intervention, complete the current operation
-        // A new operation will be created when user approves/rejects
-        this.#get().completeOperation(operationId);
-        log('[internal_execAgentRuntime] Operation paused for human intervention');
-        break;
-      }
-    }
-
-    log('[internal_execAgentRuntime] completed');
 
     // Desktop notification (if not in tools calling mode)
     if (isDesktop) {

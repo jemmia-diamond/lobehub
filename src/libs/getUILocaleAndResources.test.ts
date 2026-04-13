@@ -9,7 +9,7 @@ describe('getUILocaleAndResources', () => {
     expect(result.resources).toBeDefined();
   });
 
-  it('should return zh-CN locale and zhCn resources for zh-TW', async () => {
+  it('should return zh-CN locale for zh-TW (maps to zh-CN)', async () => {
     const result = await getUILocaleAndResources('zh-TW');
     expect(result.locale).toBe('zh-CN');
     expect(result.resources).toBeDefined();
@@ -27,27 +27,27 @@ describe('getUILocaleAndResources', () => {
     expect(result.resources).toBeDefined();
   });
 
-  it('should return en-US locale and en resources for auto', async () => {
+  it('should return vi-VN locale for auto (fallback)', async () => {
     const result = await getUILocaleAndResources('auto');
-    expect(result.locale).toBe('en-US');
+    expect(result.locale).toBe('vi-VN');
     expect(result.resources).toBeDefined();
   });
 
-  it('should return ar locale and custom resources for ar', async () => {
+  it('should return ar-SA locale and custom resources for ar', async () => {
     const result = await getUILocaleAndResources('ar');
-    expect(result.locale).toBe('ar');
+    expect(result.locale).toBe('ar-SA');
     expect(result.resources).toBeDefined();
   });
 
-  it('should return de-DE locale and custom resources for de-DE', async () => {
+  it('should return vi-VN locale for de-DE (fallback)', async () => {
     const result = await getUILocaleAndResources('de-DE');
-    expect(result.locale).toBe('de-DE');
+    expect(result.locale).toBe('vi-VN');
     expect(result.resources).toBeDefined();
   });
 
-  it('should return es-ES locale and custom resources for es-ES', async () => {
+  it('should return vi-VN locale for es-ES (fallback)', async () => {
     const result = await getUILocaleAndResources('es-ES');
-    expect(result.locale).toBe('es-ES');
+    expect(result.locale).toBe('vi-VN');
     expect(result.resources).toBeDefined();
   });
 
@@ -57,7 +57,7 @@ describe('getUILocaleAndResources', () => {
 
     const { getUILocaleAndResources: getWithFallback } = await import('./getUILocaleAndResources');
     const result = await getWithFallback('unknown-locale');
-    expect(result.locale).toBe('en-US');
+    expect(result.locale).toBe('vi-VN');
     expect(result.resources).toBeDefined();
   });
 });

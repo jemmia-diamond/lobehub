@@ -30,6 +30,10 @@ export interface ConnectGatewayParams {
    */
   gatewayUrl: string;
   /**
+   * The local operation ID for UI tracking
+   */
+  localOperationId?: string;
+  /**
    * Callback for each agent event received
    */
   onEvent?: (event: AgentStreamEvent) => void;
@@ -117,15 +121,33 @@ export class GatewayActionImpl {
       onSessionComplete?.();
     });
 
-    // Handle disconnection (terminal events auto-disconnect the client)
-    client.on('disconnected', () => {
-      this.internal_cleanupGatewayConnection(operationId);
-    });
-
     // Handle auth failures
     client.on('auth_failed', (reason) => {
       console.error(`[Gateway] Auth failed for operation ${operationId}: ${reason}`);
       this.internal_cleanupGatewayConnection(operationId);
+
+      if (params.localOperationId) {
+        this.#get().failOperation(params.localOperationId, {
+          message: reason,
+          type: 'gateway_auth_failed',
+        });
+      }
+    });
+
+    // Handle initial connection failure or unexpected disconnection
+    client.on('disconnected', () => {
+      this.internal_cleanupGatewayConnection(operationId);
+
+      // If disconnected but not finished (no session_complete yet), mark local operation as failed
+      if (params.localOperationId) {
+        const op = this.#get().operations[params.localOperationId];
+        if (op && op.status === 'running') {
+          this.#get().failOperation(params.localOperationId, {
+            message: 'Gateway connection lost',
+            type: 'gateway_disconnect',
+          });
+        }
+      }
     });
 
     client.connect();
@@ -267,6 +289,7 @@ export class GatewayActionImpl {
         onComplete?.();
       },
       operationId: result.operationId,
+      localOperationId: gatewayOpId,
       token: result.token || '',
     });
 
@@ -326,6 +349,7 @@ export class GatewayActionImpl {
         topicService.updateTopicMetadata(topicId, { runningOperation: null }).catch(() => {});
       },
       operationId,
+      localOperationId: gatewayOpId,
       resumeOnConnect: true,
       token,
     });

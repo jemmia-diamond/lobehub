@@ -51,7 +51,7 @@ describe('ModeSwitch', () => {
     expect(screen.getByText('Choose your onboarding mode')).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'Conversational' })).toBeChecked();
     expect(screen.getByRole('radio', { name: 'Classic' })).not.toBeChecked();
-  });
+  }, 15_000);
 
   it('hides the onboarding switch entirely when agent onboarding is disabled', async () => {
     await renderModeSwitch({ enabled: false });

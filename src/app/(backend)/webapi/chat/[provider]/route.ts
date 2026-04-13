@@ -20,8 +20,16 @@ export const POST = checkAuth(async (req: Request, { params, userId, serverDB })
     const modelRuntime = await initModelRuntimeFromDB(serverDB, userId, provider);
 
     // ============  2. create chat completion   ============ //
+    let data: ChatStreamPayload;
 
-    const data = (await req.json()) as ChatStreamPayload;
+    try {
+      data = (await req.json()) as ChatStreamPayload;
+    } catch (e) {
+      // If the request was aborted by the client (e.g. page reload) while parsing the body,
+      // return a silent error instead of crashing/logging a 500 SyntaxError.
+      if (req.signal.aborted) return createErrorResponse(ChatErrorType.ClientAbort, { error: e });
+      throw e;
+    }
 
     const tracePayload = getTracePayload(req);
 

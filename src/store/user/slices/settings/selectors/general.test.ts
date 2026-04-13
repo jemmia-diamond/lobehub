@@ -68,7 +68,7 @@ describe('settingsSelectors', () => {
 
       const result = userGeneralSettingsSelectors.currentResponseLanguage(s as UserStore);
 
-      expect(result).toBe('fr-FR');
+      expect(result).toBe('vi-VN');
 
       Object.defineProperty(window.navigator, 'language', {
         configurable: true,

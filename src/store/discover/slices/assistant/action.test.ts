@@ -54,8 +54,8 @@ describe('AssistantAction', () => {
     it('should fetch assistant detail when identifier is provided', async () => {
       const mockDetail = {
         identifier: 'test-assistant',
-        name: 'Test Assistant',
-        description: 'A test assistant',
+        name: 'Trợ lý thử nghiệm',
+        description: 'Một trợ lý thử nghiệm',
       };
 
       vi.spyOn(discoverService, 'getAssistantDetail').mockResolvedValue(mockDetail as any);
@@ -74,8 +74,8 @@ describe('AssistantAction', () => {
     it('should respect locale changes', async () => {
       const mockDetail = {
         identifier: 'test-assistant',
-        name: '测试助理',
-        description: '一个测试助理',
+        name: 'Trợ lý thử nghiệm',
+        description: 'Một trợ lý thử nghiệm',
       };
 
       vi.spyOn(discoverService, 'getAssistantDetail').mockResolvedValue(mockDetail as any);
