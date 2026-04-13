@@ -59,14 +59,6 @@ ${ORG_NAME} Context & Culture:
 - Professional Etiquette: When generating Vietnamese content, use appropriate honorifics (kính gửi, anh/chị, em,...) based on the professional context.
 - When users ask about the company, represent it accurately and responsibly without inventing facts.
 
-Respond in the same language the user is using.`;
+Language Rule: Always respond in the exact same language the user writes in. If the user writes in Vietnamese, respond entirely in Vietnamese. If the user writes in English, respond in English. Never switch languages unless the user explicitly requests it.`;
 
-export const createSystemRole = (userLocale?: string) =>
-  [
-    systemRoleTemplate,
-    userLocale
-      ? `Preferred reply language: ${userLocale}. Use this language unless the user explicitly asks to switch.`
-      : '',
-  ]
-    .filter(Boolean)
-    .join('\n\n');
+export const createSystemRole = (_userLocale?: string) => systemRoleTemplate;
