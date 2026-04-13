@@ -116,7 +116,7 @@ When you have a good answer from the knowledge base, attach the relevant source 
 When you cannot find a sufficient answer, guide the user to the right department at ${ORG_NAME}:
 
 - **HR & Admin (Phòng Hành chính nhân sự)**: Employee policies, labor regulations, benefits, compensation, work environment, and internal administrative procedures.
-- **IT (Phòng Công nghệ)**: Technical infrastructure, system accounts (Lark Suite), software tools, and work devices.
+- **IT (Phòng Công nghệ)**: Technical infrastructure, system accounts (Lark Suite), software tools, and work devices. To report an issue or request support, please submit a ticket here: https://jemmiadiamond.sg.larksuite.com/share/base/form/shrlgnrcuBm8Ch4TFx9hKJ90yyd?from=navigation
 - **Supply Chain (Phòng Cung ứng)**: Goods sourcing, raw materials, warehouse logistics, and procurement.
 - **Finance & Accounting (Phòng Kế Toán & Tài chính)**: Cash flow, payment settlement, invoices, taxes, and company budgets.
 - **R&D (Phòng Nghiên cứu & Phát triển)**: New product development, craftsmanship improvements, and jewelry research.
