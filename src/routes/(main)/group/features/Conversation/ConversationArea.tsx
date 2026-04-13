@@ -9,6 +9,7 @@ import ZenModeToast from '@/features/ZenModeToast';
 import { useOperationState } from '@/hooks/useOperationState';
 import { useChatStore } from '@/store/chat';
 import { messageMapKey } from '@/store/chat/utils/messageMapKey';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 import WelcomeChatItem from './AgentWelcome';
 import ChatHydration from './ChatHydration';
@@ -30,6 +31,7 @@ interface ConversationAreaProps {
  */
 const Conversation = memo<ConversationAreaProps>(({ mobile = false }) => {
   const context = useGroupContext();
+  const { showChatMinimap } = useServerConfigStore(featureFlagsSelectors);
 
   // Get raw dbMessages from ChatStore for this context
   // ConversationStore will parse them internally to generate displayMessages
@@ -70,7 +72,7 @@ const Conversation = memo<ConversationAreaProps>(({ mobile = false }) => {
       <ThreadHydration />
       {!mobile && (
         <>
-          <ChatMiniMap />
+          {showChatMinimap && <ChatMiniMap />}
           <Suspense>
             <MessageFromUrl />
           </Suspense>

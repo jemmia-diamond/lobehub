@@ -20,6 +20,7 @@ import ZenModeToast from '@/features/ZenModeToast';
 import { useOperationState } from '@/hooks/useOperationState';
 import { useChatStore } from '@/store/chat';
 import { messageMapKey } from '@/store/chat/utils/messageMapKey';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 import WelcomeChatItem from './AgentWelcome';
 import ChatHydration from './ChatHydration';
@@ -40,6 +41,7 @@ const log = debug('lobe-render:agent:ConversationArea');
 const ConversationMain = memo(() => {
   const { t } = useTranslation('home');
   const context = useAgentContext();
+  const { showChatMinimap } = useServerConfigStore(featureFlagsSelectors);
 
   const displayMessageIds = useConversationStore(dataSelectors.displayMessageIds);
   const isWelcome = displayMessageIds.length === 0;
@@ -110,7 +112,7 @@ const ConversationMain = memo(() => {
       </Flexbox>
       <ChatHydration />
       <ThreadHydration />
-      <ChatMiniMap />
+      {showChatMinimap && <ChatMiniMap />}
       <Suspense>
         <MessageFromUrl />
       </Suspense>

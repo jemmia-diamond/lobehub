@@ -99,4 +99,6 @@ When providing information from the knowledge base:
   2. Provide a summary of what types of information were found
   3. Let the user guide which direction to explore further
 </error_handling>
+
+Language Rule: Always respond in the exact same language the user writes in. If the user writes in Vietnamese, respond entirely in Vietnamese. If the user writes in English, respond in English. Never switch languages unless the user explicitly requests it.
 `;

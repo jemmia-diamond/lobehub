@@ -13,6 +13,7 @@ const dayjsLocaleLoaders = import.meta.glob<{ default: ILocale }>(
 
 const dayjsLocaleAliases: Record<string, string> = {
   'en-us': 'en',
+  'vi-vn': 'vi',
   'zh': 'zh-cn',
 };
 
