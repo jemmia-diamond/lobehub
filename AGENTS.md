@@ -86,6 +86,23 @@ cd packages/[package-name] && bunx vitest run --silent='passed-only' '[file-path
 - **Dev**: Translate `locales/zh-CN/namespace.json` locale file only for preview
 - DON'T run `pnpm i18n`, let CI auto handle it
 
+#### Default Language: `vi-VN`
+
+The app's default language is **`vi-VN` (Vietnamese)**. This has a critical architectural implication:
+
+- `vi-VN` translations live in **TypeScript source files** at `src/locales/default/*.ts` — NOT in JSON files
+- All other supported locales (`en-US`, `zh-CN`, `ar-SA`) load from `locales/<locale>/*.json`
+- Any i18n loader that handles `vi-VN` **must short-circuit to the TypeScript defaults** before attempting JSON file loading
+
+**Rule**: When writing or modifying an i18n namespace loader, always add this guard:
+
+```ts
+// vi-VN is the default language — its translations live in TypeScript defaults, not JSON
+if (normalizedLocale === 'vi-VN') return loadDefaultNamespace(safeNamespace);
+```
+
+Removing this guard causes `vi-VN` users to see English (the `fallbackLng`) because the JSON path either fails or returns incomplete data. This was the root cause of the auth pages showing English despite the app defaulting to Vietnamese.
+
 ## SPA Routes and Features
 
 - **`src/routes/`** holds only page segments (`_layout/index.tsx`, `index.tsx`, `[id]/index.tsx`). Keep route files **thin** — import from `@/features/*` and compose, no business logic.
