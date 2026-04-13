@@ -41,6 +41,7 @@ export const getServerAuthConfig = (): GlobalServerConfig => {
       appEnv.MARKET_TRUSTED_CLIENT_SECRET && appEnv.MARKET_TRUSTED_CLIENT_ID
     ),
     oAuthSSOProviders: getBetterAuthSSOProviders(),
+    showAuthThemeButton: flags.showAuthThemeButton,
     telemetry: {},
   };
 };

@@ -25,25 +25,35 @@ vi.mock('@/utils/env', () => ({
   isDev: false,
 }));
 
-// Mock default locale modules with flat key structure (i18n keys are flat, not nested objects)
-// Keys like 'nested.key' are direct string keys, not nested property paths
-vi.mock('@/locales/default/common', () => ({
-  key1: 'Value 1',
-  key2: 'Value 2 with {{param}}',
-  'nested.key': 'Nested value',
-  multiParam: 'Hello {{name}}, you have {{count}} messages',
-  simpleText: 'Just a simple text',
-  withParam: 'Text with {{param}}',
-  'very.deeply.nested.key': 'Found the nested value',
-  // Add exports for testing missing keys (will be undefined, triggering fallback)
-  nonexistent: undefined,
-  'totally.missing.key': undefined,
+// Mock the i18n loader so tests don't depend on real JSON files on disk
+const mockNamespaces: Record<string, Record<string, string>> = {
+  common: {
+    key1: 'Value 1',
+    key2: 'Value 2 with {{param}}',
+    'nested.key': 'Nested value',
+    multiParam: 'Hello {{name}}, you have {{count}} messages',
+    simpleText: 'Just a simple text',
+    withParam: 'Text with {{param}}',
+    'very.deeply.nested.key': 'Found the nested value',
+  },
+  chat: {
+    welcome: 'Welcome to the chat',
+  },
+};
+
+vi.mock('@/utils/i18n/loadI18nNamespaceModule', () => ({
+  loadI18nNamespaceModuleWithFallback: vi.fn(async ({ ns, lng }: { ns: string; lng: string }) => {
+    // For unknown locales, simulate fallback to default locale modules
+    if (lng === 'zz-ZZ') {
+      // Return the default module (models/providers have a default export)
+      return import(`@/locales/default/${ns}`);
+    }
+    if (!mockNamespaces[ns]) throw new Error(`No mock for namespace: ${ns}`);
+    return mockNamespaces[ns];
+  }),
 }));
 
-vi.mock('@/locales/default/chat', () => ({
-  welcome: 'Welcome to the chat',
-}));
-
+// Mock default locale modules used as fallback for models/providers
 vi.mock('@/locales/default/models', () => ({
   default: {
     'gpt-4.description': 'GPT-4 description',

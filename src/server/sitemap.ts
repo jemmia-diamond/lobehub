@@ -24,7 +24,7 @@ export interface SitemapItem {
 
 export enum SitemapType {
   Assistants = 'assistants',
-  Mcp = 'mcp',
+  Mcp = 'mcp', 
   Models = 'models',
   Pages = 'pages',
   Plugins = 'plugins',

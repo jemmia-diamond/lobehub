@@ -70,6 +70,7 @@ export interface GlobalServerConfig {
   image?: PartialDeep<UserImageConfig>;
   memory?: GlobalMemoryConfig;
   oAuthSSOProviders?: string[];
+  showAuthThemeButton?: boolean;
   systemAgent?: PartialDeep<UserSystemAgentConfig>;
   telemetry: {
     langfuse?: boolean;
