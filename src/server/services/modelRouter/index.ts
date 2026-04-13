@@ -77,12 +77,12 @@ export class ModelRouterService {
       }
 
       if (modelId) {
-        console.info(`[Jemmora Intelligent Routing] Selected Model: ${modelId}`);
+        console.info(`[Brainy Intelligent Routing] Selected Model: ${modelId}`);
         return { model: modelId, provider: this.JEMMIA_PROVIDER };
       }
     } catch (error) {
       console.error(
-        '[Jemmora Intelligent Routing] Evaluation failed, falling back to resolve:',
+        '[Brainy Intelligent Routing] Evaluation failed, falling back to resolve:',
         error,
       );
     }
@@ -100,17 +100,17 @@ export class ModelRouterService {
     const requestedMode = mode.toLowerCase();
 
     if (requestedMode === 'fast' || requestedMode === JEMMIA_MODELS.FAST) {
-      console.info(`[Jemmora Mode] Mode: FAST → Model: ${JEMMIA_MODELS.FAST}`);
+      console.info(`[Brainy Mode] Mode: FAST → Model: ${JEMMIA_MODELS.FAST}`);
       return { model: JEMMIA_MODELS.FAST, provider: this.JEMMIA_PROVIDER };
     }
 
     if (requestedMode === 'thinking' || requestedMode === JEMMIA_MODELS.THINKING) {
-      console.info(`[Jemmora Mode] Mode: THINKING → Model: ${JEMMIA_MODELS.THINKING}`);
+      console.info(`[Brainy Mode] Mode: THINKING → Model: ${JEMMIA_MODELS.THINKING}`);
       return { model: JEMMIA_MODELS.THINKING, provider: this.JEMMIA_PROVIDER };
     }
 
     if (requestedMode === 'expert' || requestedMode === JEMMIA_MODELS.EXPERT) {
-      console.info(`[Jemmora Mode] Mode: EXPERT → Model: ${JEMMIA_MODELS.EXPERT}`);
+      console.info(`[Brainy Mode] Mode: EXPERT → Model: ${JEMMIA_MODELS.EXPERT}`);
       return { model: JEMMIA_MODELS.EXPERT, provider: this.JEMMIA_PROVIDER };
     }
 
@@ -143,13 +143,13 @@ export class ModelRouterService {
     const toolNames =
       tools?.map((t: any) => t.function?.name || t.identifier || t.type).join(', ') || 'none';
     log(
-      `[Jemmora Auto Debug] Conversation: ${conversationTokens} tokens, Files: ${totalFiles}, Tools: ${tools?.length || 0} [${toolNames}]`,
+      `[Brainy Auto Debug] Conversation: ${conversationTokens} tokens, Files: ${totalFiles}, Tools: ${tools?.length || 0} [${toolNames}]`,
     );
 
     // Tier 3 — EXPERT: massive complexity (3+ files, extreme token count, or deep long-range reasoning)
     if (totalFiles >= 3 || conversationTokens > 256_000) {
       console.info(
-        `[Jemmora Auto] Mode: AUTO → Model: ${JEMMIA_MODELS.EXPERT} (Reason: massive complexity – ${totalFiles} files, ${conversationTokens} tokens)`,
+        `[Brainy Auto] Mode: AUTO → Model: ${JEMMIA_MODELS.EXPERT} (Reason: massive complexity – ${totalFiles} files, ${conversationTokens} tokens)`,
       );
       return { model: JEMMIA_MODELS.EXPERT, provider: this.JEMMIA_PROVIDER };
     }
@@ -163,14 +163,14 @@ export class ModelRouterService {
       conversationTokens > 128_000
     ) {
       console.info(
-        `[Jemmora Auto] Mode: AUTO → Model: ${JEMMIA_MODELS.THINKING} (Reason: KB/RAG/files/Lark)`,
+        `[Brainy Auto] Mode: AUTO → Model: ${JEMMIA_MODELS.THINKING} (Reason: KB/RAG/files/Lark)`,
       );
       return { model: JEMMIA_MODELS.THINKING, provider: this.JEMMIA_PROVIDER };
     }
 
     // Tier 1 — FAST (default workhorse): direct questions, greetings, single-doc summaries, standard context
     console.info(
-      `[Jemmora Auto] Mode: AUTO → Model: ${JEMMIA_MODELS.FAST} (Reason: standard interaction)`,
+      `[Brainy Auto] Mode: AUTO → Model: ${JEMMIA_MODELS.FAST} (Reason: standard interaction)`,
     );
     return { model: JEMMIA_MODELS.FAST, provider: this.JEMMIA_PROVIDER };
   }

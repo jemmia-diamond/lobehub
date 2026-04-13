@@ -113,7 +113,7 @@ describe('useAgentMeta', () => {
     const { result } = renderHook(() => useAgentMeta());
 
     expect(result.current.avatar).toBe('/icons/icon-lobe.png');
-    expect(result.current.title).toBe('Jemmora');
+    expect(result.current.title).toBe('Brainy');
   });
 
   it('should preserve custom title for page agent (builtin)', () => {

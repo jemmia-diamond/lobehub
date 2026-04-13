@@ -14,8 +14,8 @@ export default {
   'starter.imageGeneration': 'Image Generation',
   'starter.videoGeneration': 'Seedance 2.0',
   'starter.write': 'Write',
-  'home.footer': 'Jemmora may make mistakes. Please check important information.',
-  'modeSelection.title': 'Welcome to Jemmora. Choose the mode that fits your task.',
+  'home.footer': 'Brainy may make mistakes. Please check important information.',
+  'modeSelection.title': 'Welcome to Brainy. Choose the mode that fits your task.',
   'modeSelection.fast.title': 'Fast',
   'modeSelection.fast.subtitle': 'Fast Response',
   'modeSelection.fast.desc':

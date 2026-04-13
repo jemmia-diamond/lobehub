@@ -380,7 +380,7 @@ const getJemOrchestrationHooks = (
         payload.model = model;
         return;
       } catch (error) {
-        console.error('[Jemmora Intelligent Routing] Failed:', error);
+        console.error('[Brainy Intelligent Routing] Failed:', error);
       }
     }
 
@@ -406,7 +406,7 @@ const getJemOrchestrationHooks = (
         payload.model = model;
         return;
       } catch (error) {
-        console.error('[Jemmora Intelligent Routing] Failed:', error);
+        console.error('[Brainy Intelligent Routing] Failed:', error);
       }
     }
 

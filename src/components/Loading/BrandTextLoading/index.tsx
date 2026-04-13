@@ -15,7 +15,7 @@ const JemLogo = () => (
       letterSpacing: '-0.05em',
     }}
   >
-    Jemmora
+    Brainy
   </span>
 );
 

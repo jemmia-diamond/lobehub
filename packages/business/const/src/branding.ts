@@ -2,14 +2,14 @@
 // if you want to use it in the commercial usage
 // please contact us for more information: hello@lobehub.com
 
-export const LOBE_CHAT_CLOUD = 'Jemmora Cloud';
+export const LOBE_CHAT_CLOUD = 'Brainy Cloud';
 
-export const BRANDING_NAME = 'Jemmora';
+export const BRANDING_NAME = 'Brainy';
 export const BRANDING_LOGO_URL = '/images/jemmate_logo.svg';
 export const DEFAULT_AVATAR = BRANDING_LOGO_URL || '/avatars/agent-default.png';
 
 export const ORG_NAME = 'Jemmia Diamond';
-export const ASSISTANT_NAME = 'Jemmora';
+export const ASSISTANT_NAME = 'Brainy';
 export const ASSISTANT_TAGLINE = 'A Thinking Partner';
 export const ASSISTANT_TITLE = `${ASSISTANT_NAME} - ${ASSISTANT_TAGLINE}`;
 export const ASSISTANT_PHILOSOPHY =

@@ -33,7 +33,7 @@ export const getChangeEmailVerificationTemplate = (params: {
     <div style="text-align: center; margin-bottom: 32px;">
       <div style="display: inline-flex; align-items: center; justify-content: center; background-color: #ffffff; border-radius: 12px; padding: 8px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
         <span style="font-size: 24px; line-height: 1; margin-right: 10px;">🤯</span>
-        <span style="font-size: 18px; font-weight: 700; color: #000000; letter-spacing: -0.5px;">Jemmora</span>
+        <span style="font-size: 18px; font-weight: 700; color: #000000; letter-spacing: -0.5px;">Brainy</span>
       </div>
     </div>
 
@@ -55,7 +55,7 @@ export const getChangeEmailVerificationTemplate = (params: {
         ${userName ? `<p style="margin: 0 0 16px 0;">Hi <strong>${userName}</strong>,</p>` : ''}
 
         <p style="margin: 0 0 24px 0;">
-          We received a request to change your Jemmora account email to this address. Please confirm by clicking the button below.
+          We received a request to change your Brainy account email to this address. Please confirm by clicking the button below.
         </p>
 
         <!-- Button -->
@@ -102,7 +102,7 @@ export const getChangeEmailVerificationTemplate = (params: {
 </body>
 </html>
     `,
-    subject: 'Confirm Your New Email - Jemmora',
-    text: `You requested to change your Jemmora account email. Please confirm by clicking this link: ${url}\n\nThis link will expire in ${expirationText}.\n\nIf you didn't request this change, you can safely ignore this email.`,
+    subject: 'Confirm Your New Email - Brainy',
+    text: `You requested to change your Brainy account email. Please confirm by clicking this link: ${url}\n\nThis link will expire in ${expirationText}.\n\nIf you didn't request this change, you can safely ignore this email.`,
   };
 };

@@ -78,7 +78,7 @@ const Preview = memo<PreviewProps>(
     });
 
     const displayTitle =
-      (isHeaderInbox ?? isInbox) ? 'Jemmora' : headerMeta?.title || title || currentTitle;
+      (isHeaderInbox ?? isInbox) ? 'Brainy' : headerMeta?.title || title || currentTitle;
     const displayAvatar = headerMeta?.avatar || currentAvatar;
     const displayBackgroundColor = headerMeta?.backgroundColor || currentBackgroundColor;
     const displayModel = headerModel || currentModel;

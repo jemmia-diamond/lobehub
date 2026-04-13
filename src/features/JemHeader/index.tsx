@@ -22,7 +22,7 @@ const JemHeader = memo<JemHeaderProps>(({ left, right, children }) => {
               fontWeight: 800,
             }}
           >
-            Jemmora
+            Brainy
           </span>
         )
       }

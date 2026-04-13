@@ -93,7 +93,7 @@ export default {
   'proSettings.devMode.title': 'Developer Mode',
   'proSettings.model.fixed':
     'Default model is preset to {{provider}}/{{model}} in this environment.',
-  'proSettings.model.title': 'Default Model Used by Jemmora',
+  'proSettings.model.title': 'Default Model Used by Brainy',
   'proSettings.title': 'Configure Advanced Options in Advance',
   'proSettings.title2': 'Try Connecting Some Common Tools~',
   'proSettings.title3': "Let's Get Ready for Efficient Work!",

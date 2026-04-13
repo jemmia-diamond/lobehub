@@ -34,7 +34,7 @@ const JemLogo = memo(() => {
               lineHeight: '24px',
             }}
           >
-            Jemmora
+            Brainy
           </Text>
         </Flexbox>
       )}
