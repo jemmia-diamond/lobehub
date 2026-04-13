@@ -4,7 +4,7 @@ exports[`chainSummaryTitle > should use the default model if the token count is 
 {
   "messages": [
     {
-      "content": "You are a professional conversation summarizer of Jemmora from Jemmia Diamond. Generate a professional, authoritative, and concise title for this conversation.
+      "content": "You are a professional conversation summarizer of Brainy from Jemmia Diamond. Generate a professional, authoritative, and concise title for this conversation.
 
 Rules:
 - Jemmia Diamond-centric: Focus on the proprietary benefit and core intent of the conversation.
