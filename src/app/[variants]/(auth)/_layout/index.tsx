@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next';
 
 import { ProductLogo } from '@/components/Branding';
 import { useIsDark } from '@/hooks/useIsDark';
+import { featureFlagsSelectors } from '@/store/serverConfig';
+import { useServerConfigStore } from '@/store/serverConfig';
 
 import AuthLangButton from './AuthLangButton';
 import AuthThemeButton from './AuthThemeButton';
@@ -16,6 +18,7 @@ import { styles } from './style';
 const AuthContainer: FC<PropsWithChildren> = ({ children }) => {
   const isDarkMode = useIsDark();
   const { t } = useTranslation('auth');
+  const { showAuthThemeButton } = useServerConfigStore(featureFlagsSelectors);
   return (
     <Flexbox className={styles.outerContainer} height={'100%'} padding={8} width={'100%'}>
       <Flexbox
@@ -34,8 +37,12 @@ const AuthContainer: FC<PropsWithChildren> = ({ children }) => {
           <ProductLogo size={40} />
           <Flexbox horizontal align={'center'}>
             <AuthLangButton size={18} />
-            <Divider className={styles.divider} orientation={'vertical'} />
-            <AuthThemeButton size={18} />
+            {showAuthThemeButton && (
+              <>
+                <Divider className={styles.divider} orientation={'vertical'} />
+                <AuthThemeButton size={18} />
+              </>
+            )}
           </Flexbox>
         </Flexbox>
         <Center height={'100%'} padding={16} width={'100%'}>

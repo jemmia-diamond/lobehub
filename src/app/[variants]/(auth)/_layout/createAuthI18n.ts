@@ -47,9 +47,6 @@ const loadAuthNamespace = async (lng: string, ns: string) => {
   const isSupported = (locales as readonly string[]).includes(normalizedLocale);
   if (!isSupported) return loadDefaultNamespace(safeNamespace);
 
-  // vi-VN is the default language — its translations live in the TypeScript default files
-  if (normalizedLocale === 'vi-VN') return loadDefaultNamespace(safeNamespace);
-
   try {
     return await import(`../../../../../locales/${normalizedLocale}/${safeNamespace}.json`);
   } catch {
@@ -74,7 +71,7 @@ export const createAuthI18n = (lang?: string) => {
 
       return instance.init({
         defaultNS: ['auth', 'common', 'error'],
-        fallbackLng: 'en-US',
+        fallbackLng: 'vi-VN',
         initAsync,
         interpolation: { escapeValue: false },
         keySeparator: false,

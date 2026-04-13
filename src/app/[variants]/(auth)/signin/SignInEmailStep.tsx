@@ -105,7 +105,7 @@ export const SignInEmailStep = ({
 
   return (
     <AuthCard
-      footer={footer}
+      footer={null}
       subtitle={t('signin.subtitle', { appName: BRANDING_NAME })}
       title={t('signin.title')}
     >

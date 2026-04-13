@@ -96,6 +96,8 @@ export const FeatureFlagsSchema = z.object({
   show_related_file_in_selection_modal: FeatureFlagValue.optional(),
   show_reaction_bar: FeatureFlagValue.optional(),
   show_chat_minimap: FeatureFlagValue.optional(),
+
+  show_auth_theme_button: FeatureFlagValue.optional(),
 });
 
 export type IFeatureFlags = z.infer<typeof FeatureFlagsSchema>;
@@ -204,6 +206,8 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   show_related_file_in_selection_modal: false,
   show_reaction_bar: false,
   show_chat_minimap: false,
+
+  show_auth_theme_button: false,
 };
 
 export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string) => {
@@ -292,6 +296,8 @@ export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string
     ),
     showReactionBar: evaluateFeatureFlag(config.show_reaction_bar, userId),
     showChatMinimap: evaluateFeatureFlag(config.show_chat_minimap, userId),
+
+    showAuthThemeButton: evaluateFeatureFlag(config.show_auth_theme_button, userId),
   };
 };
 

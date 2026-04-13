@@ -88,25 +88,29 @@ cd packages/[package-name] && bunx vitest run --silent='passed-only' '[file-path
 
 #### Default Language: `vi-VN`
 
-The app's default language is **`vi-VN` (Vietnamese)**. This has a critical architectural implication:
+The app's default language is **`vi-VN` (Vietnamese)**. Key facts:
 
-- `vi-VN` translations live in **TypeScript source files** at `src/locales/default/*.ts` — NOT in JSON files
-- All other supported locales (`en-US`, `zh-CN`, `ar-SA`) load from `locales/<locale>/*.json`
-- Any i18n loader that handles `vi-VN` **must route to the TypeScript defaults** when `lng === defaultLang`
+- `vi-VN` translations live in **JSON files** at `locales/vi-VN/*.json`
+- `src/locales/default/*.ts` are **English** TypeScript source files — NOT vi-VN translations
+- All locales including `vi-VN` must load from `locales/<locale>/*.json`
+- `fallbackLng` must be `'vi-VN'` (not `'en-US'`) in all i18next `init()` calls
 
-**Rule**: In `loadI18nNamespaceModule`, always guard on `defaultLang`, not a hardcoded locale string:
+**Rule**: Never route `vi-VN` (or `defaultLang`) to `src/locales/default/*.ts`. Always load from JSON:
 
 ```ts
-// CORRECT — routes default language to TypeScript source files
-if (normalizedLocale === defaultLang) return import(`@/locales/default/${ns}`);
+// CORRECT — all locales load from JSON
+try {
+  return import(`@/../locales/${normalizedLocale}/${ns}.json`);
+} catch {
+  return import(`@/../locales/${defaultLang}/${ns}.json`); // fallback to vi-VN JSON
+}
 
-// WRONG — hardcodes en-US, breaks when default language is vi-VN
-if (normalizedLocale === 'en-US') return import(`@/locales/default/${ns}`);
+// WRONG — routes vi-VN to English TypeScript source files
+if (normalizedLocale === defaultLang) return import(`@/locales/default/${ns}`);
+if (normalizedLocale === 'vi-VN') return import(`@/locales/default/${ns}`);
 ```
 
-The vite and desktop variants already do this correctly (`if (lng === defaultLang)`). The base Node.js variant and `createAuthI18n` must follow the same pattern.
-
-Removing or bypassing this guard causes `vi-VN` users to see English (the `fallbackLng`) because the JSON path either fails or returns incomplete data.
+This mistake has been introduced multiple times. Every time `vi-VN` is routed to `src/locales/default/*.ts`, users see English.
 
 ## SPA Routes and Features
 

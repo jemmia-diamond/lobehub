@@ -11,10 +11,9 @@ export default function NextThemeProvider({ children }: NextThemeProviderProps) 
   return (
     <NextThemesProvider
       disableTransitionOnChange
-      enableSystem
       attribute="data-theme"
       defaultTheme="light"
-      forcedTheme={undefined}
+      forcedTheme="light"
     >
       {children}
     </NextThemesProvider>
