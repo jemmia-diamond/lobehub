@@ -1,6 +1,7 @@
 import { Image, Markdown, type MarkdownProps } from '@lobehub/ui';
 import { type CSSProperties, memo, useMemo } from 'react';
 
+import { getLarkUrlForR2 } from '@/config/r2ToLarkMapping';
 import { useUserStore } from '@/store/user';
 import { userGeneralSettingsSelectors } from '@/store/user/selectors';
 
@@ -12,6 +13,14 @@ const MarkdownMessage = memo<MarkdownProps>(({ children, componentProps, compone
     () =>
       ({
         ...(components as MarkdownProps['components']),
+        a: ({ node: _node, href, children: linkChildren, ...props }: any) => {
+          const resolvedHref = href ? (getLarkUrlForR2(href) ?? href) : href;
+          return (
+            <a href={resolvedHref} rel="noopener noreferrer" target="_blank" {...props}>
+              {linkChildren}
+            </a>
+          );
+        },
         img: ({ node: _node, alt = 'img', style, ...props }: any) => (
           <Image
             alt={alt}
