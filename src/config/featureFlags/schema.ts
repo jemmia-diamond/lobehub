@@ -94,6 +94,7 @@ export const FeatureFlagsSchema = z.object({
   show_agent_list_sidebar: FeatureFlagValue.optional(),
   home_mode_selection: FeatureFlagValue.optional(),
   show_related_file_in_selection_modal: FeatureFlagValue.optional(),
+  show_reaction_bar: FeatureFlagValue.optional(),
 });
 
 export type IFeatureFlags = z.infer<typeof FeatureFlagsSchema>;
@@ -200,6 +201,7 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   show_agent_list_sidebar: false,
   home_mode_selection: false,
   show_related_file_in_selection_modal: false,
+  show_reaction_bar: false,
 };
 
 export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string) => {
@@ -286,6 +288,7 @@ export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string
       config.show_related_file_in_selection_modal,
       userId,
     ),
+    showReactionBar: evaluateFeatureFlag(config.show_reaction_bar, userId),
   };
 };
 

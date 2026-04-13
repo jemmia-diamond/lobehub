@@ -3,6 +3,7 @@ import { type UIChatMessage } from '@lobechat/types';
 import { Flexbox } from '@lobehub/ui';
 import { memo, useCallback } from 'react';
 
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useUserStore } from '@/store/user';
 import { userProfileSelectors } from '@/store/user/selectors';
 
@@ -26,6 +27,7 @@ const MessageContent = memo<UIChatMessage>(
     const addReaction = useConversationStore((s) => s.addReaction);
     const removeReaction = useConversationStore((s) => s.removeReaction);
     const userId = useUserStore(userProfileSelectors.userId)!;
+    const { showReactionBar } = useServerConfigStore(featureFlagsSelectors);
 
     const isToolCallGenerating = generating && (content === LOADING_FLAT || !content) && !!tools;
 
@@ -87,7 +89,7 @@ const MessageContent = memo<UIChatMessage>(
           tempDisplayContent={metadata?.tempDisplayContent}
         />
         {showImageItems && <ImageFileListViewer items={imageList} />}
-        {reactions.length > 0 && (
+        {reactions.length > 0 && showReactionBar && (
           <ReactionDisplay
             isActive={isActive}
             messageId={id}

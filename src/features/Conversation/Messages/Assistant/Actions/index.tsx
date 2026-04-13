@@ -124,7 +124,7 @@ export const AssistantActionsBar = memo<AssistantActionsBarProps>(
         .filter((item): item is NonNullable<typeof item> => item !== null);
     }, [actionsConfig?.extraMenuActions, id]);
 
-    const { showMessageShare, showMessageActionMenu, showMessageEdit } =
+    const { showMessageShare, showMessageActionMenu, showMessageEdit, showReactionBar } =
       useServerConfigStore(featureFlagsSelectors);
 
     // Use external config if provided, otherwise use defaults
@@ -221,7 +221,7 @@ export const AssistantActionsBar = memo<AssistantActionsBarProps>(
 
     return (
       <Flexbox horizontal align={'center'} gap={8}>
-        <ReactionPicker messageId={id} />
+        {showReactionBar && <ReactionPicker messageId={id} />}
         <ActionIconGroup
           items={items}
           menu={showMessageActionMenu ? menu : undefined}

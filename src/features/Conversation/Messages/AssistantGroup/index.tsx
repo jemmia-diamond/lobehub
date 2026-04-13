@@ -12,6 +12,7 @@ import dynamic from '@/libs/next/dynamic';
 import { useAgentStore } from '@/store/agent';
 import { builtinAgentSelectors } from '@/store/agent/selectors';
 import { useGlobalStore } from '@/store/global';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useUserStore } from '@/store/user';
 import { userGeneralSettingsSelectors, userProfileSelectors } from '@/store/user/selectors';
 
@@ -82,6 +83,7 @@ const GroupMessage = memo<GroupMessageProps>(({ id, index, disableEditing }) => 
   const interrupted = groupInterrupted || blockInterrupted;
 
   const isDevMode = useUserStore((s) => userGeneralSettingsSelectors.config(s).isDevMode);
+  const { showReactionBar } = useServerConfigStore(featureFlagsSelectors);
   const addReaction = useConversationStore((s) => s.addReaction);
   const removeReaction = useConversationStore((s) => s.removeReaction);
   const userId = useUserStore(userProfileSelectors.userId)!;
@@ -175,7 +177,7 @@ const GroupMessage = memo<GroupMessageProps>(({ id, index, disableEditing }) => 
       {isDevMode && model && (
         <Usage model={model} performance={performance} provider={provider!} usage={usage} />
       )}
-      {reactions.length > 0 && (
+      {reactions.length > 0 && showReactionBar && (
         <ReactionDisplay
           isActive={isReactionActive}
           messageId={id}

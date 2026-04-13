@@ -110,7 +110,7 @@ const WithContentId = memo<GroupActionsProps>(({ actionsConfig, id, data, conten
   // Get collapse/expand action based on current state
   const collapseAction = isCollapsed ? defaultActions.expand : defaultActions.collapse;
 
-  const { showMessageShare, showMessageActionMenu, showMessageEdit } =
+  const { showMessageShare, showMessageActionMenu, showMessageEdit, showReactionBar } =
     useServerConfigStore(featureFlagsSelectors);
 
   const barItems = useMemo(
@@ -200,7 +200,7 @@ const WithContentId = memo<GroupActionsProps>(({ actionsConfig, id, data, conten
 
   return (
     <Flexbox horizontal align={'center'} gap={8}>
-      <ReactionPicker messageId={id} />
+      {showReactionBar && <ReactionPicker messageId={id} />}
       <ActionIconGroup
         items={items}
         menu={showMessageActionMenu ? menu : undefined}

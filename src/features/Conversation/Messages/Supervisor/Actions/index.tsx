@@ -112,7 +112,8 @@ const WithContentId = memo<GroupActionsProps>(({ actionsConfig, id, data, conten
     [actionsConfig?.bar, defaultActions.copy],
   );
 
-  const { showMessageShare, showMessageActionMenu } = useServerConfigStore(featureFlagsSelectors);
+  const { showMessageShare, showMessageActionMenu, showReactionBar } =
+    useServerConfigStore(featureFlagsSelectors);
 
   const extraMenuItems = useMemo(() => {
     if (!actionsConfig?.extraMenuActions) return [];
@@ -182,7 +183,7 @@ const WithContentId = memo<GroupActionsProps>(({ actionsConfig, id, data, conten
 
   return (
     <Flexbox horizontal align={'center'} gap={8}>
-      <ReactionPicker messageId={id} />
+      {showReactionBar && <ReactionPicker messageId={id} />}
       <ActionIconGroup
         items={items}
         menu={showMessageActionMenu ? menu : undefined}

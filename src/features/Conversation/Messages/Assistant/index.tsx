@@ -64,9 +64,7 @@ const AssistantMessage = memo<AssistantMessageProps>(({ id, index, disableEditin
   // 1. The operation store explicitly marks it as interrupted (cancelled status)
   // 2. It is stuck with LOADING_FLAT content ('...') but has no active generating operation
   //    (common after a page reload or timeout where the local operation state is lost)
-  // 3. It has partial content but no finishType in metadata and no active generating operation
-  //    (stream died mid-way — content was partially written but generation never completed)
-  const isStale = !generating && (content === LOADING_FLAT || (!!content && !metadata?.finishType));
+  const isStale = !generating && content === LOADING_FLAT;
   const interrupted =
     useConversationStore(messageStateSelectors.isMessageInterrupted(id)) || isStale;
 
