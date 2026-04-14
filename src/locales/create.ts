@@ -5,8 +5,6 @@ import resourcesToBackend from 'i18next-resources-to-backend';
 import { initReactI18next } from 'react-i18next';
 import { isRtlLang } from 'rtl-detect';
 
-// Sync load default language (vi-VN) from JSON to avoid Suspense on first render.
-// locales/default/*.ts is for type inference only, not used as runtime values.
 import chat from '@/../locales/vi-VN/chat.json';
 import common from '@/../locales/vi-VN/common.json';
 import error from '@/../locales/vi-VN/error.json';
@@ -54,7 +52,6 @@ export const createI18nNext = (lang?: string) => {
         );
       }),
     );
-  // Dynamically set HTML direction on language change
   instance.on('languageChanged', (lng) => {
     if (typeof window !== 'undefined') {
       const direction = isRtlLang(lng) ? 'rtl' : 'ltr';
@@ -76,17 +73,17 @@ export const createI18nNext = (lang?: string) => {
       const initPromise = instance.init({
         debug: debugMode,
         defaultNS: ['error', 'common', 'chat'],
+        detection: {
+          caches: [],
+          order: ['htmlTag'],
+        },
         fallbackLng: DEFAULT_LANG,
         initAsync,
-        // Keep init synchronous so components can render with bundled vi-VN resources
-        // before the user's actual language finishes loading in the background.
         ns: [],
 
-        // Preload default language (vi-VN) synchronously to avoid Suspense on first render
         resources: {
           ...bundledLanguageResources,
         } as any,
-        // Keep backend loading enabled for namespaces that are not preloaded above.
         partialBundledLanguages: true,
 
         interpolation: {

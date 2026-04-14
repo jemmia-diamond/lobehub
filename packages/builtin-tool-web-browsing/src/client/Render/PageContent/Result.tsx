@@ -8,6 +8,7 @@ import { ExternalLink } from 'lucide-react';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { getLarkUrlForR2 } from '@/config/r2ToLarkMapping';
 import { useChatStore } from '@/store/chat';
 
 import { WebBrowsingManifest } from '../../../manifest';
@@ -98,6 +99,18 @@ const CrawlerResultCard = memo<CrawlerData>(({ result, messageId, crawler, origi
   }
 
   const { url, title, description } = result as CrawlSuccessResult;
+  const resolvedUrl = getLarkUrlForR2(url ?? originalUrl) ?? (url ?? originalUrl);
+  console.log('[R2→Lark] CrawlerResultCard originalUrl:', originalUrl, 'result.url:', url, '→', resolvedUrl);
+  const isLarkRedirect = resolvedUrl !== (url ?? originalUrl);
+
+  const handleClick = () => {
+    if (isLarkRedirect) {
+      window.open(resolvedUrl, '_blank');
+    } else {
+      openToolUI(messageId, WebBrowsingManifest.identifier);
+      togglePageContent(originalUrl);
+    }
+  };
 
   return (
     <Block
@@ -105,15 +118,12 @@ const CrawlerResultCard = memo<CrawlerData>(({ result, messageId, crawler, origi
       className={styles.container}
       justify={'space-between'}
       variant={'outlined'}
-      onClick={() => {
-        openToolUI(messageId, WebBrowsingManifest.identifier);
-        togglePageContent(originalUrl);
-      }}
+      onClick={handleClick}
     >
       <Flexbox gap={8} paddingBlock={8} paddingInline={12}>
         <Flexbox horizontal align={'center'} className={styles.titleRow} justify={'space-between'}>
           <Text ellipsis>{title || originalUrl}</Text>
-          <a href={url} target={'_blank'} onClick={stopPropagation}>
+          <a href={resolvedUrl} target={'_blank'} onClick={stopPropagation}>
             <ActionIcon icon={ExternalLink} size={'small'} />
           </a>
         </Flexbox>

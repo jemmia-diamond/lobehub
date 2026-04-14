@@ -50,7 +50,7 @@ const getFaviconPath = (state: FaviconState, isDev: boolean, size?: '32x32'): st
   const stateSuffix = stateToFileName[state];
   const sizeSuffix = size ? `-${size}` : '';
 
-  return `/favicon${sizeSuffix}${stateSuffix}${devSuffix}.ico`;
+  return `/favicon${sizeSuffix}${stateSuffix}${devSuffix}.png`;
 };
 
 const updateFaviconDOM = (state: FaviconState, isDev: boolean) => {

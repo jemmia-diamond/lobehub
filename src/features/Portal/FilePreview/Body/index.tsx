@@ -23,8 +23,7 @@ const FilePreview = () => {
   const [tab, setTab] = useState<FilePreviewTab>(FilePreviewTab.File);
   const { data, isLoading } = useFetchFileItem(previewFileId);
 
-  if (isLoading) return <Loading />;
-  if (!data) return;
+  if (isLoading || !data) return <Loading />;
 
   const showChunk = tab === FilePreviewTab.Chunk && !!chunkText;
   return (

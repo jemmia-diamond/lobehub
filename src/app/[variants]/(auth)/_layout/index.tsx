@@ -9,8 +9,8 @@ import { useTranslation } from 'react-i18next';
 import { ProductLogo } from '@/components/Branding';
 import { useIsDark } from '@/hooks/useIsDark';
 
-import { useAuthServerConfigStore } from './AuthServerConfigProvider';
 import AuthLangButton from './AuthLangButton';
+import { useAuthServerConfigStore } from './AuthServerConfigProvider';
 import AuthThemeButton from './AuthThemeButton';
 import { styles } from './style';
 

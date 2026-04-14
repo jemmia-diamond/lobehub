@@ -32,6 +32,9 @@ const ContextMenuHost = lazy(() =>
 const SPAGlobalProvider = memo<PropsWithChildren>(({ children }) => {
   useLayoutEffect(() => {
     document.getElementById('loading-screen')?.remove();
+    try {
+      localStorage.removeItem('i18nextLng');
+    } catch {}
   }, []);
 
   const serverConfig: SPAServerConfig | undefined = window.__SERVER_CONFIG__;

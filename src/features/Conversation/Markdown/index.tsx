@@ -15,6 +15,9 @@ const MarkdownMessage = memo<MarkdownProps>(({ children, componentProps, compone
         ...(components as MarkdownProps['components']),
         a: ({ node: _node, href, children: linkChildren, ...props }: any) => {
           const resolvedHref = href ? (getLarkUrlForR2(href) ?? href) : href;
+          if (resolvedHref !== href) {
+            console.log('[R2→Lark] Redirecting:', href, '→', resolvedHref);
+          }
           return (
             <a href={resolvedHref} rel="noopener noreferrer" target="_blank" {...props}>
               {linkChildren}

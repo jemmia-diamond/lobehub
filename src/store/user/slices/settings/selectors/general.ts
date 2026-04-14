@@ -2,7 +2,6 @@ import { isDesktop } from '@lobechat/const';
 
 import { DEFAULT_LANG } from '@/const/locale';
 import { type Locales, normalizeLocale } from '@/locales/resources';
-import { isOnServerSide } from '@/utils/env';
 
 import { type UserStore } from '../../../store';
 import { currentSettings } from './settings';
@@ -26,9 +25,8 @@ const currentResponseLanguage = (s: UserStore): Locales => {
   const locale = responseLanguage(s);
 
   if (locale) return normalizeLocale(locale);
-  if (isOnServerSide) return DEFAULT_LANG;
 
-  return normalizeLocale(navigator.language);
+  return DEFAULT_LANG;
 };
 const telemetry = (s: UserStore) => generalConfig(s).telemetry;
 const enableAutoScrollOnStreaming = (s: UserStore) =>

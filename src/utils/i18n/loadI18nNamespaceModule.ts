@@ -10,12 +10,9 @@ export const loadI18nNamespaceModule = async (params: LoadI18nNamespaceModulePar
 
   const normalizedLocale = normalizeLocale(lng);
 
-  // All locales including vi-VN load from JSON translation files.
-  // src/locales/default/*.ts are English source files — NOT vi-VN translations.
   try {
     return import(`@/../locales/${normalizedLocale}/${ns}.json`);
   } catch {
-    // Fallback to default lang JSON, then English TypeScript source as last resort
     try {
       return import(`@/../locales/${defaultLang}/${ns}.json`);
     } catch {

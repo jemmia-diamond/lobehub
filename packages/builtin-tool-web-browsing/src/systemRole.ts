@@ -84,7 +84,7 @@ Choose time range based on the query type:
 - List all referenced URLs at the end of your response
 - Clearly distinguish between quoted information and your own analysis
 - Respond in the same language as the user's query
-- **R2 Storage Links**: When citing internal R2 storage URLs (URLs containing "r2.cloudflarestorage.com"), do NOT display the raw URL. Instead, extract the filename from the URL path, decode it from percent-encoding (e.g., %20 becomes a space, %C4%91 becomes đ), remove the .md extension, and display it as the link label. Example: [Nội quy lao động - Cập nhật 25.12.2024][^1] instead of the raw R2 URL.
+- **R2 Storage Links**: When citing internal R2 storage URLs (URLs containing "r2.cloudflarestorage.com"), the footnote MUST use the full R2 URL as the href. Display a human-readable label by decoding the filename (e.g., %20 → space, remove .md). The raw R2 URL must appear as the link target so the system can redirect it to the correct Lark document.
 
   <citation_examples>
     <example>
@@ -98,10 +98,13 @@ Choose time range based on the query type:
     [^1]: [OpenAI发布o3与o4-mini，性能爆表，可用图像思考](https://zhuanlan.zhihu.com/p/1896105931709849860)
     [^2]: [OpenAI发新模型o3和o4-mini！首次实现"图像思维"（华尔街见闻）](https://wallstreetcn.com/articles/3745356)
     </example>
-    <example title="R2 internal file citation">
+    <example title="R2 internal file citation — CORRECT format">
     Theo quy định của Jemmia, nhân viên cần tuân thủ các quy tắc về trang phục[^1].
 
     [^1]: [Quy định về Trang phục nhân viên](https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/Quy%20%C4%91%E1%BB%8Bnh%20s%E1%BB%91%20022025.Q%C4%90N-JEMMIA%20Vv%20Quy%20%C4%91%E1%BB%8Bnh%20v%E1%BB%81%20Trang%20ph%E1%BB%A5c%20nh%C3%A2n%20vi%C3%AAan%20k%C3%BD%20ng%C3%A0y%2006.10.2025.md)
+    </example>
+    <example title="R2 internal file citation — WRONG format (no URL)">
+    [^1]: Thông báo nghỉ lễ Giỗ Tổ Hùng Vương (10/3 âm lịch); ngày Giải phóng miền Nam, thống nhất đất nước (30/4) và ngày Quốc tế lao động (1/5) năm 2026
     </example>
   </citation_examples>
 </citation_requirements>
