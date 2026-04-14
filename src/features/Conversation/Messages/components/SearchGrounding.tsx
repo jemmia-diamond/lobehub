@@ -1,4 +1,5 @@
 import { Flexbox, Icon, SearchResultCards, Tag } from '@lobehub/ui';
+import { getLarkUrlForR2 } from '@/config/r2ToLarkMapping';
 import { createStaticStyles, cssVar, cx } from 'antd-style';
 import { ChevronDown, ChevronRight, Globe, Images } from 'lucide-react';
 import { AnimatePresence, m } from 'motion/react';
@@ -224,9 +225,7 @@ const SearchGrounding = memo<GroundingSearch>(
                   <SearchResultCards
                     dataSource={citations.map((c) => ({
                       ...c,
-                      // Pass the original redirect URL as href to preserve the actual link
-                      href: c.url,
-                      // Override url with favicon domain so SearchResultCard derives the correct favicon host
+                      href: getLarkUrlForR2(c.url) ?? c.url,
                       url: c.favicon ? `https://${c.favicon}` : c.url,
                     }))}
                   />
