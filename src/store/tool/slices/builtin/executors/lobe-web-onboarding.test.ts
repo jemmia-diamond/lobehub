@@ -1,6 +1,8 @@
 import { WebOnboardingApiName, WebOnboardingManifest } from '@lobechat/builtin-tool-web-onboarding';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { webOnboardingExecutor } from './lobe-web-onboarding';
+
 const { finishOnboardingSpy, refreshUserStateSpy } = vi.hoisted(() => ({
   finishOnboardingSpy: vi.fn(),
   refreshUserStateSpy: vi.fn(),
@@ -27,8 +29,6 @@ vi.mock('@/store/agent', () => ({
     }),
   },
 }));
-
-import { webOnboardingExecutor } from './lobe-web-onboarding';
 
 describe('webOnboardingExecutor', () => {
   beforeEach(() => {
