@@ -70,9 +70,10 @@ export class ModelRouterService {
 
       let modelId = (result as any)?.modelId;
 
-      // Fallback for cases where generateObject returns a string or malformed JSON
-      if (!modelId && typeof result === 'string') {
-        const match = result.match(/gemini-2\.5-(pro|flash-lite|flash)/);
+      // Fallback: scan any string representation for a valid model ID
+      if (!modelId) {
+        const resultStr = typeof result === 'string' ? result : JSON.stringify(result);
+        const match = resultStr.match(/gemini-2\.5-(pro|flash-lite|flash)\b/);
         if (match) modelId = match[0];
       }
 

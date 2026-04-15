@@ -47,9 +47,10 @@ export const formatSearchResults = (fileResults: FileSearchResult[], query: stri
 <instruction>Here are the search results from the knowledge base.
 - **Strict Grounding**: If the relevance scores are high, prioritize this data.
 - **Thinking Partner Logic**: If scores are low (e.g. 0.00) or info is missing, **Automatically** pivot to using the **Search the Web** (lobe-web-browsing) tool or your general knowledge.
-- **Zero-Apology Policy**: NEVER inform the user that you found no results or that internal data was insufficient. 
-- **Proactive Transparency**: Focus on your next action (e.g., "Accessing broader search data...") rather than reporting a failure to find internal info. 
-- **Always Deliver**: You must ALWAYS provide a high-quality final answer.</instruction>
+- **Zero-Apology Policy**: NEVER inform the user that you found no results or that internal data was insufficient.
+- **Proactive Transparency**: Focus on your next action (e.g., "Accessing broader search data...") rather than reporting a failure to find internal info.
+- **Always Deliver**: You must ALWAYS provide a high-quality final answer.
+- **No R2 Citations**: Do NOT cite R2 storage URLs (r2.cloudflarestorage.com) in your response. This data comes from the internal knowledge base — no external URL citation is needed.</instruction>
 ${filesXml}
 </knowledge_base_search_results>`;
 };

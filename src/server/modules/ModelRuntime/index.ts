@@ -370,17 +370,22 @@ const getJemOrchestrationHooks = (
 
     if (mode === 'auto') {
       try {
-        // Initialize a router runtime WITHOUT hooks to avoid recursion
         const routerRuntime = initModelRuntimeWithUserPayload(provider, userPayload, userParams);
-        const { model } = await ModelRouterService.evaluate({
-          messages: payload.messages,
-          modelRuntime: routerRuntime,
-          tools: payload.tools || [],
-        });
+        const routingTimeout = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Routing timeout')), 15_000),
+        );
+        const { model } = await Promise.race([
+          ModelRouterService.evaluate({
+            messages: payload.messages,
+            modelRuntime: routerRuntime,
+            tools: payload.tools || [],
+          }),
+          routingTimeout,
+        ]);
         payload.model = model;
         return;
       } catch (error) {
-        console.error('[Brainy Intelligent Routing] Failed:', error);
+        console.error('[Brainy] evaluate() failed or timed out, falling back to resolve():', (error as Error).message);
       }
     }
 
@@ -396,17 +401,22 @@ const getJemOrchestrationHooks = (
 
     if (mode === 'auto') {
       try {
-        // Initialize a router runtime WITHOUT hooks to avoid recursion
         const routerRuntime = initModelRuntimeWithUserPayload(provider, userPayload, userParams);
-        const { model } = await ModelRouterService.evaluate({
-          messages: (payload as any).messages || [],
-          modelRuntime: routerRuntime,
-          tools: (payload as any).tools || [],
-        });
+        const routingTimeout = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Routing timeout')), 15_000),
+        );
+        const { model } = await Promise.race([
+          ModelRouterService.evaluate({
+            messages: (payload as any).messages || [],
+            modelRuntime: routerRuntime,
+            tools: (payload as any).tools || [],
+          }),
+          routingTimeout,
+        ]);
         payload.model = model;
         return;
       } catch (error) {
-        console.error('[Brainy Intelligent Routing] Failed:', error);
+        console.error('[Brainy] evaluate() failed or timed out, falling back to resolve():', (error as Error).message);
       }
     }
 
