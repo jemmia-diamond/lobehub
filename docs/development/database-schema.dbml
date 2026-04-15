@@ -1136,7 +1136,7 @@ table document_chunks {
 table embeddings {
   id uuid [pk, not null, default: `gen_random_uuid()`]
   chunk_id uuid [unique]
-  embeddings vector(1024)
+  embeddings vector(3072)
   model text
   client_id text
   user_id text
