@@ -156,6 +156,7 @@
     ]
   },
   "overrides": {
+    "@react-pdf/image": "3.0.3",
     "@react-pdf/layout": "4.5.0",
     "@types/react": "19.2.13",
     "better-auth": "1.4.6",
@@ -545,6 +546,7 @@
       "ffmpeg-static"
     ],
     "overrides": {
+      "@react-pdf/image": "3.0.3",
       "@react-pdf/layout": "4.5.0",
       "@types/react": "19.2.13",
       "better-auth": "1.4.6",
