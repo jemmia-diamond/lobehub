@@ -59,12 +59,14 @@ export const getTestDB = async (): Promise<LobeChatDatabase> => {
   `);
 
   for (const migration of migrations) {
-    const skipSql = migration.sql.some(
+    const skipMigration = migration.sql.some(
       (s) => s.toLowerCase().includes('pg_search') || s.toLowerCase().includes('bm25'),
     );
 
-    if (!skipSql) {
+    if (!skipMigration) {
       for (const stmt of migration.sql) {
+        // Skip statements that use halfvec — not supported by PGlite's embedded pgvector
+        if (stmt.toLowerCase().includes('halfvec')) continue;
         await testClientDB.execute(sql.raw(stmt));
       }
     }

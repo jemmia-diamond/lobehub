@@ -28,16 +28,15 @@ vi.mock('@/store/agent', () => ({
   },
 }));
 
+import { webOnboardingExecutor } from './lobe-web-onboarding';
+
 describe('webOnboardingExecutor', () => {
   beforeEach(() => {
     finishOnboardingSpy.mockReset();
     refreshUserStateSpy.mockReset();
-    vi.resetModules();
   });
 
-  it('publishes the renamed saveUserQuestion API', async () => {
-    const { webOnboardingExecutor } = await import('./lobe-web-onboarding');
-
+  it('publishes the renamed saveUserQuestion API', () => {
     expect(WebOnboardingApiName.saveUserQuestion).toBe('saveUserQuestion');
     expect('saveAnswer' in WebOnboardingApiName).toBe(false);
     expect(webOnboardingExecutor.hasApi(WebOnboardingApiName.saveUserQuestion)).toBe(true);
@@ -75,7 +74,6 @@ describe('webOnboardingExecutor', () => {
       topicId: 'topic-1',
     });
 
-    const { webOnboardingExecutor } = await import('./lobe-web-onboarding');
     const result = await webOnboardingExecutor.finishOnboarding({}, {} as any);
 
     expect(finishOnboardingSpy).toHaveBeenCalledTimes(1);
