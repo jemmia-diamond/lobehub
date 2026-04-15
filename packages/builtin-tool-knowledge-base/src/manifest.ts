@@ -7,13 +7,13 @@ export const KnowledgeBaseManifest: BuiltinToolManifest = {
   api: [
     {
       description:
-        'Search through knowledge base using semantic vector search to find relevant files and chunks. Returns a summary of matching files with their relevance scores and brief excerpts. Use this first to discover which files contain relevant information. IMPORTANT: Since this uses vector-based search, always resolve pronouns and references to concrete entities (e.g., use "authentication system" instead of "it").',
+        'Search through knowledge base using semantic vector search to find relevant files and chunks. Returns a summary of matching files with their relevance scores and brief excerpts. Use this first to discover which files contain relevant information. IMPORTANT: The knowledge base is entirely in Vietnamese — always write the search query in Vietnamese. Since this uses vector-based search, always resolve pronouns and references to concrete entities (e.g., use "authentication system" instead of "it").',
       name: KnowledgeBaseApiName.searchKnowledgeBase,
       parameters: {
         properties: {
           query: {
             description:
-              'The search query to find relevant information. Be specific and use concrete entities. IMPORTANT: Resolve all pronouns and references (like "it", "that", "this") to actual entity names before searching, as this uses semantic vector search which works best with concrete terms.',
+              'The search query to find relevant information. Be specific and use concrete entities. IMPORTANT: The knowledge base content is entirely in Vietnamese — you MUST write the query in Vietnamese regardless of the language the user used. Resolve all pronouns and references (like "it", "that", "this") to actual entity names before searching, as this uses semantic vector search which works best with concrete Vietnamese terms.',
             type: 'string',
           },
           topK: {

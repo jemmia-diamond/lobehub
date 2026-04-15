@@ -37,6 +37,52 @@ lobehub/
 └── e2e/                    # E2E tests (Cucumber + Playwright)
 ```
 
+## Architecture Diagrams
+
+Two sequence diagrams document the core flows. Always read them before modifying auth or chat code:
+
+- **Authentication flow**: `.agents/diagrams/auth-flow.md` — covers email/password login and Lark SSO OAuth
+- **Core chat flow**: `.agents/diagrams/core-chat-flow.md` — covers message send → model routing → KB/RAG → streaming response
+
+## Core Chat Architecture
+
+### Chat Modes (Jemmia Provider)
+
+The Jemmia provider (`src/server/modules/ModelRuntime/index.ts`) intercepts every chat request via `beforeChat` hook and resolves the model before it reaches aiproxy:
+
+| Mode | Model | How |
+|------|-------|-----|
+| `auto` | Decided at runtime | 1. `evaluate()` — LLM picks model (15s timeout) → 2. `resolve()` — static heuristics fallback |
+| `fast` | `gemini-2.5-flash-lite` | Direct `resolve()`, no LLM call |
+| `thinking` | `gemini-2.5-flash` | Direct `resolve()`, no LLM call |
+| `expert` | `gemini-2.5-pro` | Direct `resolve()`, no LLM call |
+
+**Auto mode static heuristics** (`src/server/services/modelRouter/index.ts`):
+- 3+ files OR >256k tokens → `expert`
+- KB injected OR Lark integration OR 1-2 files OR >128k tokens → `thinking`
+- Everything else → `fast`
+
+### Knowledge Base vs Web Browsing (R2 Fallback)
+
+Two separate knowledge sources — never mix their citation behavior:
+
+**KB Tool** (`knowledge-base`):
+- Searches indexed local markdown files via pgvector (3072-dim embeddings, `gemini-embedding-2-preview`)
+- Returns relevant chunks to the LLM
+- **Never generates R2 URL citations** — data is internal, no external URL needed
+
+**Web Browsing Tool** (fallback KB):
+- Used when KB returns no results, or for real-time web search
+- Contains hardcoded R2 URLs for Jemmia documents (`packages/builtin-tool-web-browsing/src/systemRole.ts`)
+- Crawls R2 markdown files directly via `crawlSinglePage`/`crawlMultiPages`
+- **Cites R2 URLs in footnotes** → `getLarkUrlForR2()` maps them to Lark wiki URLs on click
+
+**Rule**: If you see R2 URL citations in a response that came from the KB tool, that is a bug. R2 citations only belong to web browsing tool responses.
+
+### Embedding Dimensions
+
+The RAG pipeline uses `gemini-embedding-2-preview` at **3072 dimensions** (native). The pgvector column uses a `halfvec` HNSW index cast for performance (pgvector 0.8+ supports halfvec up to 4000 dims). User memory tables intentionally stay at 1024 dims (`_1024` suffix columns) — different model, do not change.
+
 ## Development Workflow
 
 ### Git Workflow

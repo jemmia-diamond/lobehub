@@ -15,7 +15,7 @@ import { withRateLimitRetry } from '@/utils/retryPolicy';
  * but we request exactly this size via `outputDimensionality` so the
  * model itself optimizes the representation — no post-hoc truncation needed.
  */
-const VECTOR_DIMENSIONS = 1024;
+const VECTOR_DIMENSIONS = 3072;
 
 export class ServerEmbeddingService {
   /**

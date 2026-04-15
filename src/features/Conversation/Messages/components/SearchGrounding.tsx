@@ -1,11 +1,11 @@
 import { Flexbox, Icon, SearchResultCards, Tag } from '@lobehub/ui';
-import { getLarkUrlForR2 } from '@/config/r2ToLarkMapping';
 import { createStaticStyles, cssVar, cx } from 'antd-style';
 import { ChevronDown, ChevronRight, Globe, Images } from 'lucide-react';
 import { AnimatePresence, m } from 'motion/react';
 import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { getLarkUrlForR2 } from '@/config/r2ToLarkMapping';
 import { useIsDark } from '@/hooks/useIsDark';
 import Image from '@/libs/next/Image';
 import { type GroundingSearch } from '@/types/search';

@@ -1179,15 +1179,8 @@ describe('FileModel', () => {
         { fileId, chunkId: chunkId2, userId },
       ]);
 
-      // 插入embeddings (1024维向量)
-      const testEmbedding = Array.from({ length: 1024 }).fill(0.1) as number[];
-      await serverDB
-        .insert(embeddings)
-        .values([{ chunkId: chunkId1, embeddings: testEmbedding, model: 'test-model', userId }]);
-
-      // 跳过 documentChunks 测试，因为需要先创建 documents 记录
-
-      // 删除文件，应该会清理所有相关数据
+      // 插入embeddings (3072维向量)
+      const testEmbedding = Array.from({ length: 3072 }).fill(0.1) as number[];
       const result = await fileModel.delete(fileId, true);
 
       // 验证文件被删除
@@ -1240,7 +1233,7 @@ describe('FileModel', () => {
       await serverDB.insert(fileChunks).values([{ fileId, chunkId, userId }]);
 
       // 插入embeddings
-      const testEmbedding = Array.from({ length: 1024 }).fill(0.1) as number[];
+      const testEmbedding = Array.from({ length: 3072 }).fill(0.1) as number[];
       await serverDB
         .insert(embeddings)
         .values([{ chunkId, embeddings: testEmbedding, model: 'test-model', userId }]);
@@ -1295,8 +1288,8 @@ describe('FileModel', () => {
 
       await serverDB.insert(fileChunks).values([{ fileId, chunkId, userId }]);
 
-      // 插入embeddings (1024维向量)
-      const testEmbedding = Array.from({ length: 1024 }).fill(0.1) as number[];
+      // 插入embeddings (3072维向量)
+      const testEmbedding = Array.from({ length: 3072 }).fill(0.1) as number[];
       await serverDB
         .insert(embeddings)
         .values([{ chunkId, embeddings: testEmbedding, model: 'test-model', userId }]);

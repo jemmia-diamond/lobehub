@@ -20,7 +20,7 @@ const deleteFolderDocChunkId = '44444444-4444-4444-8444-444444444444';
 const deleteNestedFolderFileChunkId = '55555555-5555-4555-8555-555555555555';
 
 let knowledgeRepo: KnowledgeRepo;
-const testEmbedding = Array.from({ length: 1024 }, () => 0.1);
+const testEmbedding = Array.from({ length: 3072 }, () => 0.1);
 
 const serverDB: LobeChatDatabase = await getTestDB();
 
