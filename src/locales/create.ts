@@ -7,6 +7,7 @@ import { isRtlLang } from 'rtl-detect';
 
 import chat from '@/../locales/vi-VN/chat.json';
 import common from '@/../locales/vi-VN/common.json';
+import editor from '@/../locales/vi-VN/editor.json';
 import error from '@/../locales/vi-VN/error.json';
 import file from '@/../locales/vi-VN/file.json';
 import home from '@/../locales/vi-VN/home.json';
@@ -23,6 +24,7 @@ import { loadI18nNamespaceModule } from '../utils/i18n/loadI18nNamespaceModule';
 const createBundledResources = () => ({
   chat: { ...chat },
   common: { ...common },
+  editor: { ...editor },
   error: { ...error },
   file: { ...file },
   home: { ...home },
@@ -72,7 +74,7 @@ export const createI18nNext = (lang?: string) => {
 
       const initPromise = instance.init({
         debug: debugMode,
-        defaultNS: ['error', 'common', 'chat'],
+        defaultNS: ['error', 'common', 'chat', 'editor'],
         detection: {
           caches: [],
           order: ['htmlTag'],

@@ -25,6 +25,8 @@ export default {
   'link.open': 'Open link',
   'link.placeholder': 'Enter link URL',
   'link.unlink': 'Unlink',
+  'markdown.autoFormatMessage': 'The content has been formatted automatically',
+  'markdown.autoFormatTitle': 'Formatted',
   'markdown.cancel': 'Cancel',
   'markdown.confirm': 'Convert',
   'markdown.parseMessage':
