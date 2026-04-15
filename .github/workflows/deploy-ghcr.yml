@@ -7,9 +7,14 @@ on:
     paths-ignore:
       - '**.md'
       - '**.mdx'
+      - '**.test.ts'
+      - '**.test.tsx'
+      - '**/__snapshots__/**'
+      - '**/__tests__/**'
       - 'docs/**'
       - 'e2e/**'
       - '.vscode/**'
+      - '.github/**'
   workflow_dispatch: {}
 
 env:
