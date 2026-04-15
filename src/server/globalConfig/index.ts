@@ -46,11 +46,6 @@ const getBetterAuthSSOProviders = (userId?: string) => {
 };
 
 export const getServerGlobalConfig = async (userId?: string) => {
-  const flags = serverFeatureFlags(userId);
-  console.info('[DEBUG] Feature Flags State:', flags);
-  console.info('[DEBUG] enableAuthEmailPassword:', flags.enableAuthEmailPassword);
-  console.info('[DEBUG] AUTH_DISABLE_EMAIL_PASSWORD env:', authEnv.AUTH_DISABLE_EMAIL_PASSWORD);
-
   const { DEFAULT_AGENT_CONFIG } = getAppConfig();
 
   const config: GlobalServerConfig = {

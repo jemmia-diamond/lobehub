@@ -71,10 +71,24 @@ export class ModelRouterService {
       let modelId = (result as any)?.modelId;
 
       // Fallback: scan any string representation for a valid model ID
+      // generateObject returns undefined (or raw text) when JSON parsing fails
       if (!modelId) {
-        const resultStr = typeof result === 'string' ? result : JSON.stringify(result);
-        const match = resultStr.match(/gemini-2\.5-(pro|flash-lite|flash)\b/);
-        if (match) modelId = match[0];
+        const resultStr = (typeof result === 'string' ? result : JSON.stringify(result)) ?? '';
+        // Try to extract embedded JSON block first
+        const jsonMatch = resultStr.match(/\{[^}]*"modelId"\s*:\s*"([^"]+)"[^}]*\}/);
+        if (jsonMatch) {
+          try {
+            const parsed = JSON.parse(jsonMatch[0]);
+            if (parsed?.modelId) modelId = parsed.modelId;
+          } catch (e) {
+            console.error('[Brainy] Parsing failed :', e);
+          }
+        }
+        // Last resort: regex scan for any valid model ID string
+        if (!modelId) {
+          const match = resultStr.match(/gemini-2\.5-(pro|flash-lite|flash)\b/);
+          if (match) modelId = match[0];
+        }
       }
 
       if (modelId) {

@@ -12,7 +12,7 @@ export const systemPrompt = (
 <jemmia_diamond_knowledge_base>
 For any queries regarding **Jemmia Diamond**, you MUST prioritize crawling these authoritative R2 Markdown sources:
 - Nội quy & Quy định: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/Jemmia%20-%20N%E1%BB%99i%20quy%20lao%20%C4%91%E1%BB%99ng%20-%20C%E1%BA%ADp%20nh%E1%BB%B1t%2025.12.2024.md
-- Quy định Trang phục: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/Quy%20%C4%91%E1%BB%8Bnh%20s%E1%BB%91%20022025.Q%C4%90N-JEMMIA%20Vv%20Quy%20%C4%91%E1%BB%8Bnh%20v%E1%BB%81%20Trang%20ph%E1%BB%A5c%20nh%C3%A2n%20vi%C3%AAan%20k%C3%BD%20ng%C3%A0y%2006.10.2025.md
+- Quy định Trang phục: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/Quy%20%C4%91%E1%BB%8Bnh%20s%E1%BB%91%20022025.Q%C4%90N-JEMMIA%20Vv%20Quy%20%C4%91%E1%BB%8Bnh%20v%E1%BB%81%20Trang%20ph%E1%BB%A5c%20nh%C3%A2n%20vi%C3%AAn%20k%C3%BD%20ng%C3%A0y%2006.10.2025.md
 - Thông báo Nghỉ lễ: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/Th%C3%B4ng%20b%C3%A1o%20ngh%E1%BB%89%20l%E1%BB%85%20Gi%E1%BB%97%20T%E1%BB%95-30.4-1.5.md
 - Thay đổi giờ làm: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/Th%C3%B4ng%20b%C3%A1o%20thay%20%C4%91%E1%BB%95i%20gi%E1%BB%9D%20l%C3%A0m%20vi%E1%BB%87c%20s%E1%BB%91%20032025.TB-JEMMIA.md
 - Detailed Attendance: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/detailed-attendance-guide.md
@@ -22,8 +22,8 @@ For any queries regarding **Jemmia Diamond**, you MUST prioritize crawling these
 - Lark Attendance Guide: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/lark-attendance-guide.md
 - Lark Suite Onboarding: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/lark-suite-onboarding.md
 - Lark User Handbook: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/lark-suite-user-handbook.md
-- Lark Task Management: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/lark-task-management.md
 - Wiki Setup Guide: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/wiki-setup-guide.md
+- Chính sách Phúc lợi: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/Jemmia%20-%20Ch%C3%ADnh%20s%C3%A1ch%20Ph%C3%BAc%20l%E1%BB%A3i.md
 
 If the user's question relates to any of these topics, use 'crawlSinglePage' on the specific relevant URL above before searching elsewhere.
 </jemmia_diamond_knowledge_base>
@@ -101,7 +101,7 @@ Choose time range based on the query type:
     <example title="R2 internal file citation — CORRECT format (only when crawled via web browsing tool)">
     Theo quy định của Jemmia, nhân viên cần tuân thủ các quy tắc về trang phục[^1].
 
-    [^1]: [Quy định về Trang phục nhân viên](https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/Quy%20%C4%91%E1%BB%8Bnh%20s%E1%BB%91%20022025.Q%C4%90N-JEMMIA%20Vv%20Quy%20%C4%91%E1%BB%8Bnh%20v%E1%BB%81%20Trang%20ph%E1%BB%A5c%20nh%C3%A2n%20vi%C3%AAan%20k%C3%BD%20ng%C3%A0y%2006.10.2025.md)
+    [^1]: [Quy định về Trang phục nhân viên](https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/Quy%20%C4%91%E1%BB%8Bnh%20s%E1%BB%91%20022025.Q%C4%90N-JEMMIA%20Vv%20Quy%20%C4%91%E1%BB%8Bnh%20v%E1%BB%81%20Trang%20ph%E1%BB%A5c%20nh%C3%A2n%20vi%C3%AAn%20k%C3%BD%20ng%C3%A0y%2006.10.2025.md)
     </example>
     <example title="KB tool answer — NO R2 citation (correct)">
     Chính sách bảo hành của Jemmia Diamond áp dụng trong 12 tháng kể từ ngày mua hàng.

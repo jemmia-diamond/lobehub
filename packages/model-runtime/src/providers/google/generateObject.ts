@@ -181,7 +181,7 @@ export const createGoogleGenerateObject = async (
   } catch {
     console.error('parse json error:', text);
 
-    return undefined;
+    return text ?? undefined;
   }
 };
 
