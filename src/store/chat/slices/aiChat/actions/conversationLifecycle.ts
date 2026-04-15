@@ -350,13 +350,13 @@ export class ConversationLifecycleActionImpl {
 
     // ── Gateway mode: skip sendMessageInServer, let execAgentTask handle everything ──
     if (this.#get().isGatewayModeEnabled()) {
-      this.#get().completeOperation(operationId);
-
       try {
         const result = await this.#get().executeGatewayAgent({
           context: operationContext,
           message,
         });
+
+        this.#get().completeOperation(operationId);
 
         return {
           assistantMessageId: result.assistantMessageId,

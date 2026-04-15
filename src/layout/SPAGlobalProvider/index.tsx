@@ -34,7 +34,9 @@ const SPAGlobalProvider = memo<PropsWithChildren>(({ children }) => {
     document.getElementById('loading-screen')?.remove();
     try {
       localStorage.removeItem('i18nextLng');
-    } catch {}
+    } catch (e) {
+      console.warn('[SPA] Failed to clear i18nextLng from localStorage:', e);
+    }
   }, []);
 
   const serverConfig: SPAServerConfig | undefined = window.__SERVER_CONFIG__;

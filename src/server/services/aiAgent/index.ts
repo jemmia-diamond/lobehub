@@ -316,9 +316,23 @@ export class AiAgentService {
     const agentSlug = agentConfig.slug;
     const builtinSlugs = Object.values(BUILTIN_AGENT_SLUGS) as string[];
     if (agentSlug && builtinSlugs.includes(agentSlug)) {
+      // Fetch user profile for personalized system role (non-blocking, best-effort)
+      let userProfile: { department?: string; jobTitle?: string; name?: string } | undefined;
+      try {
+        const { fetchLarkUserProfile } = await import('@/server/routers/lambda/user');
+        const profile = await fetchLarkUserProfile(this.db, this.userId);
+        console.info('[execAgent] fetchLarkUserProfile result:', profile);
+        if (profile) userProfile = profile;
+      } catch (e) {
+        console.error('[execAgent] failed to fetch user profile:', e);
+        log('execAgent: failed to fetch user profile for system role: %O', e);
+      }
+      console.info('[execAgent] userProfile passed to runtimeConfig:', userProfile);
+
       const runtimeConfig = getAgentRuntimeConfig(agentSlug, {
         model: agentConfig.model,
         plugins: agentConfig.plugins ?? [],
+        userProfile,
       });
       if (runtimeConfig) {
         // Runtime systemRole takes effect only if DB has no user-customized systemRole

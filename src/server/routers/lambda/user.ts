@@ -1,5 +1,6 @@
 import { EMPTY_DOCUMENT_MESSAGES } from '@lobechat/builtin-tool-web-onboarding/utils';
 import { isDesktop } from '@lobechat/const';
+import type { LobeChatDatabase } from '@lobechat/database';
 import {
   type UserInitializationState,
   type UserPreference,
@@ -23,6 +24,7 @@ import { getReferralStatus, getSubscriptionPlan } from '@/business/server/user';
 import { MessageModel } from '@/database/models/message';
 import { SessionModel } from '@/database/models/session';
 import { UserModel } from '@/database/models/user';
+import { authEnv } from '@/envs/auth';
 import { authedProcedure, router } from '@/libs/trpc/lambda';
 import { serverDatabase } from '@/libs/trpc/lambda/middleware';
 import { KeyVaultsGateKeeper } from '@/server/modules/KeyVaultsEncrypt';
@@ -31,6 +33,150 @@ import { FileS3 } from '@/server/modules/S3';
 import { AgentDocumentsService } from '@/server/services/agentDocuments';
 import { FileService } from '@/server/services/file';
 import { OnboardingService } from '@/server/services/onboarding';
+
+export interface LarkUserProfile {
+  department?: string;
+  email?: string;
+  jobTitle?: string;
+  managerName?: string;
+  name?: string;
+  unit?: string;
+}
+
+export const fetchLarkUserProfile = async (
+  db: LobeChatDatabase,
+  userId: string,
+): Promise<LarkUserProfile | null> => {
+  try {
+    const larkAccount = await db.query.account.findFirst({
+      where: (account, { and, eq }) =>
+        and(eq(account.userId, userId), eq(account.providerId, 'lark')),
+    });
+
+    console.info('[fetchLarkUserProfile] larkAccount found:', !!larkAccount, 'hasToken:', !!larkAccount?.accessToken, 'hasAccountId:', !!larkAccount?.accountId);
+
+    if (!larkAccount?.accessToken || !larkAccount?.accountId) return null;
+
+    const userAccessToken: string = larkAccount.accessToken;
+
+    const userRes = await fetch(
+      'https://open.larksuite.com/open-apis/authen/v1/user_info',
+      { headers: { Authorization: `Bearer ${userAccessToken}` } },
+    );
+
+    if (!userRes.ok) {
+      console.error('[fetchLarkUserProfile] user API failed:', userRes.status, await userRes.text());
+      return null;
+    }
+
+    const userData = await userRes.json();
+    console.info('[fetchLarkUserProfile] Lark user_info code:', userData.code, 'data:', userData.data);
+    if (userData.code !== 0 || !userData.data) return null;
+
+    const larkUser = userData.data;
+    const name: string | undefined = larkUser.name || larkUser.en_name || undefined;
+    const unionId: string | undefined = larkUser.union_id || undefined;
+
+    let jobTitle: string | undefined;
+    let department: string | undefined;
+    let email: string | undefined;
+    let managerName: string | undefined;
+    let unit: string | undefined;
+
+    if (unionId && authEnv.AUTH_LARK_APP_ID && authEnv.AUTH_LARK_APP_SECRET) {
+      try {
+        const tokenRes = await fetch(
+          'https://open.larksuite.com/open-apis/auth/v3/tenant_access_token/internal',
+          {
+            body: JSON.stringify({
+              app_id: authEnv.AUTH_LARK_APP_ID,
+              app_secret: authEnv.AUTH_LARK_APP_SECRET,
+            }),
+            headers: { 'Content-Type': 'application/json' },
+            method: 'POST',
+          },
+        );
+        if (tokenRes.ok) {
+          const tokenData = await tokenRes.json();
+          const tenantToken: string | undefined =
+            tokenData.code === 0 ? tokenData.tenant_access_token : undefined;
+
+          if (tenantToken) {
+            const contactRes = await fetch(
+              `https://open.larksuite.com/open-apis/contact/v3/users/${unionId}?user_id_type=union_id`,
+              { headers: { Authorization: `Bearer ${tenantToken}` } },
+            );
+            if (contactRes.ok) {
+              const contactData = await contactRes.json();
+              if (contactData.code === 0 && contactData.data?.user) {
+                const u = contactData.data.user;
+                const customJobTitle = u.custom_attrs?.find((a: any) => a.id === 'C-7260397964497453087')?.value?.text;
+                jobTitle = customJobTitle || u.job_title || undefined;
+                email = u.enterprise_email || u.email || undefined;
+
+                if (u.leader_user_id) {
+                  const managerRes = await fetch(
+                    `https://open.larksuite.com/open-apis/contact/v3/users/${u.leader_user_id}?user_id_type=union_id`,
+                    { headers: { Authorization: `Bearer ${tenantToken}` } },
+                  );
+                  if (managerRes.ok) {
+                    const managerData = await managerRes.json();
+                    if (managerData.code === 0 && managerData.data?.user?.name) {
+                      managerName = managerData.data.user.name;
+                    }
+                  }
+                }
+                const deptId: string | undefined = u.department_ids?.[0];
+                if (deptId) {
+                  const deptRes = await fetch(
+                    `https://open.larksuite.com/open-apis/contact/v3/departments/${deptId}?department_id_type=open_department_id`,
+                    { headers: { Authorization: `Bearer ${tenantToken}` } },
+                  );
+                  if (deptRes.ok) {
+                    const deptData = await deptRes.json();
+                    if (deptData.code === 0 && deptData.data?.department) {
+                      const dept = deptData.data.department;
+                      department = dept.name;
+                      const parentDeptId: string | undefined = dept.parent_department_id;
+                      if (parentDeptId && parentDeptId !== '0') {
+                        const parentRes = await fetch(
+                          `https://open.larksuite.com/open-apis/contact/v3/departments/${parentDeptId}?department_id_type=open_department_id`,
+                          { headers: { Authorization: `Bearer ${tenantToken}` } },
+                        );
+                        if (parentRes.ok) {
+                          const parentData = await parentRes.json();
+                          if (parentData.code === 0 && parentData.data?.department?.name) {
+                            unit = parentData.data.department.name;
+                          }
+                        }
+                      }
+                    }
+                  } else {
+                    console.warn('[fetchLarkUserProfile] dept API failed:', deptRes.status, await deptRes.text());
+                  }
+                  department ??= deptId;
+                }
+              } else {
+                console.warn('[fetchLarkUserProfile] Contact API:', contactData.code, contactData.msg);
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.error('[fetchLarkUserProfile] Contact API failed:', e);
+      }
+    }
+
+    console.info('[fetchLarkUserProfile] name:', name, 'jobTitle:', jobTitle, 'department:', department, 'unit:', unit, 'manager:', managerName);
+
+    const profile: LarkUserProfile = { unit, department, email, jobTitle, managerName, name };
+    console.info('[fetchLarkUserProfile] fetched:', profile);
+    return profile;
+  } catch (e) {
+    console.error('[fetchLarkUserProfile] Failed:', e);
+    return null;
+  }
+};
 
 const usernameSchema = z
   .string()
@@ -60,110 +206,8 @@ export const userRouter = router({
   }),
 
   getUserDepartment: userProcedure.query(async ({ ctx }) => {
-    try {
-      const larkAccount = await ctx.serverDB.query.account.findFirst({
-        where: (account, { and, eq }) =>
-          and(eq(account.userId, ctx.userId), eq(account.providerId, 'lark')),
-      });
-
-      if (!larkAccount || !larkAccount.accessToken || !larkAccount.accountId) {
-        return null;
-      }
-
-      let token = larkAccount.accessToken;
-
-      const { authEnv } = await import('@/envs/auth');
-      if (authEnv.AUTH_LARK_APP_ID && authEnv.AUTH_LARK_APP_SECRET) {
-        try {
-          const tokenRes = await fetch(
-            'https://open.larksuite.com/open-apis/auth/v3/tenant_access_token/internal',
-            {
-              body: JSON.stringify({
-                app_id: authEnv.AUTH_LARK_APP_ID,
-                app_secret: authEnv.AUTH_LARK_APP_SECRET,
-              }),
-              headers: { 'Content-Type': 'application/json' },
-              method: 'POST',
-            },
-          );
-          if (tokenRes.ok) {
-            const tokenData = await tokenRes.json();
-            if (tokenData.code === 0 && tokenData.tenant_access_token) {
-              token = tokenData.tenant_access_token;
-            }
-          }
-        } catch (err) {
-          console.error('[UserRouter] Failed to get tenant token:', err);
-        }
-      }
-
-      const response = await fetch(
-        `https://open.larksuite.com/open-apis/contact/v3/users/${larkAccount.accountId}?user_id_type=union_id`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      if (!response.ok) {
-        return null;
-      }
-
-      const data = await response.json();
-
-      if (data.code !== 0 || !data.data?.user?.department_ids?.length) {
-        return null;
-      }
-
-      const deptId = data.data.user.department_ids[0] as string;
-
-      // Fetch department name using the department_id
-      try {
-        console.info(`[UserRouter] Fetching department name for ID: ${deptId}`);
-        const deptResponse = await fetch(
-          `https://open.larksuite.com/open-apis/contact/v3/departments/${deptId}?department_id_type=open_department_id`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        if (deptResponse.ok) {
-          const deptData = await deptResponse.json();
-          console.info(`[UserRouter] Department API Response:`, JSON.stringify(deptData));
-
-          if (deptData.code === 0 && deptData.data?.department?.name) {
-            const deptNameObj = deptData.data.department.name;
-            const deptNameStr =
-              typeof deptNameObj === 'string'
-                ? deptNameObj
-                : deptNameObj?.v || deptNameObj?.zh_cn || deptNameObj?.en_us || deptId;
-
-            console.info(`[UserRouter] Extracted Department Name:`, deptNameStr);
-            return deptNameStr as string;
-          } else {
-            console.warn(
-              `[UserRouter] Department API returned code ${deptData.code} or missing name`,
-            );
-          }
-        } else {
-          const errText = await deptResponse.text();
-          console.error(
-            `[UserRouter] Failed to fetch department name. Status: ${deptResponse.status}, Body: ${errText}`,
-          );
-        }
-      } catch (err) {
-        console.error('[UserRouter] Exception while fetching department name:', err);
-      }
-
-      // Fallback to ID if name fetch fails
-      return deptId;
-    } catch (e) {
-      console.error('[UserRouter] Failed to fetch user department from Lark', e);
-      return null;
-    }
+    const profile = await fetchLarkUserProfile(ctx.serverDB, ctx.userId);
+    return profile?.department ?? null;
   }),
 
   getUserState: userProcedure.query(async ({ ctx }): Promise<UserInitializationState> => {
@@ -188,13 +232,14 @@ export const userRouter = router({
     }
 
     // Run user state fetch and count queries in parallel
-    const [state, messageCount, hasExtraSession, referralStatus, subscriptionPlan] =
+    const [state, messageCount, hasExtraSession, referralStatus, subscriptionPlan, larkProfile] =
       await Promise.all([
         ctx.userModel.getUserState(KeyVaultsGateKeeper.getUserKeyVaults),
         ctx.messageModel.countUpTo(5),
         ctx.sessionModel.hasMoreThanN(1),
         getReferralStatus(ctx.userId),
         getSubscriptionPlan(ctx.userId),
+        fetchLarkUserProfile(ctx.serverDB, ctx.userId),
       ]);
 
     const hasMoreThan4Messages = messageCount > 4;
@@ -226,6 +271,7 @@ export const userRouter = router({
       referralStatus,
       subscriptionPlan,
       isFreePlan: !subscriptionPlan || subscriptionPlan === Plans.Free,
+      larkProfile,
     } satisfies UserInitializationState;
   }),
 

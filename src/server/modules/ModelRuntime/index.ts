@@ -385,7 +385,7 @@ const getJemOrchestrationHooks = (
         payload.model = model;
         return;
       } catch (error) {
-        console.error('[Brainy] evaluate() failed or timed out, falling back to resolve():', (error as Error).message);
+        console.error('[Brainy] evaluate() failed or timed out, falling back to resolve():', error);
       }
     }
 
@@ -416,7 +416,7 @@ const getJemOrchestrationHooks = (
         payload.model = model;
         return;
       } catch (error) {
-        console.error('[Brainy] evaluate() failed or timed out, falling back to resolve():', (error as Error).message);
+        console.error('[Brainy] evaluate() failed or timed out, falling back to resolve():', error);
       }
     }
 

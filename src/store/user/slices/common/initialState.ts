@@ -8,6 +8,7 @@ export interface CommonState {
   isUserCanEnableTrace: boolean;
   isUserHasConversation: boolean;
   isUserStateInit: boolean;
+  larkProfile?: { unit?: string; department?: string; email?: string; jobTitle?: string; managerName?: string; name?: string } | null;
   referralStatus?: ReferralStatusString;
   subscriptionPlan?: Plans;
 }

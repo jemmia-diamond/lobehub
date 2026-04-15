@@ -14,7 +14,7 @@ export const INBOX: BuiltinAgentDefinition = {
   avatar: BRANDING_LOGO_URL || '/icons/icon-192x192.png',
   runtime: (ctx) => ({
     plugins: [AgentDocumentsIdentifier, ...(ctx.plugins || [])],
-    systemRole: createSystemRole(ctx.userLocale),
+    systemRole: createSystemRole(ctx.userLocale, ctx.userProfile),
   }),
 
   slug: BUILTIN_AGENT_SLUGS.inbox,

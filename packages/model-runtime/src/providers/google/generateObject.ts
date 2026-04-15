@@ -178,8 +178,8 @@ export const createGoogleGenerateObject = async (
     const result = JSON.parse(text!);
     debug('JSON parsing successful', result);
     return result;
-  } catch {
-    console.error('parse json error:', text);
+  } catch (error) {
+    console.error('[Google] parse json error:', { error, text });
 
     return text ?? undefined;
   }

@@ -66,6 +66,16 @@ export interface RuntimeContext {
 
   /** User's locale */
   userLocale?: string;
+
+  /** User profile from Lark (name, department, job title) */
+  userProfile?: {
+    unit?: string;
+    department?: string;
+    email?: string;
+    jobTitle?: string;
+    managerName?: string;
+    name?: string;
+  };
 }
 
 /**

@@ -141,6 +141,7 @@ export class CommonActionImpl {
                 isUserHasConversation: data.hasConversation,
                 isUserStateInit: true,
                 agentOnboarding: data.agentOnboarding,
+                larkProfile: data.larkProfile,
                 onboarding: data.onboarding,
                 preference,
                 referralStatus: data.referralStatus,

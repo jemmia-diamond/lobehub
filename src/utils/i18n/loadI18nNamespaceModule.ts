@@ -12,10 +12,14 @@ export const loadI18nNamespaceModule = async (params: LoadI18nNamespaceModulePar
 
   try {
     return import(`@/../locales/${normalizedLocale}/${ns}.json`);
-  } catch {
+  } catch (error) {
     try {
       return import(`@/../locales/${defaultLang}/${ns}.json`);
-    } catch {
+    } catch (innerError) {
+      console.warn(
+        `[i18n] Failed to load locale "${normalizedLocale}" or default "${defaultLang}" for namespace "${ns}". Falling back to TypeScript source.`,
+        { error, innerError },
+      );
       return import(`@/locales/default/${ns}`);
     }
   }

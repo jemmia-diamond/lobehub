@@ -145,6 +145,8 @@ export const resolveAgentConfig = (ctx: AgentConfigResolverContext): ResolvedAge
   const { agentId, model, documentContent, plugins, targetAgentConfig, isSubTask, disableTools } =
     ctx;
 
+  console.info('[resolveAgentConfig] called, agentId:', agentId);
+
   log(
     'resolveAgentConfig called with agentId: %s, scope: %s, isSubTask: %s, disableTools: %s',
     agentId,
@@ -339,7 +341,9 @@ export const resolveAgentConfig = (ctx: AgentConfigResolverContext): ResolvedAge
     plugins: plugins || basePlugins,
     targetAgentConfig,
     userLocale: userGeneralSettingsSelectors.currentResponseLanguage(useUserStore.getState()),
+    userProfile: useUserStore.getState().larkProfile ?? undefined,
   });
+  console.info('[agentConfigResolver] larkProfile from store:', useUserStore.getState().larkProfile);
 
   // Merge runtime systemRole into agent config
   let resolvedSystemRole = runtimeConfig?.systemRole ?? agentConfig.systemRole;

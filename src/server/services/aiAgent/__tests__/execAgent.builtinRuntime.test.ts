@@ -1,3 +1,4 @@
+// @vitest-environment node
 import type * as ModelBankModule from 'model-bank';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -146,7 +147,7 @@ describe('AiAgentService.execAgent - builtin agent runtime config', () => {
     // Verify createOperation was called with agentConfig containing the runtime systemRole
     expect(mockCreateOperation).toHaveBeenCalledTimes(1);
     const callArgs = mockCreateOperation.mock.calls[0][0];
-    expect(callArgs.agentConfig.systemRole).toContain('Jemmia Diamond-centric');
+    expect(callArgs.agentConfig.systemRole).toContain('PRIMARY MANDATE');
     expect(callArgs.agentConfig.systemRole).toContain('{{model}}');
   });
 

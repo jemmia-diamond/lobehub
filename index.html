@@ -127,7 +127,7 @@
       var theme = 'system';
       try {
         theme = localStorage.getItem('theme') || 'system';
-      } catch (_) { }
+      } catch (_) { console.warn('[SPA] Failed to get theme from localStorage'); }
       var systemTheme =
         window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
           ? 'dark'
