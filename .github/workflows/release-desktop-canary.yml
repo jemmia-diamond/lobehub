@@ -17,9 +17,6 @@ name: Release Desktop Canary
 # ============================================
 
 on:
-  push:
-    branches:
-      - canary
   workflow_dispatch:
     inputs:
       force:
