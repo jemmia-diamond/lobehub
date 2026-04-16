@@ -73,7 +73,6 @@ export interface RuntimeContext {
     department?: string;
     email?: string;
     jobTitle?: string;
-    managerName?: string;
     name?: string;
   };
 }

@@ -55,7 +55,7 @@ Today's date: {{date}}`;
 
 export const createSystemRole = (
   _userLocale?: string,
-  userProfile?: { unit?: string; department?: string; email?: string; jobTitle?: string; managerName?: string; name?: string },
+  userProfile?: { unit?: string; department?: string; email?: string; jobTitle?: string; name?: string },
 ) => {
   const profileLines: string[] = [];
   if (userProfile?.name) profileLines.push(`- Name: ${userProfile.name}`);
@@ -63,7 +63,6 @@ export const createSystemRole = (
   if (userProfile?.unit) profileLines.push(`- Unit: ${userProfile.unit}`);
   if (userProfile?.department) profileLines.push(`- Department: ${userProfile.department}`);
   if (userProfile?.jobTitle) profileLines.push(`- Job Title: ${userProfile.jobTitle}`);
-  if (userProfile?.managerName) profileLines.push(`- Direct Manager: ${userProfile.managerName}`);
 
   const profileSection =
     profileLines.length > 0
