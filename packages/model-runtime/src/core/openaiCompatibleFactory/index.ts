@@ -820,7 +820,7 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
             return result;
           } catch (error) {
             log('failed to parse JSON output: %O', error);
-            console.error('parse json error:', text);
+            console.error('[OpenAI-Compat] parse json error (Responses API):', { error, text });
             return undefined;
           }
         }
@@ -849,7 +849,7 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
           return result;
         } catch (error) {
           log('failed to parse JSON output: %O', error);
-          console.error('parse json error:', text);
+          console.error('[OpenAI-Compat] parse json error (Chat Completions API):', { error, text });
           return undefined;
         }
       } catch (error) {

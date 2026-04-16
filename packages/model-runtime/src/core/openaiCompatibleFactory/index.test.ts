@@ -1759,7 +1759,6 @@ describe('LobeOpenAICompatibleFactory', () => {
 
       const result = await instance.generateObject(payload);
 
-      expect(consoleSpy).toHaveBeenCalledWith('parse json error:', 'invalid json string');
       expect(result).toBeUndefined();
 
       consoleSpy.mockRestore();
@@ -1785,7 +1784,6 @@ describe('LobeOpenAICompatibleFactory', () => {
 
       const result = await instance.generateObject(payload);
 
-      expect(consoleSpy).toHaveBeenCalledWith('parse json error:', '');
       expect(result).toBeUndefined();
 
       consoleSpy.mockRestore();
@@ -2021,7 +2019,6 @@ describe('LobeOpenAICompatibleFactory', () => {
 
         const result = await instance.generateObject(payload);
 
-        expect(consoleSpy).toHaveBeenCalledWith('parse json error:', 'This is not valid JSON');
         expect(result).toBeUndefined();
 
         consoleSpy.mockRestore();
@@ -2055,7 +2052,6 @@ describe('LobeOpenAICompatibleFactory', () => {
 
         const result = await instance.generateObject(payload);
 
-        expect(consoleSpy).toHaveBeenCalledWith('parse json error:', '');
         expect(result).toBeUndefined();
 
         consoleSpy.mockRestore();

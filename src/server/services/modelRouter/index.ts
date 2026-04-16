@@ -44,7 +44,7 @@ export class ModelRouterService {
     const { messages, tools, modelRuntime } = params;
 
     try {
-      log('Evaluating intelligent routing...');
+      console.info(`[Brainy] evaluate() — messages: ${messages.length}, tools: ${tools.length}`);
 
       const result = await modelRuntime.generateObject({
         messages: [

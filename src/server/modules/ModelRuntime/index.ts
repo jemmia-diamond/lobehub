@@ -367,9 +367,11 @@ const getJemOrchestrationHooks = (
 ): ModelRuntimeHooks => ({
   beforeChat: async (payload) => {
     const mode = payload.model.toLowerCase();
+    console.info(`[Brainy] beforeChat triggered — mode: ${mode}, messages: ${payload.messages?.length ?? 0}, tools: ${payload.tools?.length ?? 0}`);
 
     if (mode === 'auto') {
       try {
+        console.info('[Brainy] AUTO mode — calling evaluate()');
         const routerRuntime = initModelRuntimeWithUserPayload(provider, userPayload, userParams);
         const routingTimeout = new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('Routing timeout')), 15_000),
@@ -382,6 +384,7 @@ const getJemOrchestrationHooks = (
           }),
           routingTimeout,
         ]);
+        console.info(`[Brainy] evaluate() resolved → model: ${model}`);
         payload.model = model;
         return;
       } catch (error) {
@@ -394,6 +397,7 @@ const getJemOrchestrationHooks = (
       mode: payload.model,
       tools: payload.tools || [],
     });
+    console.info(`[Brainy] resolve() → model: ${model}`);
     payload.model = model;
   },
   beforeGenerateObject: async (payload) => {

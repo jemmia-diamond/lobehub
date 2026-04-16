@@ -347,6 +347,7 @@ export const resolveAgentConfig = (ctx: AgentConfigResolverContext): ResolvedAge
 
   // Merge runtime systemRole into agent config
   let resolvedSystemRole = runtimeConfig?.systemRole ?? agentConfig.systemRole;
+  console.info('[agentConfigResolver] resolvedSystemRole length:', resolvedSystemRole?.length, '| hasProfile:', resolvedSystemRole?.includes('USER PROFILE'));
 
   // Merge plugins: runtime plugins take priority, fallback to base plugins
   let finalPlugins =
