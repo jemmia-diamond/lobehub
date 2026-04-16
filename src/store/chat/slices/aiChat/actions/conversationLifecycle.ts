@@ -355,9 +355,19 @@ export class ConversationLifecycleActionImpl {
           context: operationContext,
           message,
           onComplete: () => {
-            this.#get().completeOperation(operationId);
+             this.#get().completeOperation(operationId);
           },
         });
+
+        // ── Map the optimistic temporary IDs to the real database IDs IMMEDIATELY
+        this.#get().internal_dispatchMessage(
+          { id: tempId, type: 'updateMessage', value: { id: result.userMessageId } },
+          { operationId }
+        );
+        this.#get().internal_dispatchMessage(
+          { id: tempAssistantId, type: 'updateMessage', value: { id: result.assistantMessageId } },
+          { operationId }
+        );
 
         return {
           assistantMessageId: result.assistantMessageId,
@@ -369,6 +379,15 @@ export class ConversationLifecycleActionImpl {
           message: e instanceof Error ? e.message : 'Unknown error',
           type: 'GatewayError',
         });
+        
+        // Cleanup temp messages and restore input on failure
+        this.#get().internal_dispatchMessage(
+          { type: 'deleteMessages', ids: [tempId, tempAssistantId] },
+          { operationId },
+        );
+        this.#get().mainInputEditor?.setDocument('markdown', message);
+        this.#get().updateOperationMetadata(operationId, { inputEditorTempState: null });
+
         return;
       }
     }
@@ -504,6 +523,20 @@ export class ConversationLifecycleActionImpl {
       }
     } catch (e) {
       console.error(e);
+
+      // If the topic doesn't exist in DB (stale client state, e.g. Lark webview cache),
+      // clear it from the store so the next send creates a fresh topic
+      if (
+        e instanceof TRPCClientError &&
+        e.message?.includes('topic_id') &&
+        e.message?.includes('not present in table')
+      ) {
+        console.warn('[sendMessage] Stale topicId detected, clearing from store:', operationContext.topicId);
+        if (operationContext.topicId) {
+          this.#get().internal_dispatchTopic({ type: 'deleteTopic', id: operationContext.topicId });
+        }
+      }
+
       // Fail operation on error
       this.#get().failOperation(operationId, {
         type: e instanceof Error ? e.name : 'unknown_error',

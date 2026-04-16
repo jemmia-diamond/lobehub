@@ -56,32 +56,16 @@ export const fetchLarkUserProfile = async (
 
     if (!larkAccount?.accessToken || !larkAccount?.accountId) return null;
 
-    const userAccessToken: string = larkAccount.accessToken;
-
-    const userRes = await fetch(
-      'https://open.larksuite.com/open-apis/authen/v1/user_info',
-      { headers: { Authorization: `Bearer ${userAccessToken}` } },
-    );
-
-    if (!userRes.ok) {
-      console.error('[fetchLarkUserProfile] user API failed:', userRes.status, await userRes.text());
-      return null;
-    }
-
-    const userData = await userRes.json();
-    console.info('[fetchLarkUserProfile] Lark user_info code:', userData.code, 'data:', userData.data);
-    if (userData.code !== 0 || !userData.data) return null;
-
-    const larkUser = userData.data;
-    const name: string | undefined = larkUser.name || larkUser.en_name || undefined;
-    const unionId: string | undefined = larkUser.union_id || undefined;
+    const accountId: string = larkAccount.accountId;
+    const userIdType = accountId.startsWith('ou_') ? 'open_id' : 'union_id';
 
     let jobTitle: string | undefined;
     let department: string | undefined;
     let email: string | undefined;
     let unit: string | undefined;
+    let name: string | undefined;
 
-    if (unionId && authEnv.AUTH_LARK_APP_ID && authEnv.AUTH_LARK_APP_SECRET) {
+    if (authEnv.AUTH_LARK_APP_ID && authEnv.AUTH_LARK_APP_SECRET) {
       try {
         const tokenRes = await fetch(
           'https://open.larksuite.com/open-apis/auth/v3/tenant_access_token/internal',
@@ -101,7 +85,7 @@ export const fetchLarkUserProfile = async (
 
           if (tenantToken) {
             const contactRes = await fetch(
-              `https://open.larksuite.com/open-apis/contact/v3/users/${unionId}?user_id_type=union_id`,
+              `https://open.larksuite.com/open-apis/contact/v3/users/${accountId}?user_id_type=${userIdType}`,
               { headers: { Authorization: `Bearer ${tenantToken}` } },
             );
             if (contactRes.ok) {
@@ -111,6 +95,7 @@ export const fetchLarkUserProfile = async (
                 const customJobTitle = u.custom_attrs?.find((a: any) => a.id === 'C-7260397964497453087')?.value?.text;
                 jobTitle = customJobTitle || u.job_title || undefined;
                 email = u.enterprise_email || u.email || undefined;
+                name = u.name || u.en_name || undefined;
 
                 const deptId: string | undefined = u.department_ids?.[0];
                 if (deptId) {

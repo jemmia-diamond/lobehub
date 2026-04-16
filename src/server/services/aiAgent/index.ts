@@ -520,6 +520,12 @@ export class AiAgentService {
           (kb: { enabled?: boolean | null }) => kb.enabled === true,
         ) ?? false;
 
+      // Inbox agent always has KB, web browsing — no user config needed
+      if (agentSlug === BUILTIN_AGENT_SLUGS.inbox) {
+        hasEnabledKnowledgeBases = true;
+        agentConfig.chatConfig = { ...(agentConfig.chatConfig ?? {}), searchMode: 'auto' };
+      }
+
       try {
         const docs = await this.agentDocumentsService.getAgentDocuments(resolvedAgentId);
         hasAgentDocuments = docs.length > 0;

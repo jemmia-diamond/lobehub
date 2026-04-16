@@ -58,6 +58,19 @@ export type { PollVideoStatusResult };
 export * from './createVideo';
 export * from './nonStreamToStream';
 
+const extractJsonFromMarkdown = (text: string): any => {
+  const match = text.match(/```(?:json)?([\s\S]*?)```/);
+  if (match?.[1]) {
+    try {
+      return JSON.parse(match[1].trim());
+    } catch (e) {
+      console.error('[OpenAI-Compat] extractJsonFromMarkdown parse json error:', e);
+      return undefined;
+    }
+  }
+  return undefined;
+};
+
 // the model contains the following keywords is not a chat model, so we should filter them out
 export const CHAT_MODELS_BLOCK_LIST = [
   'embedding',
@@ -819,7 +832,9 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
             log('successfully parsed JSON output');
             return result;
           } catch (error) {
-            log('failed to parse JSON output: %O', error);
+            const extracted = extractJsonFromMarkdown(text);
+            if (extracted !== undefined) return extracted;
+            log('failed to parse JSON output from Responses API');
             console.error('[OpenAI-Compat] parse json error (Responses API):', { error, text });
             return undefined;
           }
@@ -847,9 +862,10 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
           const result = JSON.parse(text);
           log('successfully parsed JSON output');
           return result;
-        } catch (error) {
-          log('failed to parse JSON output: %O', error);
-          console.error('[OpenAI-Compat] parse json error (Chat Completions API):', { error, text });
+        } catch {
+          const extracted = extractJsonFromMarkdown(text);
+          if (extracted !== undefined) return extracted;
+          log('failed to parse JSON output from Chat Completions API');
           return undefined;
         }
       } catch (error) {

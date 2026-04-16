@@ -152,7 +152,10 @@ const normalizeSearchQueries = (queries?: string[]): string[] => {
 const buildRetrievalQuery = (queries: string[]) => {
   if (queries.length === 0) return undefined;
 
-  return queries.join(' ');
+  return queries
+    .map((q) => q.replace(/['"\\(){}[\]^~*?:|&!]/g, ' ').replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+    .join(' ');
 };
 
 const combineEmbeddings = (embeddings: number[][]) => {

@@ -1,4 +1,5 @@
 import { AgentDocumentsIdentifier } from '@lobechat/builtin-tool-agent-documents';
+import { KnowledgeBaseIdentifier } from '@lobechat/builtin-tool-knowledge-base';
 import { BRANDING_LOGO_URL } from '@lobechat/business-const';
 
 import type { BuiltinAgentDefinition } from '../../types';
@@ -13,7 +14,7 @@ import { createSystemRole } from './systemRole';
 export const INBOX: BuiltinAgentDefinition = {
   avatar: BRANDING_LOGO_URL || '/icons/icon-192x192.png',
   runtime: (ctx) => ({
-    plugins: [AgentDocumentsIdentifier, ...(ctx.plugins || [])],
+    plugins: [AgentDocumentsIdentifier, KnowledgeBaseIdentifier, ...(ctx.plugins || [])],
     systemRole: createSystemRole(ctx.userLocale, ctx.userProfile),
   }),
 
