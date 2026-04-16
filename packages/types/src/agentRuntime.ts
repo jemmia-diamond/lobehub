@@ -14,6 +14,8 @@ export enum RequestTrigger {
 export const AgentRuntimeErrorType = {
   AgentRuntimeError: 'AgentRuntimeError', // Agent Runtime module runtime error
   LocationNotSupportError: 'LocationNotSupportError',
+  ConversationParentMissing: 'ConversationParentMissing',
+  AccountDeactivated: 'AccountDeactivated',
 
   QuotaLimitReached: 'QuotaLimitReached',
   InsufficientQuota: 'InsufficientQuota',

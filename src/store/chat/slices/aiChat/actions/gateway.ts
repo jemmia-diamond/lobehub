@@ -110,21 +110,34 @@ export class GatewayActionImpl {
       );
     });
 
-    // Forward agent events to caller
-    if (onEvent) {
-      client.on('agent_event', onEvent);
-    }
+    // ── Helper to ensure single unified cleanup ──
+    let isFinished = false;
+    const triggerComplete = () => {
+      if (isFinished) return;
+      isFinished = true;
+
+      this.internal_cleanupGatewayConnection(operationId);
+      onSessionComplete?.();
+    };
+
+    // Forward agent events to caller, and track terminal events
+    // Only fire onSessionComplete from disconnect if a terminal event was received
+    let receivedTerminalEvent = false;
+    client.on('agent_event', (event: any) => {
+      if (event.type === 'agent_runtime_end' || event.type === 'error') {
+        receivedTerminalEvent = true;
+      }
+      if (onEvent) onEvent(event);
+    });
 
     // Handle session completion
     client.on('session_complete', () => {
-      this.internal_cleanupGatewayConnection(operationId);
-      onSessionComplete?.();
+      triggerComplete();
     });
 
     // Handle auth failures
     client.on('auth_failed', (reason) => {
       console.error(`[Gateway] Auth failed for operation ${operationId}: ${reason}`);
-      this.internal_cleanupGatewayConnection(operationId);
 
       if (params.localOperationId) {
         this.#get().failOperation(params.localOperationId, {
@@ -132,14 +145,16 @@ export class GatewayActionImpl {
           type: 'gateway_auth_failed',
         });
       }
+
+      triggerComplete();
     });
 
     // Handle initial connection failure or unexpected disconnection
     client.on('disconnected', () => {
-      this.internal_cleanupGatewayConnection(operationId);
-
-      // If disconnected but not finished (no session_complete yet), mark local operation as failed
-      if (params.localOperationId) {
+      // Only fire session complete if a terminal agent event was received.
+      // Auth failures, explicit disconnect(), and other non-terminal disconnects
+      // should NOT trigger onSessionComplete.
+      if (!isFinished && params.localOperationId) {
         const op = this.#get().operations[params.localOperationId];
         if (op && op.status === 'running') {
           this.#get().failOperation(params.localOperationId, {
@@ -147,6 +162,12 @@ export class GatewayActionImpl {
             type: 'gateway_disconnect',
           });
         }
+      }
+
+      if (receivedTerminalEvent) {
+        triggerComplete();
+      } else {
+        this.internal_cleanupGatewayConnection(operationId);
       }
     });
 
@@ -261,15 +282,25 @@ export class GatewayActionImpl {
     // Create a dedicated operation for gateway execution with correct context
     const { operationId: gatewayOpId } = this.#get().startOperation({
       context: execContext,
+      metadata: { serverOperationId: result.operationId },
       type: 'execServerAgentRuntime',
     });
 
     // Associate the server-created assistant message with the gateway operation
     this.#get().associateMessageWithOperation(result.assistantMessageId, gatewayOpId);
 
+    // When the local operation is cancelled (e.g. user clicks stop), forward
+    // the interrupt directly to the server via the existing tRPC endpoint.
+    this.#get().onOperationCancel(gatewayOpId, async () => {
+      await aiAgentService
+        .interruptTask({ operationId: result.operationId })
+        .catch((err) => console.error('[Gateway] interruptTask failed:', err));
+    });
+
     const eventHandler = createGatewayEventHandler(this.#get, {
       assistantMessageId: result.assistantMessageId,
       context: execContext,
+      gatewayOperationId: result.operationId,
       operationId: gatewayOpId,
     });
 
@@ -334,9 +365,17 @@ export class GatewayActionImpl {
 
     this.#get().associateMessageWithOperation(assistantMessageId, gatewayOpId);
 
+    // Forward local-op cancellation to the server-side agent loop via tRPC.
+    this.#get().onOperationCancel(gatewayOpId, async () => {
+      await aiAgentService
+        .interruptTask({ operationId })
+        .catch((err) => console.error('[Gateway] interruptTask failed:', err));
+    });
+
     const eventHandler = createGatewayEventHandler(this.#get, {
       assistantMessageId,
       context,
+      gatewayOperationId: operationId,
       operationId: gatewayOpId,
     });
 

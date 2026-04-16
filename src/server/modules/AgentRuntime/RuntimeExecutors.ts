@@ -47,6 +47,11 @@ import {
 } from '@/server/services/toolExecution';
 
 import { classifyLLMError, type LLMErrorKind } from './llmErrorClassification';
+import {
+  createConversationParentMissingError,
+  isParentMessageMissingError,
+  markPersistFatal,
+} from './messagePersistErrors';
 import { type IStreamEventManager } from './types';
 
 const log = debug('lobe-server:agent-runtime:streaming-executors');
@@ -1409,6 +1414,22 @@ export const createRuntimeExecutors = (
         toolMessageId = toolMessage.id;
       } catch (error) {
         console.error('[StreamingToolExecutor] Failed to create tool message: %O', error);
+        // Normalize BEFORE publishing so clients (which treat `error` stream
+        // events as terminal and surface `event.data.error` directly) see the
+        // typed business error, not the raw SQL / driver text.
+        const fatal = isParentMessageMissingError(error)
+          ? createConversationParentMissingError(payload.parentMessageId, error)
+          : error instanceof Error
+            ? error
+            : new Error(String(error));
+        await streamManager.publishStreamEvent(operationId, {
+          data: formatErrorEventData(fatal, 'tool_message_persist'),
+          stepIndex,
+          type: 'error',
+        });
+        // Mark so the outer catch (which normally converts tool-exec errors
+        // into event records and returns the unchanged state) re-throws.
+        throw markPersistFatal(fatal);
       }
 
       const newState = structuredClone(state);
@@ -2022,6 +2043,19 @@ export const createRuntimeExecutors = (
           toolName,
           error,
         );
+        // Normalize BEFORE publishing so clients surface the typed business
+        // error instead of the raw driver text (see LOBE-7158 review).
+        const fatal = isParentMessageMissingError(error)
+          ? createConversationParentMissingError(parentMessageId, error)
+          : error instanceof Error
+            ? error
+            : new Error(String(error));
+        await streamManager.publishStreamEvent(operationId, {
+          data: formatErrorEventData(fatal, 'tool_message_persist'),
+          stepIndex,
+          type: 'error',
+        });
+        throw fatal;
       }
     }
 

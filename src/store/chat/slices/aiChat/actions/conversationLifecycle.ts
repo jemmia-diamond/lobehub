@@ -369,6 +369,10 @@ export class ConversationLifecycleActionImpl {
           { operationId }
         );
 
+        // ── Ensure the operation store tracks the loading state for the NEW real IDs
+        this.#get().associateMessageWithOperation(result.userMessageId, operationId);
+        this.#get().associateMessageWithOperation(result.assistantMessageId, operationId);
+
         return {
           assistantMessageId: result.assistantMessageId,
           userMessageId: result.userMessageId,
