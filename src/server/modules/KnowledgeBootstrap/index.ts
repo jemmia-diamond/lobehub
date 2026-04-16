@@ -68,10 +68,37 @@ export class KnowledgeBootstrapService {
       const kbId = await this.ensureKnowledgeBase(db, true);
       KnowledgeBootstrapService.globalKbId = kbId;
 
-      // 3. Scan and Ingest Seed Files
+      // 3. Scan and Ingest Seed Files — sync additions, updates, and deletions
       const seedFiles = fs
         .readdirSync(seedDir)
         .filter((f) => f.endsWith('.md') || f.endsWith('.pdf') || f.endsWith('.docx'));
+
+      // Remove DB files that no longer exist on disk
+      // Only touch files owned by the admin and sourced from this seed directory
+      const existingFiles = await db.query.files.findMany({
+        where: and(eq(files.userId, JEMMORA_ADMIN_ID)),
+      });
+      const seedFileUrls = new Set(seedFiles.map((f) => `local://jemmia-diamond/${f}`));
+      const seedFilenames = new Set(seedFiles);
+      console.info(`[KnowledgeBootstrap] Checking ${existingFiles.length} DB files for deletion. Disk has ${seedFiles.length} files.`);
+      for (const dbFile of existingFiles) {
+        if (!dbFile.url?.startsWith('local://')) continue;
+
+        const isNewFormat = dbFile.url.startsWith('local://jemmia-diamond/');
+        const isOldFormat = !isNewFormat;
+
+        const shouldDelete = isNewFormat
+          ? !seedFileUrls.has(dbFile.url)
+          : !seedFilenames.has(dbFile.name);
+
+        if (shouldDelete) {
+          console.info(`[KnowledgeBootstrap] Removing deleted file: ${dbFile.name} (${dbFile.url})`);
+          await db.delete(files).where(eq(files.id, dbFile.id));
+        } else if (isOldFormat) {
+          console.info(`[KnowledgeBootstrap] Legacy URL: ${dbFile.name} — still on disk, skipping`);
+        }
+      }
+
       for (const filename of seedFiles) {
         await this.syncSeedFile(db, path.join(seedDir, filename), kbId);
         await sleep(500);
@@ -209,28 +236,41 @@ export class KnowledgeBootstrapService {
     const content = fs.readFileSync(filePath);
     const fileHash = this.generateHash(content);
 
-    // Check if file already exists with this hash
-    const existing = await db.query.files.findFirst({
+    const fileUrl = `local://jemmia-diamond/${filename}`;
+
+    // Use fileHash as the primary key — content-addressable, source-agnostic
+    const existingByHash = await db.query.files.findFirst({
       where: eq(files.fileHash, fileHash),
     });
 
-    if (existing) {
-      // Check if it has embeddings. If not, the previous run likely failed halfway (e.g. rate limit during embedding).
+    if (existingByHash) {
       const chunkModel = new ChunkModel(db, this.userId);
-      const count = await chunkModel.countEmbeddingsByFileId(existing.id);
-
+      const count = await chunkModel.countEmbeddingsByFileId(existingByHash.id);
       if (count > 0) {
-        console.info(
-          `[KnowledgeBootstrap] Skipped (already indexed with ${count} embeddings): ${filename}`,
-        );
-        return existing.id;
+        // Same content — but check if the filename/URL changed (rename)
+        if (existingByHash.url !== fileUrl || existingByHash.name !== filename) {
+          console.info(`[KnowledgeBootstrap] File renamed: ${existingByHash.name} → ${filename}. Updating record.`);
+          await db.update(files).set({ name: filename, url: fileUrl }).where(eq(files.id, existingByHash.id));
+        } else {
+          console.info(
+            `[KnowledgeBootstrap] Skipped (already indexed with ${count} embeddings): ${filename}`,
+          );
+        }
+        return existingByHash.id;
       }
-
       console.warn(
         `[KnowledgeBootstrap] File ${filename} exists but has no embeddings. Re-indexing...`,
       );
-      // Delete the stale record to allow clean re-insertion
-      await db.delete(files).where(eq(files.id, existing.id));
+      await db.delete(files).where(eq(files.id, existingByHash.id));
+    } else {
+      // Check if a previous version (different hash) existed — indicates an update
+      const previousVersion = await db.query.files.findFirst({
+        where: and(eq(files.url, fileUrl), eq(files.userId, this.userId)),
+      });
+      if (previousVersion) {
+        console.info(`[KnowledgeBootstrap] File updated, removing old version: ${filename}`);
+        await db.delete(files).where(eq(files.id, previousVersion.id));
+      }
     }
 
     // 0. Ensure Global File record exists (Foreign Key constraint)
@@ -244,7 +284,7 @@ export class KnowledgeBootstrapService {
         fileType,
         hashId: fileHash,
         size: content.length,
-        url: `local://${filename}`, // Placeholder for internal seed files
+        url: fileUrl,
       });
     }
 
@@ -258,7 +298,7 @@ export class KnowledgeBootstrapService {
       id: fileId,
       name: filename,
       size: content.length,
-      url: `local://${filename}`,
+      url: fileUrl,
       userId: this.userId,
     });
 

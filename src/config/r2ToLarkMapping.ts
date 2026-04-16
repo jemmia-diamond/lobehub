@@ -6,15 +6,13 @@
  * Value: Lark Wiki URL
  */
 export const R2_TO_LARK_MAP: Record<string, string> = {
-  'lark-approval-guide.md':
+  'Hướng Dẫn Sử Dụng Lark Approval.md':
     'https://jemmiadiamond.sg.larksuite.com/wiki/ZByVw6jQDiEbKFk55eYlYj3ggUg',
-  'lark-attendance-guide.md':
+  'Hướng dẫn chấm công bằng Lark Attendance.md':
     'https://jemmiadiamond.sg.larksuite.com/wiki/TJKkwR1NliPvZnkssh0ltm9ygHI',
-  'employee-attendance-regulations.md':
-    'https://jemmiadiamond.sg.larksuite.com/wiki/ED1EwTnDAixs6fkWLZxlIq5NgTh',
   'Quy Định Về Chấm Công Dành Cho Nhân Viên.md':
     'https://jemmiadiamond.sg.larksuite.com/wiki/ED1EwTnDAixs6fkWLZxlIq5NgTh',
-  'detailed-attendance-guide.md':
+  'Hướng Dẫn Đọc Kết Quả Chấm Công & Sử Dụng Lark Attendance.md':
     'https://jemmiadiamond.sg.larksuite.com/wiki/MOUNwxiHaiKS6tkmoWgliXrIgWg',
   'Jemmia - Chính sách Phúc lợi.md':
     'https://jemmiadiamond.sg.larksuite.com/wiki/FX5Lwyh2UiT6SGkLv3xlMgQfgRd',
@@ -26,14 +24,10 @@ export const R2_TO_LARK_MAP: Record<string, string> = {
     'https://jemmiadiamond.sg.larksuite.com/wiki/ThjmwsWIbiAQ5lkeb1Rljhhzgke',
   'Thông báo nghỉ lễ Giỗ Tổ-30.4-1.5.md':
     'https://jemmiadiamond.sg.larksuite.com/wiki/S2BgwRc5HiFDQwkW0f2l3F8kgag',
-  'lark-suite-onboarding.md':
+  'Sổ Tay Hội Nhập Lark Suite.md':
     'https://jemmiadiamond.sg.larksuite.com/wiki/Z4nrwrAB4iA7F6kxYdWlkzc1gEf',
-  'lark-suite-user-handbook.md':
+  'Sổ Tay Lark Suite Cho Người Dùng.md':
     'https://jemmiadiamond.sg.larksuite.com/wiki/SC0lw8LGji8wFOkJ9qClZEergAd',
-  'hr-attendance-system-guide.md':
-    'https://jemmiadiamond.sg.larksuite.com/wiki/Xm5HwgV8PiZb3jkIesjlDXzTgMc',
-  'wiki-setup-guide.md':
-    'https://jemmiadiamond.sg.larksuite.com/wiki/ImbDwcSPJiQMjTkioE4lDMA2gzh',
 };
 
 const R2_HOST = 'r2.cloudflarestorage.com';
