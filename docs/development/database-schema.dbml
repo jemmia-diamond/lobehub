@@ -516,8 +516,9 @@ table document_histories {
   saved_at "timestamp with time zone" [not null]
 
   indexes {
-    (document_id, saved_at) [name: 'document_histories_document_id_saved_at_idx']
-    (user_id, saved_at) [name: 'document_histories_user_id_saved_at_idx']
+    document_id [name: 'document_histories_document_id_idx']
+    user_id [name: 'document_histories_user_id_idx']
+    saved_at [name: 'document_histories_saved_at_idx']
   }
 }
 
