@@ -98,7 +98,7 @@ export interface UserInitializationState {
   isFreePlan?: boolean;
   /** @deprecated Use onboarding field instead */
   isOnboard?: boolean;
-  larkProfile?: { unit?: string; department?: string; email?: string; jobTitle?: string; managerName?: string; name?: string } | null;
+  larkProfile?: { unit?: string; department?: string; email?: string; jobTitle?: string; name?: string } | null;
   lastName?: string;
   onboarding?: UserOnboarding;
   preference: UserPreference;

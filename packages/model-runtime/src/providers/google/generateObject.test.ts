@@ -338,7 +338,10 @@ describe('Google generateObject', () => {
 
       const result = await createGoogleGenerateObject(mockClient as any, payload);
 
-      expect(consoleSpy).toHaveBeenCalledWith('parse json error:', 'invalid json string');
+      expect(consoleSpy).toHaveBeenCalledWith('[Google] parse json error:', {
+        error: expect.any(SyntaxError),
+        text: 'invalid json string',
+      });
       expect(result).toBeUndefined();
 
       consoleSpy.mockRestore();

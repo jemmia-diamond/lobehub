@@ -33,12 +33,12 @@ import { FileS3 } from '@/server/modules/S3';
 import { AgentDocumentsService } from '@/server/services/agentDocuments';
 import { FileService } from '@/server/services/file';
 import { OnboardingService } from '@/server/services/onboarding';
+import { profile } from 'node:console';
 
 export interface LarkUserProfile {
   department?: string;
   email?: string;
   jobTitle?: string;
-  managerName?: string;
   name?: string;
   unit?: string;
 }
@@ -80,7 +80,6 @@ export const fetchLarkUserProfile = async (
     let jobTitle: string | undefined;
     let department: string | undefined;
     let email: string | undefined;
-    let managerName: string | undefined;
     let unit: string | undefined;
 
     if (unionId && authEnv.AUTH_LARK_APP_ID && authEnv.AUTH_LARK_APP_SECRET) {
@@ -114,18 +113,6 @@ export const fetchLarkUserProfile = async (
                 jobTitle = customJobTitle || u.job_title || undefined;
                 email = u.enterprise_email || u.email || undefined;
 
-                if (u.leader_user_id) {
-                  const managerRes = await fetch(
-                    `https://open.larksuite.com/open-apis/contact/v3/users/${u.leader_user_id}?user_id_type=union_id`,
-                    { headers: { Authorization: `Bearer ${tenantToken}` } },
-                  );
-                  if (managerRes.ok) {
-                    const managerData = await managerRes.json();
-                    if (managerData.code === 0 && managerData.data?.user?.name) {
-                      managerName = managerData.data.user.name;
-                    }
-                  }
-                }
                 const deptId: string | undefined = u.department_ids?.[0];
                 if (deptId) {
                   const deptRes = await fetch(
@@ -167,9 +154,9 @@ export const fetchLarkUserProfile = async (
       }
     }
 
-    console.info('[fetchLarkUserProfile] name:', name, 'jobTitle:', jobTitle, 'department:', department, 'unit:', unit, 'manager:', managerName);
+    console.info('[fetchLarkUserProfile] name:', name, 'jobTitle:', jobTitle, 'department:', department, 'unit:', unit);
 
-    const profile: LarkUserProfile = { unit, department, email, jobTitle, managerName, name };
+    const profile: LarkUserProfile = { unit, department, email, jobTitle, name };
     console.info('[fetchLarkUserProfile] fetched:', profile);
     return profile;
   } catch (e) {
