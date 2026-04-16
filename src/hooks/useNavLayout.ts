@@ -67,6 +67,13 @@ export const useNavLayout = (): NavLayout => {
   const bottomMenuItems = useMemo(
     () =>
       [
+        { 
+          hidden: !showMarket,
+          icon: getRouteById('community')!.icon,
+          key: SidebarTabKey.Community,
+          title: t('tab.community'),
+          url: '/community',
+        },
         {
           hidden: !enableResource,
           icon: getRouteById('resource')!.icon,
@@ -75,11 +82,10 @@ export const useNavLayout = (): NavLayout => {
           url: '/resource',
         },
         {
-          hidden: !showMarket,
-          icon: getRouteById('community')!.icon,
-          key: SidebarTabKey.Community,
-          title: t('tab.marketplace'),
-          url: '/community',
+          icon: getRouteById('memory')!.icon,
+          key: SidebarTabKey.Memory,
+          title: t('tab.memory'),
+          url: '/memory',
         },
       ] as NavItem[],
     [t, enableResource, showMarket],

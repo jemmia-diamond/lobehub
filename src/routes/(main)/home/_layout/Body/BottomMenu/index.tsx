@@ -1,12 +1,10 @@
-import { Flexbox } from '@lobehub/ui';
 import { memo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 
-import NavItem from '@/features/NavPanel/components/NavItem';
-import { useActiveTabKey } from '@/hooks/useActiveTabKey';
-import { useNavLayout } from '@/hooks/useNavLayout';
-import { isModifierClick } from '@/utils/navigation';
-
+/**
+ * BottomMenu items (Community, Resources) are now rendered by Body
+ * based on sidebarSectionOrder for drag-and-drop reordering support.
+ * This component is kept as a placeholder for potential future use.
+ */
 const BottomMenu = memo(() => {
   const tab = useActiveTabKey();
   const navigate = useNavigate();

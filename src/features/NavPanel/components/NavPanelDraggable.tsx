@@ -1,49 +1,37 @@
 'use client';
 
+<<<<<<< HEAD
 import { DraggablePanel, Freeze } from '@lobehub/ui';
 import { createStaticStyles  } from 'antd-style';
 import { AnimatePresence,motion, useIsPresent } from 'motion/react';
+||||||| cd49e98936
+import { DraggablePanel, Freeze } from '@lobehub/ui';
+import { createStaticStyles, cssVar } from 'antd-style';
+import { AnimatePresence, m, useIsPresent } from 'motion/react';
+=======
+import { DraggablePanel } from '@lobehub/ui';
+import { createStaticStyles, cssVar } from 'antd-style';
+>>>>>>> 1005f442d6cc7eeb5b43d94e0a396867226f06cb
 import { type ReactNode } from 'react';
-import { memo, Suspense, useLayoutEffect, useMemo, useRef } from 'react';
+import { memo, Suspense, useMemo, useRef } from 'react';
 
 import Footer from '@/routes/(main)/home/_layout/Footer';
 import { USER_DROPDOWN_ICON_ID } from '@/routes/(main)/home/_layout/Header/components/User';
 import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors';
+<<<<<<< HEAD
 import { useUserStore } from '@/store/user';
 import { userGeneralSettingsSelectors } from '@/store/user/selectors';
+||||||| cd49e98936
+import { useUserStore } from '@/store/user';
+import { userGeneralSettingsSelectors } from '@/store/user/selectors';
+import { isMacOS } from '@/utils/platform';
+=======
+import { isMacOS } from '@/utils/platform';
+>>>>>>> 1005f442d6cc7eeb5b43d94e0a396867226f06cb
 
 // import { useNavPanelSizeChangeHandler } from '../hooks/useNavPanel';
 import { BACK_BUTTON_ID } from './BackButton';
-
-type MotionDirection = -1 | 0 | 1;
-
-const MOTION_OFFSET = 8;
-
-const isMotionDisabled = (mode?: string) => mode === 'disabled';
-
-const getMotionDirectionByHistory = (history: string[], nextKey: string): MotionDirection => {
-  const currentKey = history.at(-1);
-  if (currentKey === nextKey) return 0;
-
-  return history.includes(nextKey) ? -1 : 1;
-};
-
-const motionVariants = {
-  animate: { opacity: 1, x: 0 },
-  exit: (direction: MotionDirection) => ({
-    opacity: 0,
-    x: -direction * MOTION_OFFSET,
-  }),
-  initial: (direction: MotionDirection) => ({
-    opacity: 0,
-    x: direction * MOTION_OFFSET,
-  }),
-  transition: {
-    duration: 0.28,
-    ease: [0.4, 0, 0.2, 1],
-  },
-} as const;
 
 const draggableStyles = createStaticStyles(({ css, cssVar }) => ({
   content: css`
@@ -67,8 +55,6 @@ const draggableStyles = createStaticStyles(({ css, cssVar }) => ({
     min-height: 0;
   `,
   layer: css`
-    will-change: opacity, transform;
-
     position: absolute;
     inset: 0;
 
@@ -122,21 +108,9 @@ interface NavPanelDraggableProps {
   };
 }
 
-interface ExitingFrozenContentProps {
-  children: ReactNode;
-}
-
 const classNames = {
   content: draggableStyles.content,
 };
-
-const ExitingFrozenContent = memo<ExitingFrozenContentProps>(({ children }) => {
-  const isPresent = useIsPresent();
-
-  return <Freeze frozen={!isPresent}>{children}</Freeze>;
-});
-
-ExitingFrozenContent.displayName = 'ExitingFrozenContent';
 
 export const NavPanelDraggable = memo<NavPanelDraggableProps>(({ activeContent }) => {
   const [expand, togglePanel] = useGlobalStore((s) => [

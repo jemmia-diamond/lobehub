@@ -39,7 +39,9 @@ import { desensitizeUrl } from '../../utils/desensitizeUrl';
 import { getModelPropertyWithFallback } from '../../utils/getFallbackModelProperty';
 import { getModelPricing } from '../../utils/getModelPricing';
 import { handleOpenAIError } from '../../utils/handleOpenAIError';
+import { isAccountDeactivatedError } from '../../utils/isAccountDeactivatedError';
 import { isExceededContextWindowError } from '../../utils/isExceededContextWindowError';
+import { isInsufficientQuotaError } from '../../utils/isInsufficientQuotaError';
 import { isQuotaLimitError } from '../../utils/isQuotaLimitError';
 import { postProcessModelList } from '../../utils/postProcessModelList';
 import { StreamingResponse } from '../../utils/response';
@@ -965,21 +967,9 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
         }
       }
 
-      const { errorResult, RuntimeError } = handleOpenAIError(error);
+      const { errorResult, RuntimeError, message } = handleOpenAIError(error);
 
       log('error code: %s, message: %s', errorResult.code, errorResult.message);
-
-      // Check for "Insufficient Balance" in error message
-      const errorMessage = errorResult.error?.message || errorResult.message;
-      if (errorMessage?.includes('Insufficient Balance')) {
-        log('insufficient balance error detected in message');
-        return AgentRuntimeError.chat({
-          endpoint: desensitizedEndpoint,
-          error: errorResult,
-          errorType: AgentRuntimeErrorType.InsufficientQuota,
-          provider: this.id,
-        });
-      }
 
       switch (errorResult.code) {
         case 'insufficient_quota': {
@@ -988,6 +978,7 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
             endpoint: desensitizedEndpoint,
             error: errorResult,
             errorType: AgentRuntimeErrorType.InsufficientQuota,
+            message,
             provider: this.id,
           });
         }
@@ -998,6 +989,7 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
             endpoint: desensitizedEndpoint,
             error: errorResult,
             errorType: AgentRuntimeErrorType.ModelNotFound,
+            message,
             provider: this.id,
           });
         }
@@ -1010,18 +1002,43 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
             endpoint: desensitizedEndpoint,
             error: errorResult,
             errorType: AgentRuntimeErrorType.ExceededContextWindow,
+            message,
             provider: this.id,
           });
         }
       }
 
       const errorMsg = errorResult.error?.message || errorResult.message;
+
+      if (isAccountDeactivatedError(errorMsg)) {
+        log('account deactivated error detected from message');
+        return AgentRuntimeError.chat({
+          endpoint: desensitizedEndpoint,
+          error: errorResult,
+          errorType: AgentRuntimeErrorType.AccountDeactivated,
+          message,
+          provider: this.id,
+        });
+      }
+
+      if (isInsufficientQuotaError(errorMsg)) {
+        log('insufficient quota error detected from message');
+        return AgentRuntimeError.chat({
+          endpoint: desensitizedEndpoint,
+          error: errorResult,
+          errorType: AgentRuntimeErrorType.InsufficientQuota,
+          message,
+          provider: this.id,
+        });
+      }
+
       if (isExceededContextWindowError(errorMsg)) {
         log('context length exceeded detected from message');
         return AgentRuntimeError.chat({
           endpoint: desensitizedEndpoint,
           error: errorResult,
           errorType: AgentRuntimeErrorType.ExceededContextWindow,
+          message,
           provider: this.id,
         });
       }
@@ -1032,6 +1049,7 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
           endpoint: desensitizedEndpoint,
           error: errorResult,
           errorType: AgentRuntimeErrorType.QuotaLimitReached,
+          message,
           provider: this.id,
         });
       }
@@ -1041,6 +1059,7 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
         endpoint: desensitizedEndpoint,
         error: errorResult,
         errorType: RuntimeError || ErrorType.bizError,
+        message,
         provider: this.id,
       });
     }

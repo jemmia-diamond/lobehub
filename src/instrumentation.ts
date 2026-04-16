@@ -4,12 +4,13 @@ export async function register() {
     await import('./libs/debug-file-logger');
   }
 
-  // Auto-start GatewayManager and KnowledgeBootstrap for non-Vercel environments so that
-  // persistent bots reconnect and global knowledge base is indexed natively at server restart.
+  // Auto-start GatewayManager and KnowledgeBootstrap on server start for non-Vercel environments (Docker, local).
+  // Persistent bots need reconnection and global knowledge base is indexed natively after restart.
+  // On Vercel, the cron job at /api/agent/gateway handles this reliably instead.
   if (
     process.env.NEXT_RUNTIME === 'nodejs' &&
-    !process.env.VERCEL_ENV &&
-    process.env.DATABASE_URL
+    process.env.DATABASE_URL &&
+    !process.env.VERCEL_ENV
   ) {
     const { GatewayService } = await import('./server/services/gateway');
     const service = new GatewayService();
