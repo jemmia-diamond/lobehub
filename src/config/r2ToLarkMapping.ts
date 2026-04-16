@@ -12,6 +12,8 @@ export const R2_TO_LARK_MAP: Record<string, string> = {
     'https://jemmiadiamond.sg.larksuite.com/wiki/TJKkwR1NliPvZnkssh0ltm9ygHI',
   'employee-attendance-regulations.md':
     'https://jemmiadiamond.sg.larksuite.com/wiki/ED1EwTnDAixs6fkWLZxlIq5NgTh',
+  'Quy Định Về Chấm Công Dành Cho Nhân Viên.md':
+    'https://jemmiadiamond.sg.larksuite.com/wiki/ED1EwTnDAixs6fkWLZxlIq5NgTh',
   'detailed-attendance-guide.md':
     'https://jemmiadiamond.sg.larksuite.com/wiki/MOUNwxiHaiKS6tkmoWgliXrIgWg',
   'Jemmia - Chính sách Phúc lợi.md':
