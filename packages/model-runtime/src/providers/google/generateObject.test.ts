@@ -342,7 +342,7 @@ describe('Google generateObject', () => {
         error: expect.any(SyntaxError),
         text: 'invalid json string',
       });
-      expect(result).toBeUndefined();
+      expect(result).toBe('invalid json string');
 
       consoleSpy.mockRestore();
     });

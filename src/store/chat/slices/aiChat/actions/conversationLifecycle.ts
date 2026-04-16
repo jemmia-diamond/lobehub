@@ -354,9 +354,10 @@ export class ConversationLifecycleActionImpl {
         const result = await this.#get().executeGatewayAgent({
           context: operationContext,
           message,
+          onComplete: () => {
+            this.#get().completeOperation(operationId);
+          },
         });
-
-        this.#get().completeOperation(operationId);
 
         return {
           assistantMessageId: result.assistantMessageId,

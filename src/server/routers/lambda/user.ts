@@ -33,7 +33,6 @@ import { FileS3 } from '@/server/modules/S3';
 import { AgentDocumentsService } from '@/server/services/agentDocuments';
 import { FileService } from '@/server/services/file';
 import { OnboardingService } from '@/server/services/onboarding';
-import { profile } from 'node:console';
 
 export interface LarkUserProfile {
   department?: string;
