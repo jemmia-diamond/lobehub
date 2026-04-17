@@ -94,7 +94,7 @@ class AgentService {
    * Create a new agent with session.
    * Automatically normalizes market agent config (handles model as object).
    */
-  createAgent = async (params: CreateAgentParams): Promise<CreateAgentResult> => {
+  createAgent = async (params: CreateAgentParams) => {
     const normalizedConfig = normalizeMarketAgentModel(params.config);
 
     return lambdaClient.agent.createAgent.mutate({

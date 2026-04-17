@@ -21,9 +21,6 @@ export const AgentRuntimeErrorType = {
    */
   ConversationParentMissing: 'ConversationParentMissing',
   LocationNotSupportError: 'LocationNotSupportError',
-  ConversationParentMissing: 'ConversationParentMissing',
-  AccountDeactivated: 'AccountDeactivated',
-
   AccountDeactivated: 'AccountDeactivated',
   QuotaLimitReached: 'QuotaLimitReached',
   InsufficientQuota: 'InsufficientQuota',
