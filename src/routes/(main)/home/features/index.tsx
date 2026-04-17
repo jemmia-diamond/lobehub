@@ -10,6 +10,7 @@ import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfi
 import { useUserStore } from '@/store/user';
 import { authSelectors } from '@/store/user/slices/auth/selectors';
 
+import CommunityAgents from './CommunityAgents';
 import HomeHeader from './HomeHeader';
 import InputArea from './InputArea';
 import ModeSelection from './ModeSelection';
@@ -46,6 +47,7 @@ export const ScrollableContent = memo(() => {
             {showHomeRecentPage && <RecentPage />}
           </>
         )}
+        {isLogin && showHomeRecentResource && <CommunityAgents />}
         {isLogin && showHomeRecentResource && <RecentResource />}
       </Flexbox>
     </Flexbox>

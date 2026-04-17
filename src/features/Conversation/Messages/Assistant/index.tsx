@@ -56,7 +56,7 @@ const AssistantMessage = memo<AssistantMessageProps>(({ id, index, disableEditin
 
   const avatar = useAgentMeta(agentId);
 
-  // Get editing, generating, and interrupted state from ConversationStore
+  // Get editing, generating, creating, and interrupted state from ConversationStore
   const editing = useConversationStore(messageStateSelectors.isMessageEditing(id));
   const generating = useConversationStore(messageStateSelectors.isMessageGenerating(id));
 
@@ -65,6 +65,7 @@ const AssistantMessage = memo<AssistantMessageProps>(({ id, index, disableEditin
   // 2. It is stuck with LOADING_FLAT content ('...') but has no active generating operation
   //    (common after a page reload or timeout where the local operation state is lost)
   const isStale = !generating && content === LOADING_FLAT;
+  const isCreating = useConversationStore(messageStateSelectors.isMessageCreating(id));
   const interrupted =
     useConversationStore(messageStateSelectors.isMessageInterrupted(id)) || isStale;
 
@@ -103,7 +104,7 @@ const AssistantMessage = memo<AssistantMessageProps>(({ id, index, disableEditin
       customErrorRender={(error) => <ErrorMessageExtra data={item} error={error} />}
       editing={editing}
       id={id}
-      loading={generating}
+      loading={generating || isCreating}
       message={message}
       placement={'left'}
       time={createdAt}
