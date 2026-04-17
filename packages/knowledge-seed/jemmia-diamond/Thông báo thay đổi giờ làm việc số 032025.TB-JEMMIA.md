@@ -5,6 +5,8 @@
 **CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM**
 **Độc lập – Tự do – Hạnh phúc**
 
+---
+
 _TP.HCM, ngày 12 tháng 03 năm 2025_
 
 ## THÔNG BÁO THAY ĐỔI GIỜ LÀM VIỆC
@@ -23,7 +25,7 @@ Nhằm mục tiêu tối ưu hóa thời gian làm việc, nâng cao trải nghi
   - Chiều: 13h30 - 18h00
   - Nghỉ trưa: 12h30 - 13h30
 - Thời gian nghỉ hằng tuần: Thứ Bảy và Chủ Nhật.
-- **Bộ phận Xưởng - Thợ Kim Hoàn:** Sẽ nghỉ 1 ngày trong tuần và chủ nhật (Theo sự sắp xếp của Quản lý trực tiếp).
+- **Bộ phận Xưởng - Thợ Kim Hoàn:** Sẽ nghỉ 1 ngày trong tuần và Chủ Nhật (Theo sự sắp xếp của Quản lý trực tiếp).
 
 **b) Áp dụng đối với nhân viên khối kinh doanh:**
 
@@ -40,8 +42,8 @@ Nhằm mục tiêu tối ưu hóa thời gian làm việc, nâng cao trải nghi
 
 **c) Thời gian áp dụng:**
 
-- Thời gian thử nghiệm: 17/03/2025 - 17/05/2025.
-  (sau thời gian này sẽ thông báo chính thức về thời gian làm việc dựa trên kết quả thử nghiệm).
+- **Thời gian thử nghiệm: 17/03/2025 - 17/05/2025.**
+- (sau thời gian này sẽ thông báo chính thức về thời gian làm việc dựa trên kết quả thử nghiệm).
 
 ### 2. Điều kiện áp dụng và thực hiện thông báo:
 
@@ -54,7 +56,10 @@ Nhằm mục tiêu tối ưu hóa thời gian làm việc, nâng cao trải nghi
 
 - Mọi thắc mắc vui lòng liên hệ Phòng Nhân sự (Ms. Nhàn) để được giải đáp và hướng dẫn thực hiện thông báo.
 
+---
+
 _TP. HCM, ngày 12 tháng 03 năm 2025_
 **GIÁM ĐỐC**
 _(Ký, họ tên, đóng dấu)_
+
 **NGÔ HOÀNG GIA MINH**
