@@ -35,15 +35,15 @@ export class PluginInternalsActionImpl {
     const manifests: Record<string, ToolManifest> = {};
 
     // Track source for each identifier
-    const sourceMap: Record<string, 'builtin' | 'plugin' | 'mcp' | 'klavis' | 'lobehubSkill'> = {};
+    const sourceMap: Record<string, 'builtin' | 'mcp' | 'klavis' | 'lobehubSkill'> = {};
 
     // Get all installed plugins
     const installedPlugins = pluginSelectors.installedPlugins(toolStoreState);
     for (const plugin of installedPlugins) {
       if (plugin.manifest) {
         manifests[plugin.identifier] = plugin.manifest as ToolManifest;
-        // Check if this plugin has MCP params
-        sourceMap[plugin.identifier] = plugin.customParams?.mcp ? 'mcp' : 'plugin';
+        // Only set source for MCP plugins; regular plugins have undefined source
+        if (plugin.customParams?.mcp) sourceMap[plugin.identifier] = 'mcp';
       }
     }
 

@@ -1,8 +1,8 @@
 import { documentService } from '@/services/document';
 import { useChatStore } from '@/store/chat';
-import { useGlobalStore } from '@/store/global';
 import { type SessionStore } from '@/store/session/store';
 import { type StoreSetter } from '@/store/types';
+import { getStableNavigate } from '@/utils/stableNavigate';
 import { setNamespace } from '@/utils/storeDebug';
 
 import { type StarterMode } from './initialState';
@@ -46,7 +46,7 @@ export class HomeInputActionImpl {
       );
 
       // 2. Navigate to Agent profile page
-      const navigate = useGlobalStore.getState().navigate;
+      const navigate = getStableNavigate();
       if (navigate) {
         navigate(`/agent/${newAgentId}/profile`);
       }
@@ -70,7 +70,7 @@ export class HomeInputActionImpl {
 
   sendAsImage = (): void => {
     // Navigate to /image page
-    const navigate = useGlobalStore.getState().navigate;
+    const navigate = getStableNavigate();
     if (navigate) {
       navigate('/image');
     }
@@ -98,7 +98,7 @@ export class HomeInputActionImpl {
       });
 
       // 2. Navigate to Page
-      const navigate = useGlobalStore.getState().navigate;
+      const navigate = getStableNavigate();
       if (navigate) {
         navigate(`/page/${newDoc.id}`);
       }

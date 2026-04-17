@@ -35,7 +35,7 @@ import {
   userMemoriesPreferences,
 } from '../../schemas';
 import type { LobeChatDatabase } from '../../type';
-import { sanitizeBm25Query } from '../../utils/bm25';
+import { SAFE_BM25_QUERY_OPTIONS, sanitizeBm25Query } from '../../utils/bm25';
 
 const DEFAULT_HYBRID_SEARCH_LIMIT = 5;
 const HYBRID_SEARCH_OVERFETCH_MULTIPLIER = 3;
@@ -2062,7 +2062,9 @@ export class UserMemoryQueryModel {
     params: SearchMemoryParams,
   ) {
     const normalizedQuery = typeof query === 'string' ? query.trim() : '';
-    const bm25Query = normalizedQuery ? sanitizeBm25Query(normalizedQuery) : '';
+    const bm25Query = normalizedQuery
+      ? sanitizeBm25Query(normalizedQuery, SAFE_BM25_QUERY_OPTIONS)
+      : '';
     const conditions = [
       eq(userMemoriesActivities.userId, this.userId),
       eq(userMemories.userId, this.userId),
@@ -2125,7 +2127,9 @@ export class UserMemoryQueryModel {
     params: SearchMemoryParams,
   ) {
     const normalizedQuery = typeof query === 'string' ? query.trim() : '';
-    const bm25Query = normalizedQuery ? sanitizeBm25Query(normalizedQuery) : '';
+    const bm25Query = normalizedQuery
+      ? sanitizeBm25Query(normalizedQuery, SAFE_BM25_QUERY_OPTIONS)
+      : '';
     const conditions = [
       eq(userMemoriesContexts.userId, this.userId),
       eq(userMemories.userId, this.userId),
@@ -2224,7 +2228,9 @@ export class UserMemoryQueryModel {
     params: SearchMemoryParams,
   ) {
     const normalizedQuery = typeof query === 'string' ? query.trim() : '';
-    const bm25Query = normalizedQuery ? sanitizeBm25Query(normalizedQuery) : '';
+    const bm25Query = normalizedQuery
+      ? sanitizeBm25Query(normalizedQuery, SAFE_BM25_QUERY_OPTIONS)
+      : '';
     const conditions = [
       eq(userMemoriesExperiences.userId, this.userId),
       eq(userMemories.userId, this.userId),
@@ -2280,7 +2286,9 @@ export class UserMemoryQueryModel {
     params: SearchMemoryParams,
   ) {
     const normalizedQuery = typeof query === 'string' ? query.trim() : '';
-    const bm25Query = normalizedQuery ? sanitizeBm25Query(normalizedQuery) : '';
+    const bm25Query = normalizedQuery
+      ? sanitizeBm25Query(normalizedQuery, SAFE_BM25_QUERY_OPTIONS)
+      : '';
     const conditions = [
       eq(userMemoriesPreferences.userId, this.userId),
       eq(userMemories.userId, this.userId),
@@ -2333,7 +2341,9 @@ export class UserMemoryQueryModel {
     params: SearchMemoryParams,
   ) {
     const normalizedQuery = typeof query === 'string' ? query.trim() : '';
-    const bm25Query = normalizedQuery ? sanitizeBm25Query(normalizedQuery) : '';
+    const bm25Query = normalizedQuery
+      ? sanitizeBm25Query(normalizedQuery, SAFE_BM25_QUERY_OPTIONS)
+      : '';
     const conditions = [
       eq(userMemoriesIdentities.userId, this.userId),
       eq(userMemories.userId, this.userId),

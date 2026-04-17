@@ -14,6 +14,7 @@ import { calculatorRuntime } from './calculator';
 import { cloudSandboxRuntime } from './cloudSandbox';
 import { credsRuntime } from './creds';
 import { cronRuntime } from './cron';
+import { gtdRuntime } from './gtd';
 import { larkDocRuntime } from './larkDoc';
 import { larkMessageRuntime } from './larkMessage';
 import { localSystemRuntime } from './localSystem';
@@ -66,6 +67,7 @@ registerRuntimes([
   userInteractionRuntime,
   credsRuntime,
   cronRuntime,
+  gtdRuntime,
   webOnboardingRuntime,
 ]);
 
