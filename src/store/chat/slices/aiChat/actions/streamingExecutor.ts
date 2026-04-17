@@ -769,6 +769,12 @@ export class StreamingExecutorActionImpl {
           log('[internal_execAgentRuntime] Operation paused for human intervention');
           break;
         }
+        default: {
+          // Loop exited without a terminal status (e.g. no nextContext) — complete to unblock UI
+          console.info(`[StreamingExecutor] Loop exited with unexpected status: ${state.status} — completing operation`);
+          this.#get().completeOperation(operationId);
+          break;
+        }
       }
     } catch (e: any) {
       log('[internal_execAgentRuntime] Loop crashed with error: %o', e);

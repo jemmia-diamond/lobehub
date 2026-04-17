@@ -386,6 +386,7 @@ const getJemOrchestrationHooks = (
         ]);
         console.info(`[Brainy] evaluate() resolved → model: ${model}`);
         payload.model = model;
+        console.info(`[Brainy] beforeChat complete — final model: ${payload.model}`);
         return;
       } catch (error) {
         console.error('[Brainy] evaluate() failed or timed out, falling back to resolve():', error);
@@ -399,6 +400,7 @@ const getJemOrchestrationHooks = (
     });
     console.info(`[Brainy] resolve() → model: ${model}`);
     payload.model = model;
+    console.info(`[Brainy] beforeChat complete — final model: ${payload.model}`);
   },
   beforeGenerateObject: async (payload) => {
     const mode = payload.model.toLowerCase();

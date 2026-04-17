@@ -149,7 +149,9 @@ export class ModelRouterService {
     const systemMessage = messages.find((m) => m.role === 'system');
     const systemContent = typeof systemMessage?.content === 'string' ? systemMessage.content : '';
     const hasKnowledgeInjected =
-      systemContent.includes('Knowledge Base') || systemRoleTokens > 2000;
+      systemContent.includes('Knowledge Base') ||
+      systemContent.includes('knowledge-base') ||
+      systemRoleTokens > 2000;
     const hasLarkIntegration =
       messages.some(
         (m) => typeof m.content === 'string' && m.content.includes('Lark Document ID'),
