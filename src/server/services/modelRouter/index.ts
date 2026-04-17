@@ -70,7 +70,7 @@ export class ModelRouterService {
 
       let modelId = (result as any)?.modelId;
 
-      // Fallback: scan any string representation for a valid model ID
+      // Fallback: scan any string representation for a valid model ID 
       // generateObject returns undefined (or raw text) when JSON parsing fails
       if (!modelId) {
         const resultStr = (typeof result === 'string' ? result : JSON.stringify(result)) ?? '';
