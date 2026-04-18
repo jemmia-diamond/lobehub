@@ -37,13 +37,12 @@ export class PluginInternalsActionImpl {
     // Track source for each identifier
     const sourceMap: Record<string, 'builtin' | 'mcp' | 'klavis' | 'lobehubSkill'> = {};
 
-    // Get all installed plugins
+    // Get all installed plugins (all treated as MCP now)
     const installedPlugins = pluginSelectors.installedPlugins(toolStoreState);
     for (const plugin of installedPlugins) {
       if (plugin.manifest) {
         manifests[plugin.identifier] = plugin.manifest as ToolManifest;
-        // Only set source for MCP plugins; regular plugins have undefined source
-        if (plugin.customParams?.mcp) sourceMap[plugin.identifier] = 'mcp';
+        sourceMap[plugin.identifier] = 'mcp';
       }
     }
 

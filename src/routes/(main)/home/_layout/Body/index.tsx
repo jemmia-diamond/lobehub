@@ -37,6 +37,13 @@ const SectionLabel = memo<{ children: React.ReactNode }>(({ children }) => (
 
 SectionLabel.displayName = 'SectionLabel';
 
+const ACCORDION_KEYS = new Set<string>([GroupKey.Recents, GroupKey.Agent]);
+
+const accordionComponents: Record<string, (key: string) => ReactElement> = {
+  [GroupKey.Agent]: (key) => <Agent itemKey={key} key={key} />,
+  [GroupKey.Recents]: (key) => <Recents itemKey={key} key={key} />,
+};
+
 const Body = memo(() => {
   const { t } = useTranslation('home');
   const { showHomeTopicHistory, showAgentListSidebar } =

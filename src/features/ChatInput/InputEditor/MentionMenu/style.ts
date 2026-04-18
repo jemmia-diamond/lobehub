@@ -85,6 +85,7 @@ export const styles = createStaticStyles(({ css }) => ({
     background: ${cssVar.colorFillSecondary};
   `,
   itemIcon: css`
+    overflow: hidden;
     display: flex;
     flex-shrink: 0;
     align-items: center;
@@ -92,6 +93,7 @@ export const styles = createStaticStyles(({ css }) => ({
 
     width: 24px;
     height: 24px;
+    border-radius: 6px;
   `,
   itemLabel: css`
     display: flex;
