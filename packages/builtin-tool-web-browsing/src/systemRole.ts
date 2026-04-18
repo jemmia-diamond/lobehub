@@ -1,3 +1,5 @@
+import { buildKnowledgeBaseList } from '@/config/r2ToLarkMapping';
+
 export const systemPrompt = (
   date: string,
 ) => `You have a Web Information tool with powerful internet access capabilities. You can search across multiple search engines and extract content from web pages to provide users with accurate, comprehensive, and up-to-date information.
@@ -11,17 +13,7 @@ export const systemPrompt = (
 
 <jemmia_diamond_knowledge_base>
 For any queries regarding **Jemmia Diamond**, you MUST prioritize crawling these authoritative R2 Markdown sources:
-- Nội quy & Quy định: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/Jemmia%20-%20N%E1%BB%99i%20quy%20lao%20%C4%91%E1%BB%99ng%20-%20C%E1%BA%ADp%20nh%E1%BA%ADt%2025.12.2024.md
-- Quy định Trang phục: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/Quy%20%C4%91%E1%BB%8Bnh%20s%E1%BB%91%20022025.Q%C4%90N-JEMMIA%20Vv%20Quy%20%C4%91%E1%BB%8Bnh%20v%E1%BB%81%20Trang%20ph%E1%BB%A5c%20nh%C3%A2n%20vi%C3%AAn%20k%C3%BD%20ng%C3%A0y%2006.10.2025.md
-- Thông báo Nghỉ lễ: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/Th%C3%B4ng%20b%C3%A1o%20ngh%E1%BB%89%20l%E1%BB%85%20Gi%E1%BB%97%20T%E1%BB%95-30.4-1.5.md
-- Thay đổi giờ làm: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/Th%C3%B4ng%20b%C3%A1o%20thay%20%C4%91%E1%BB%95i%20gi%E1%BB%9D%20l%C3%A0m%20vi%E1%BB%87c%20s%E1%BB%91%20032025.TB-JEMMIA.md
-- Quy Định Chấm Công: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/Quy%20%C4%90%E1%BB%8Bnh%20V%E1%BB%81%20Ch%E1%BA%A5m%20C%C3%B4ng%20D%C3%A0nh%20Cho%20Nh%C3%A2n%20Vi%C3%AAn.md
-- Hướng Dẫn Lark Approval: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/H%C6%B0%E1%BB%9Bng%20D%E1%BA%ABn%20S%E1%BB%AD%20D%E1%BB%A5ng%20Lark%20Approval.md
-- Hướng Dẫn Chấm Công Lark: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/H%C6%B0%E1%BB%9Bng%20d%E1%BA%ABn%20ch%E1%BA%A5m%20c%C3%B4ng%20b%E1%BA%B1ng%20Lark%20Attendance.md
-- Hướng Dẫn Đọc Kết Quả Chấm Công: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/H%C6%B0%E1%BB%9Bng%20D%E1%BA%ABn%20%C4%90%E1%BB%8Dc%20K%E1%BA%BFt%20Qu%E1%BA%A3%20Ch%E1%BA%A5m%20C%C3%B4ng%20%26%20S%E1%BB%AD%20D%E1%BB%A5ng%20Lark%20Attendance.md
-- Sổ Tay Hội Nhập Lark Suite: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/S%E1%BB%95%20Tay%20H%E1%BB%99i%20Nh%E1%BA%ADp%20Lark%20Suite.md
-- Sổ Tay Lark Suite: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/S%E1%BB%95%20Tay%20Lark%20Suite%20Cho%20Ng%C6%B0%E1%BB%9Di%20D%C3%B9ng.md
-- Chính sách Phúc lợi: https://90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/Jemmia%20-%20Ch%C3%ADnh%20s%C3%A1ch%20Ph%C3%BAc%20l%E1%BB%A3i.md
+${buildKnowledgeBaseList()}
 
 If the user's question relates to any of these topics, use 'crawlSinglePage' on the specific relevant URL above before searching elsewhere.
 </jemmia_diamond_knowledge_base>
