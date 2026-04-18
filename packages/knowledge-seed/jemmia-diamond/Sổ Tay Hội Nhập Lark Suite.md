@@ -49,7 +49,7 @@ Nếu cần quản lý email công ty, hãy tìm đến phần Mail. Bạn có t
 
 Nếu cần đề xuất nghỉ phép, tạm ứng lương, đề xuất mua hàng hóa... thì hãy sử dụng Approval.
 
-- **Lưu ý**: Hãy đọc qua [Hướng Dẫn Sử Dụng Lark Approval](file:///Users/mac/Downloads/Working/lobehub/packages/knowledge-seed/jemmia-diamond/H%C6%B0%E1%BB%9Bng%20D%E1%BA%ABn%20S%E1%BB%AD%20D%E1%BB%A5ng%20Lark%20Approval.md) trước khi gửi đề xuất đầu tiên của bạn nhé.
+- **Lưu ý**: Hãy đọc qua [Hướng Dẫn Sử Dụng Lark Approval](https://jemmiadiamond.sg.larksuite.com/wiki/ZByVw6jQDiEbKFk55eYlYj3ggUg) trước khi gửi đề xuất đầu tiên của bạn nhé.
 
 ### **Thanh tìm kiếm (Search Bar)**
 
