@@ -56,7 +56,6 @@ import {
   markPersistFatal,
 } from './messagePersistErrors';
 import { type IStreamEventManager } from './types';
-import { events } from '@react-three/fiber';
 
 const log = debug('lobe-server:agent-runtime:streaming-executors');
 const timing = debug('lobe-server:agent-runtime:timing');
