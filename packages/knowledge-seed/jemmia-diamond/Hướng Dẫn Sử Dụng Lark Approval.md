@@ -2,53 +2,79 @@
 
 ## Giới Thiệu Chung
 
-Lark Approval là tính năng quản lý các đề xuất (hợp đồng, nghỉ phép, thanh toán, v.v.) trong tổ chức nhằm có được sự đồng ý từ cấp trên hoặc các cá nhân/phòng ban được ủy quyền.
+**Approval** là tính năng cho phép quản lý các đề xuất trong tổ chức. Bản chất của việc gửi đề xuất là để có được sự đồng ý của cấp trên và/hoặc các cá nhân, phòng ban được công ty ủy quyền ra quyết định.
+
+**Ví dụ về một số loại đề xuất:**
+
+- Đề xuất nghỉ phép.
+- Đề xuất tuyển dụng.
+- Đề xuất duyệt kế hoạch.
+- Đề xuất chi tiền.
+
+Mặc định, nếu bạn là người gửi đề xuất, người theo dõi, hoặc người duyệt của một đề xuất, bạn sẽ được nhận tin nhắn thông báo liên quan từ **Approval Bot**. Bạn có thể bấm vào thông báo để xem nội dung chi tiết và thực hiện các hành động tương ứng.
+
+Trong trường hợp bạn muốn chủ động truy cập các đề xuất, thực hiện theo các hướng dẫn bên dưới. Thao tác trên máy tính và điện thoại là tương tự.
 
 ---
 
-## 1. Dành Cho Người Gửi Đề Xuất (Requesters)
+## 1. Dành Cho Người Gửi Đề Xuất
 
-### 1.1 Cách Gửi Đề Xuất
+### 1.1 Gửi Đề Xuất
 
-- Truy cập vào **Workplace** > **Approval** > **Submit Request**.
-- Chọn loại đề xuất bạn muốn gửi, điền đầy đủ thông tin và bấm **Submit**.
-- **Lưu ý**: Bạn có thể xem quy trình duyệt chi tiết ở cuối mỗi form đề xuất.
+1. Truy cập **Workplace** > **Approval** > **Submit Request**.
+2. Bấm vào loại đề xuất bạn muốn gửi, điền đầy đủ các thông tin theo yêu cầu và bấm nút **Submit**.
 
-### 1.2 Xem Trạng Thái và Xử Lý
+> [!TIP]
+> Bạn có thể xem quy trình duyệt đề xuất chi tiết ở cuối của mỗi form.
 
-- Truy cập **Workplace** > **Approval** > **Approval Center** > **Submitted**.
-- Bấm vào một đề xuất để xem trạng thái hiện tại (đang ở bước xử lý của ai).
+### 1.2 Xem Trạng Thái Xử Lý Đề Xuất
 
-### 1.3 Điều Chỉnh Nội Dung (Thay Đổi)
+1. Truy cập **Workplace** > **Approval** > **Approval Center**.
+2. Bấm vào mục **Submitted** để xem tất cả các đề xuất mà bạn đã gửi.
+3. Bấm vào một đề xuất cụ thể để thấy trạng thái xử lý hiện tại (đang ở bước của ai).
 
-Nếu đề xuất cần thay đổi thông tin sau khi đã gửi:
+### 1.3 Thay Đổi Nội Dung Đề Xuất
 
-1. Nhờ người đang xử lý bấm nút **Send Back**.
-2. Sau khi nhận được thông báo, truy cập mục **To-do** trong Approval Center.
-3. Cập nhật thông tin chính xác và bấm biểu tượng **Submit** để gửi lại.
-4. Mọi thông tin thay đổi sẽ được lưu trữ tại phần **Edit History**.
+Trong trường hợp đề xuất của bạn cần thay đổi nội dung, hãy thực hiện theo những bước sau:
 
-### 1.4 Các Thao Tác Nâng Cao
+1. Kiểm tra xem đề xuất đang đến phần xử lý của ai.
+2. Nhờ người đang xử lý đó bấm nút **Send Back**.
+3. Bạn sẽ nhận được thông báo đề xuất đã được trả lại cho bạn.
+4. Truy cập **Workplace** > **Approval** > **Approval Center**, bấm vào mục **To-do** để xem đề xuất.
+5. Bấm vào đề xuất vừa được trả lại, cập nhật thông tin chính xác và bấm **Submit** để gửi lại.
 
-- **Remind**: Nếu đề xuất lâu chưa được duyệt, bấm Remind để hệ thống gửi thông báo nhắc nhở cho người duyệt.
-- **Recall**: Hủy đề xuất đã gửi (việc này cần sự đồng ý của những người duyệt).
-- **Comment & Share**: Bạn có thể để lại bình luận hoặc chia sẻ đề xuất cho người khác để phối hợp xử lý.
-- **Add Followers**: Thêm người theo dõi để họ cùng nắm bắt trạng thái đề xuất.
+> [!NOTE]
+> Sau khi đề xuất được cập nhật, những thông tin đã chỉnh sửa có thể được xem lại ở phần **Edit History**.
 
----
+### 1.4 Các Thao Tác Khác
 
-## 2. Dành Cho Người Duyệt (Approvers)
-
-- Truy cập **Workplace** > **Approval** > **Approval Center**.
-- **To-do**: Xem và thực hiện các đề xuất đang chờ xử lý.
-- **Duyệt / Từ Chối**: Bấm **Approve** để thông qua hoặc **Reject** để từ chối (cần ghi rõ lý do).
-- **Send Back**: Trả lại đề xuất để người gửi điều chỉnh thông tin thay vì từ chối thẳng.
-- **Done**: Xem lại lịch sử các đề xuất mà bạn đã xử lý xong.
-- **Edit History**: Kiểm tra lịch sử thay đổi thông tin của đề xuất trước khi ra quyết định.
+- **Bình luận & Phối hợp**: Bạn có thể **Comment**, thêm người nhận thông báo (**Followers**) hoặc **Share** đề xuất cho người khác.
+- **Remind (Nhắc nhở)**: Nếu gửi đề xuất quá lâu không thấy duyệt, bấm **Remind** để hệ thống gửi thông báo cho người duyệt.
+- **Recall (Hủy)**: Nếu muốn hủy đề xuất đã gửi, bấm **Recall** hoặc **More > Recall**. Việc hủy này sẽ cần những người duyệt đồng ý.
 
 ---
 
-## 3. Dành Cho Người Theo Dõi (CC'd)
+## 2. Dành Cho Người Duyệt Đề Xuất/Người Xử Lý
 
-- Truy cập **Workplace** > **Approval** > **Approval Center**.
-- Chọn mục **CC'd** để theo dõi trạng thái của các đề xuất mà bạn được gắn thẻ theo dõi.
+1. Truy cập **Workplace** > **Approval** > **Approval Center**.
+2. **To-do**: Xem các đề xuất đang trong quá trình chờ bạn duyệt.
+3. **Từ chối**: Để từ chối một đề xuất, bấm **Cancel** hoặc **Reject**.
+4. **Done**: Xem lại các đề xuất mà bạn đã xử lý xong.
+
+### Trả lại đề xuất (Send Back)
+
+Trong trường hợp đề xuất có thông tin chưa chính xác cần điều chỉnh, ngoài việc từ chối (Reject), người duyệt có thể bấm nút **Send Back** để yêu cầu người gửi đề xuất chỉnh sửa lại thông tin thay vì phải làm lại đề xuất mới.
+
+> [!NOTE]
+> Sau khi đề xuất được cập nhật, thông tin chỉnh sửa có thể được xem lại tại phần **Edit History**.
+
+---
+
+## 3. Dành Cho Người Theo Dõi Đề Xuất (CC'd)
+
+1. Truy cập **Workplace** > **Approval** > **Approval Center**.
+2. Truy cập mục **CC'd** để theo dõi trạng thái của các đề xuất mà bạn được gắn thẻ theo dõi.
+
+---
+
+**Nguồn tài liệu:** [Synced from Lark Doc](https://jemmiadiamond.sg.larksuite.com/docx/VAJkdw7lAoh5j9xO8p2laPqPgEf#QJtJdZtEJsZd7lbl3melNwqQgLf)

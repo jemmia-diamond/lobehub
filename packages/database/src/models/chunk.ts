@@ -203,6 +203,7 @@ export class ChunkModel {
       .select({
         fileId: files.id,
         fileName: files.name,
+        fileUrl: files.url,
         id: chunks.id,
         index: chunks.index,
         metadata: chunks.metadata,
@@ -223,6 +224,7 @@ export class ChunkModel {
       return {
         fileId: item.fileId,
         fileName: item.fileName,
+        fileUrl: item.fileUrl,
         id: item.id,
         index: item.index,
         similarity: item.similarity,

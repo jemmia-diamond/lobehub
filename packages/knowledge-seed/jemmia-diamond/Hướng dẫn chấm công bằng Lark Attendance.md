@@ -1,29 +1,87 @@
-# Hướng Dẫn Chấm Công Lark Attendance
+# Hướng dẫn chấm công bằng Lark Attendance
 
-## 1. Tầm Quan Trọng Của Việc Sắp Xếp Lịch Làm Việc
+## Tại sao lại chấm công bằng Lark Attendance
 
-Việc sắp xếp lịch làm việc (Schedule) là điều kiện tiên quyết để hệ thống ghi nhận đúng trạng thái của nhân viên:
+| Khi chấm công bằng máy chấm công                                    | Khi chấm công bằng Lark Attendance                                                                                                                    |
+| :------------------------------------------------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Nhân viên thường xuyên quên chấm công.                              | Có tính năng thông báo thời gian check-in/check-out trước 5-10p (thông qua tin nhắn từ phần mềm Lark).                                                |
+| Việc kết nối máy chấm công và tải giờ công còn mất nhiều thời gian. | Chỉ có thể chấm công ở trong phạm vi 100m định vị của văn phòng.                                                                                      |
+| Không đồng bộ được dữ liệu chấm công của nhiều thiết bị.            | Có tính năng đề xuất chấm công lại trong trường hợp quên chấm công.                                                                                   |
+|                                                                     | Hỗ trợ việc tự động check-in/check-out khi mở phần mềm Lark mà không cần nhân viên phải thao tác.                                                     |
+|                                                                     | Đồng bộ được dữ liệu chấm công về Lark Base giảm thời gian tính công cho phòng nhân sự và kế toán.                                                    |
+|                                                                     | Đồng bộ được với phần mềm Lark Approval để gửi đề xuất (nghỉ phép, tăng ca, làm việc tại nhà, ...) và tự tính toán giờ/ngày công thực tế trong tháng. |
+|                                                                     | Giảm thiểu nguy cơ sai sót khi tính công hàng tháng.                                                                                                  |
 
-- Nhân viên chỉ có thể gửi các đề xuất: Nghỉ phép, Tăng ca, Làm việc từ xa... khi đã được xếp lịch làm việc.
-- **Ngày không xếp lịch**: Hệ thống mặc định hiểu là ngày nghỉ không lương.
+---
 
-## 2. Cách Sắp Xếp Lịch Làm Việc (Dành Cho Quản Lý)
+## 1. Cài đặt chung - Theo quy định công ty
 
-Để thiết lập lịch cho nhân viên:
+### 1.1 Đối với khối văn phòng
 
-1. Truy cập **Settings** và chọn **Group settings**.
-2. Chọn mục **Schedule** để mở giao diện quản lý lịch.
-3. Chọn lịch tương ứng và sắp xếp ca làm việc (Shift) cho từng nhân viên cụ thể.
+- **Thời gian làm việc**: 9h00 - 18h00.
+- **Lịch làm việc**: Từ thứ 2 - thứ 6, thứ 7 làm cách tuần.
+- **Thông báo từ Bot**: Bot sẽ gửi thông báo chấm công vào lúc **8h55** và **18h05** hàng ngày.
 
-## 3. Lưu Ý Về Đề Xuất Nghỉ Phép
+### 1.2 Đối với phòng kinh doanh
 
-Một lỗi thường gặp là khi gửi đề xuất nghỉ phép, hệ thống hiển thị **"tổng số ngày nghỉ là 0"**:
+- **Thời gian làm việc**: Chia làm 2 ca:
+  - **Ca 1**: 8h30 - 17h30.
+  - **Ca 2**: 12h00 - 21h00.
+- **Sắp xếp lịch**: Vào ngày làm việc cuối cùng của tuần, trưởng bộ phận sẽ sắp xếp lịch làm việc cho tuần kế tiếp.
+- **Thông báo từ Bot**:
+  - **Ca 1**: 8h25 và 17h25 hàng ngày.
+  - **Ca 2**: 11h55 và 20h55 hàng ngày.
 
-- **Nguyên nhân**: Ngày định xin nghỉ chưa được xếp ca làm việc. Lark coi đó là ngày nghỉ sẵn có nên không thể áp dụng thêm phép.
-- **Cách giải quyết**: Quản lý cần đặt lịch (chọn một ca làm việc bất kỳ) cho ngày đó trước, sau đó nhân viên mới tiến hành gửi đề xuất.
+---
 
-## 4. Kiểm Tra và Đồng Bộ Hóa
+## 2. Hướng dẫn sử dụng
 
-- Kết quả chấm công sẽ hiển thị chi tiết các lần Check-in/Check-out thực tế.
-- **Dành riêng cho phòng Kinh Doanh**: Thời gian chấm công sẽ được cập nhật vào Lark Base vào lúc **4:00 AM** hàng ngày.
-- Nếu có vấn đề phát sinh, vui lòng chụp/quay màn hình thao tác lỗi để gửi cho phòng HCNS và IT.
+### 2.1 Sử dụng chung
+
+#### 2.1.1 Chấm Công
+
+1. Tìm kiếm và mở ứng dụng **Attendance** trên Lark.
+2. Chọn **Cài đặt** và bật **Express clock in/out** để tự động chấm công khi mở app.
+3. Có thể cài đặt thời gian nhắc chấm công tại đây.
+
+> [!IMPORTANT]
+> **Phần mềm sẽ tự động check-in/out khi:**
+>
+> - Mở Lark trong phạm vi của công ty.
+> - Trong khoảng thời gian quy định: **Trước ca làm việc 60 phút** và **sau ca làm việc 480 phút**.
+
+#### 2.1.2 Kiểm tra kết quả chấm công hàng ngày
+
+- **Cách 1**: Kiểm tra trực tiếp trên app Attendance.
+- **Cách 2**: Kiểm tra trong file **Kết Quả Chấm Công**.
+
+> [!NOTE]
+> Kết quả chấm công sẽ được đồng bộ về file chậm hơn một ngày so với thực tế. Ví dụ: 5:00 sáng ngày 8-8 trên file mới đồng bộ kết quả chấm công ngày 7-8.
+
+#### 2.1.3 Gửi đề xuất Check-in Check-out Bù
+
+Trong trường hợp quên chấm công, nhân viên thực hiện:
+
+1. Truy cập **Lark Attendance** > **Requests**.
+2. Điền thông tin và gửi đề xuất.
+3. Sau khi cấp trên duyệt, giờ bù sẽ được ghi nhận.
+
+### 2.2 Dành riêng cho phòng Kinh Doanh
+
+#### 2.2.1 Đặt lịch (Dành cho Quản lý)
+
+1. Vào **Settings** > **Group settings**.
+2. Chọn **Schedule** để mở lịch làm việc.
+3. Chọn lịch và sắp xếp ca làm việc (Shift) theo từng nhân viên.
+
+> [!IMPORTANT]
+> Thời gian chấm công sẽ được update vào Base vào lúc **4h00 hàng ngày** tại **Lark Base: Synced From Attendance**.
+
+---
+
+## 3. Lưu Ý (Khắc Phục Lỗi "0 Ngày Nghỉ")
+
+Nếu gửi **Đề Xuất Nghỉ Phép** mà hệ thống hiển thị tổng số ngày nghỉ là 0:
+
+- **Nguyên nhân**: Do ngày đó chưa được xếp lịch làm việc (hệ thống hiểu là ngày nghỉ nên không thể xin nghỉ phép vào ngày nghỉ).
+- **Cách giải quyết**: Quản lý cần đặt lịch (chọn đại một ca) cho ngày đó, sau đó nhân viên mới có thể gửi đề xuất thành công.

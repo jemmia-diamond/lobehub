@@ -5,6 +5,7 @@ This document serves as a comprehensive guide for all team members when developi
 ## Project Description
 
 You are developing an open-source, modern-design AI Agent Workspace: LobeHub (previously LobeChat).
+This is a **Jemmia Diamond internal self-host deployment** — the default language is Vietnamese, the default agent is Brainy (Jemmia's internal AI assistant).
 
 ## Tech Stack
 
@@ -33,6 +34,7 @@ lobehub/
 │   ├── services/           # Client services
 │   ├── server/             # Server services and routers
 │   └── ...
+├── packages/knowledge-seed/jemmia-diamond/  # Jemmia KB seed files (auto-indexed on startup)
 ├── .agents/skills/         # AI development skills
 └── e2e/                    # E2E tests (Cucumber + Playwright)
 ```
@@ -59,29 +61,71 @@ The Jemmia provider (`src/server/modules/ModelRuntime/index.ts`) intercepts ever
 
 **Auto mode static heuristics** (`src/server/services/modelRouter/index.ts`):
 - 3+ files OR >256k tokens → `expert`
-- KB injected OR Lark integration OR 1-2 files OR >128k tokens → `thinking`
+- KB tool present OR `Knowledge-First` in system prompt OR Lark integration OR 1-2 files OR >128k tokens → `thinking`
 - Everything else → `fast`
+
+**Important**: When KB tool (`lobe-knowledge-base`) is in the tool list and `evaluate()` picks FAST, it is automatically upgraded to THINKING. FAST model corrupts Vietnamese tool calls with long tool names.
+
+### Inbox Agent (Brainy)
+
+The inbox agent is Jemmia's internal AI assistant. Key behaviors enforced server-side regardless of user settings:
+
+- **KB always enabled**: `hasEnabledKnowledgeBases = true` for inbox agent (`src/server/services/aiAgent/index.ts`)
+- **Memory always enabled**: `globalMemoryEnabled = true`
+- **Web search always on**: `searchMode = 'auto'`
+- **KB tool in plugins**: `KnowledgeBaseIdentifier` added to inbox agent plugins (`packages/builtin-agents/src/agents/inbox/index.ts`)
+
+**User profile injection**: On app entry, `fetchLarkUserProfile()` fetches name, jobTitle, department, email, unit from Lark API and injects into system role as `## USER PROFILE` section. This gives the agent context about who it's talking to.
 
 ### Knowledge Base vs Web Browsing (R2 Fallback)
 
 Two separate knowledge sources — never mix their citation behavior:
 
-**KB Tool** (`knowledge-base`):
+**KB Tool** (`lobe-knowledge-base`):
 - Searches indexed local markdown files via pgvector (3072-dim embeddings, `gemini-embedding-2-preview`)
 - Returns relevant chunks to the LLM
-- **Never generates R2 URL citations** — data is internal, no external URL needed
+- **Can generate R2 URL citations** via `formatSearchResults.ts` — when file has `local://jemmia-diamond/` URL, an R2 URL is generated and the LLM is instructed to use markdown footnotes `[^1]: [filename](r2Url)`
+- Clicking footnote → `getLarkUrlForR2()` maps R2 URL to Lark wiki URL
 
-**Web Browsing Tool** (fallback KB):
+**Web Browsing Tool** (`lobe-web-browsing`):
 - Used when KB returns no results, or for real-time web search
 - Contains hardcoded R2 URLs for Jemmia documents (`packages/builtin-tool-web-browsing/src/systemRole.ts`)
 - Crawls R2 markdown files directly via `crawlSinglePage`/`crawlMultiPages`
 - **Cites R2 URLs in footnotes** → `getLarkUrlForR2()` maps them to Lark wiki URLs on click
 
-**Rule**: If you see R2 URL citations in a response that came from the KB tool, that is a bug. R2 citations only belong to web browsing tool responses.
+### Citation Types
+
+| Type | Source | Component | Click Behavior |
+|------|--------|-----------|----------------|
+| Web search | `lobe-web-browsing` | `SearchGrounding.tsx` | R2→Lark redirect or open URL |
+| KB chunks | `lobe-knowledge-base` | `FileChunks.tsx` | Internal file preview |
+| KB footnotes | `lobe-knowledge-base` | `Markdown/index.tsx` | R2→Lark redirect |
+| Model-native | LLM provider (Google/OpenAI) | `SearchGrounding.tsx` | R2→Lark redirect or open URL |
+
+**R2→Lark mapping**: `src/config/r2ToLarkMapping.ts` — maps R2 filenames to Lark wiki URLs. Update this when adding/renaming knowledge files.
+
+### Knowledge Bootstrap
+
+Jemmia knowledge files live in `packages/knowledge-seed/jemmia-diamond/`. On every server startup, `KnowledgeBootstrapService` syncs them to the DB:
+
+- **Create**: new file on disk → indexed automatically
+- **Update**: SHA-256 hash change detected → old record deleted → re-indexed
+- **Delete**: file removed from disk → DB record deleted (cascades to chunks/embeddings)
+- **Rename**: same hash, different URL → record updated in-place (no re-embedding cost)
+
+URL format: `local://jemmia-diamond/filename.md` — used as stable key for deletion detection.
 
 ### Embedding Dimensions
 
 The RAG pipeline uses `gemini-embedding-2-preview` at **3072 dimensions** (native). The pgvector column uses a `halfvec` HNSW index cast for performance (pgvector 0.8+ supports halfvec up to 4000 dims). User memory tables intentionally stay at 1024 dims (`_1024` suffix columns) — different model, do not change.
+
+### Stale Loading Fixes
+
+The operation lifecycle (`src/store/chat/slices/aiChat/actions/streamingExecutor.ts`) wraps the agent runtime loop in try/catch/finally:
+- Any crash → `failOperation()` clears loading state
+- Loop exits with unexpected status → `default:` case calls `completeOperation()`
+- Gateway disconnect/error → `failOperation()` via `gateway.ts` and `gatewayEventHandler.ts`
+- Stop button cancels both `execAgentRuntime` and `execServerAgentRuntime` ops
 
 ## Development Workflow
 
@@ -129,7 +173,7 @@ cd packages/[package-name] && bunx vitest run --silent='passed-only' '[file-path
 ### i18n
 
 - **Keys**: Add to `src/locales/default/namespace.ts`
-- **Dev**: Translate `locales/zh-CN/namespace.json` locale file only for preview
+- **Dev**: Translate `locales/vi-VN/namespace.json` locale file only for preview
 - DON'T run `pnpm i18n`, let CI auto handle it
 
 #### Default Language: `vi-VN`
@@ -164,6 +208,28 @@ This mistake has been introduced multiple times. Every time `vi-VN` is routed to
 - **`src/features/`** holds business components by **domain** (e.g. `Pages`, `PageEditor`, `Home`). Layout pieces, hooks, and domain UI go here.
 - **Desktop router parity:** When changing the main SPA route tree, update **both** `src/spa/router/desktopRouter.config.tsx` (dynamic imports) and `src/spa/router/desktopRouter.config.desktop.tsx` (sync imports) so paths and nesting match. Changing only one can leave routes unregistered and cause **blank screens**.
 - See the **spa-routes** skill (`.agents/skills/spa-routes/SKILL.md`) for the full convention and file-division rules.
+
+## Jemmia-Specific Configuration
+
+### System Prompt Files
+- **Inbox agent**: `packages/builtin-agents/src/agents/inbox/systemRole.ts` — runtime system role with user profile injection
+- **Default agent config**: `packages/const/src/settings/agent.ts` — static system role for DB-seeded config
+
+Both files must be kept in sync. The inbox `systemRole.ts` takes precedence at runtime.
+
+### Lark Integration
+- **OAuth**: `src/libs/better-auth/sso/providers/lark.ts`
+- **User profile fetch**: `src/server/routers/lambda/user.ts` → `fetchLarkUserProfile()` — fetches from Lark Contact API using tenant token
+- **Silent login**: `src/hooks/useLarkSilentLogin.ts` — handles token refresh in Lark embedded webview
+- **R2→Lark mapping**: `src/config/r2ToLarkMapping.ts` — update when adding/renaming knowledge files
+
+### Knowledge Files
+- Location: `packages/knowledge-seed/jemmia-diamond/`
+- Format: Markdown (`.md`)
+- Auto-indexed on server startup via `KnowledgeBootstrapService`
+- After adding/renaming files, also update:
+  1. `src/config/r2ToLarkMapping.ts` — add filename → Lark wiki URL mapping
+  2. `packages/builtin-tool-web-browsing/src/systemRole.ts` — add R2 URL to KB section
 
 ## Skills (Auto-loaded)
 
