@@ -45,6 +45,39 @@ const SPAGlobalProvider = memo<PropsWithChildren>(({ children }) => {
   const isMobile =
     (serverConfig?.isMobile ?? typeof __MOBILE__ !== 'undefined') ? __MOBILE__ : false;
 
+  // Also detect mobile via viewport width for browser/Lark embedded access
+  const isMobileViewport = typeof window !== 'undefined' && window.innerWidth < 768;
+
+  if (isMobile || isMobileViewport) {
+    return (
+      <NextThemeProvider>
+        <AppTheme>
+          <div
+            style={{
+              alignItems: 'center',
+              background: '#f8f8f8',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+              height: '100dvh',
+              justifyContent: 'center',
+              padding: 24,
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: 48 }}>💻</div>
+            <div style={{ color: '#0a0a0a', fontSize: 20, fontWeight: 600 }}>
+              Chưa hỗ trợ thiết bị di động
+            </div>
+            <div style={{ color: '#666', fontSize: 14, lineHeight: 1.6, maxWidth: 280 }}>
+              Brainy hiện chỉ hoạt động trên máy tính. Vui lòng truy cập trên trình duyệt desktop để sử dụng đầy đủ tính năng.
+            </div>
+          </div>
+        </AppTheme>
+      </NextThemeProvider>
+    );
+  }
+
   return (
     <Locale defaultLang={locale}>
       <NextThemeProvider>
