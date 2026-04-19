@@ -18,7 +18,7 @@ import { getBusinessModelRuntimeHooks } from '@/business/server/model-runtime';
 import { AiProviderModel } from '@/database/models/aiProvider';
 import { type LobeChatDatabase } from '@/database/type';
 import { getLLMConfig } from '@/envs/llm';
-import { ModelRouterService } from '@/server/services/modelRouter';
+import { JEMMIA_MODELS, ModelRouterService } from '@/server/services/modelRouter';
 
 import { KeyVaultsGateKeeper } from '../KeyVaultsEncrypt';
 import { KnowledgeBootstrapService } from '../KnowledgeBootstrap';
@@ -369,6 +369,10 @@ const getJemOrchestrationHooks = (
     const mode = payload.model.toLowerCase();
     console.info(`[Brainy] beforeChat triggered — mode: ${mode}, messages: ${payload.messages?.length ?? 0}, tools: ${payload.tools?.length ?? 0}`);
 
+    const hasKbTool = (payload.tools || []).some(
+      (t: any) => (t.function?.name || t.identifier || t.type || '').includes('lobe-knowledge-base'),
+    );
+
     if (mode === 'auto') {
       try {
         console.info('[Brainy] AUTO mode — calling evaluate()');
@@ -385,7 +389,12 @@ const getJemOrchestrationHooks = (
           routingTimeout,
         ]);
         console.info(`[Brainy] evaluate() resolved → model: ${model}`);
-        payload.model = model;
+        if (hasKbTool && model === JEMMIA_MODELS.FAST) {
+          console.info('[Brainy] KB tool present + FAST selected → upgrading to THINKING');
+          payload.model = JEMMIA_MODELS.THINKING;
+        } else {
+          payload.model = model;
+        }
         console.info(`[Brainy] beforeChat complete — final model: ${payload.model}`);
         return;
       } catch (error) {
@@ -399,7 +408,12 @@ const getJemOrchestrationHooks = (
       tools: payload.tools || [],
     });
     console.info(`[Brainy] resolve() → model: ${model}`);
-    payload.model = model;
+    if (hasKbTool && model === JEMMIA_MODELS.FAST) {
+      console.info('[Brainy] KB tool present + FAST selected → upgrading to THINKING');
+      payload.model = JEMMIA_MODELS.THINKING;
+    } else {
+      payload.model = model;
+    }
     console.info(`[Brainy] beforeChat complete — final model: ${payload.model}`);
   },
   beforeGenerateObject: async (payload) => {

@@ -207,11 +207,11 @@ export class KnowledgeBootstrapService {
 
     // 4. Ensure the knowledge-base tool is enabled in agent's plugins
     const existingPlugins = (inboxAgent.plugins as string[]) || [];
-    if (!existingPlugins.includes('knowledge-base')) {
-      console.info(`[KnowledgeBootstrap] Enabling knowledge-base tool for Inbox agent...`);
+    if (!existingPlugins.includes('lobe-knowledge-base')) {
+      console.info(`[KnowledgeBootstrap] Enabling lobe-knowledge-base tool for Inbox agent...`);
       await db
         .update(agents)
-        .set({ plugins: [...existingPlugins, 'knowledge-base'] })
+        .set({ plugins: [...existingPlugins, 'lobe-knowledge-base'] })
         .where(eq(agents.id, inboxAgent.id));
     }
   }

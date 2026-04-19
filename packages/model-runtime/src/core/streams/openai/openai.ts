@@ -167,13 +167,13 @@ const transformOpenAIStream = (
       if (tool_calls.length > 0) {
         // Validate tool calls - function must exist for valid tool calls
         // This ensures proper error handling for malformed chunks
-        const hasInvalidToolCall = item.delta.tool_calls.some((tc) => tc.function === null);
+        const hasInvalidToolCall = tool_calls.some((tc) => tc.function === null);
         if (hasInvalidToolCall) {
           throw new Error('Invalid tool call: function is null');
         }
 
         return {
-          data: item.delta.tool_calls.map((value, mapIndex): StreamToolCallChunkData => {
+          data: tool_calls.map((value, mapIndex): StreamToolCallChunkData => {
             // Determine the actual tool index
             const toolIndex = typeof value.index !== 'undefined' ? value.index : mapIndex;
 

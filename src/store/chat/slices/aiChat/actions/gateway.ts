@@ -42,6 +42,10 @@ export interface ConnectGatewayParams {
    */
   onSessionComplete?: () => void;
   /**
+   * Called when the session ends due to an error or unexpected disconnect
+   */
+  onSessionError?: () => void;
+  /**
    * The operation ID returned by execAgent
    */
   operationId: string;
@@ -76,7 +80,7 @@ export class GatewayActionImpl {
    * Creates an AgentStreamClient, manages its lifecycle, and wires up event callbacks.
    */
   connectToGateway = (params: ConnectGatewayParams): void => {
-    const { operationId, gatewayUrl, token, onEvent, onSessionComplete, resumeOnConnect } = params;
+    const { operationId, gatewayUrl, token, onEvent, onSessionComplete, onSessionError, resumeOnConnect } = params;
 
     // Disconnect existing connection for this operation if any
     this.disconnectFromGateway(operationId);
@@ -146,14 +150,12 @@ export class GatewayActionImpl {
         });
       }
 
+      onSessionError?.();
       triggerComplete();
     });
 
     // Handle initial connection failure or unexpected disconnection
     client.on('disconnected', () => {
-      // Only fire session complete if a terminal agent event was received.
-      // Auth failures, explicit disconnect(), and other non-terminal disconnects
-      // should NOT trigger onSessionComplete.
       if (!isFinished && params.localOperationId) {
         const op = this.#get().operations[params.localOperationId];
         if (op && op.status === 'running') {
@@ -167,6 +169,7 @@ export class GatewayActionImpl {
       if (receivedTerminalEvent) {
         triggerComplete();
       } else {
+        onSessionError?.();
         this.internal_cleanupGatewayConnection(operationId);
       }
     });
@@ -314,13 +317,16 @@ export class GatewayActionImpl {
         this.#get().completeOperation(gatewayOpId);
         if (result.topicId) {
           this.#get().internal_updateTopicLoading(result.topicId, false);
-          // Clear running operation from topic metadata (best-effort from frontend;
-          // if browser was closed, reconnect logic will handle stale entries)
           topicService
             .updateTopicMetadata(result.topicId, { runningOperation: null })
             .catch(() => {});
         }
         onComplete?.();
+      },
+      onSessionError: () => {
+        if (result.topicId) {
+          this.#get().internal_updateTopicLoading(result.topicId, false);
+        }
       },
       operationId: result.operationId,
       localOperationId: gatewayOpId,
@@ -389,6 +395,9 @@ export class GatewayActionImpl {
         this.#get().completeOperation(gatewayOpId);
         this.#get().internal_updateTopicLoading(topicId, false);
         topicService.updateTopicMetadata(topicId, { runningOperation: null }).catch(() => {});
+      },
+      onSessionError: () => {
+        this.#get().internal_updateTopicLoading(topicId, false);
       },
       operationId,
       localOperationId: gatewayOpId,
