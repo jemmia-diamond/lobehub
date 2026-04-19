@@ -1,0 +1,1 @@
+export const FETCH_MESSAGES_KEY = 'FETCH_MESSAGES_KEY';

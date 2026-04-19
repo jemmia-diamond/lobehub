@@ -17,7 +17,7 @@ import { topicService } from '@/services/topic';
 import { type ChatStore } from '@/store/chat';
 import { topicMapKey } from '@/store/chat/utils/topicMapKey';
 import { useGlobalStore } from '@/store/global';
-import { FETCH_RECENT_TOPICS_KEY } from '@/store/home/slices/recent';
+import { FETCH_RECENTS_KEY } from '@/store/home/slices/recent';
 import { type StoreSetter } from '@/store/types';
 import { useUserStore } from '@/store/user';
 import { systemAgentSelectors, userGeneralSettingsSelectors } from '@/store/user/selectors';
@@ -626,8 +626,8 @@ export class ChatTopicActionImpl {
     );
     await mutate(
       (key) =>
-        (typeof key === 'string' && key === FETCH_RECENT_TOPICS_KEY) ||
-        (Array.isArray(key) && key[0] === FETCH_RECENT_TOPICS_KEY),
+        (typeof key === 'string' && key === FETCH_RECENTS_KEY) ||
+        (Array.isArray(key) && key[0] === FETCH_RECENTS_KEY),
     );
   };
 

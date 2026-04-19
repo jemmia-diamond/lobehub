@@ -76,7 +76,6 @@ const AgentOnboardingConversation = memo<AgentOnboardingConversationProps>(
       const isLatestItem = displayMessages.length === index + 1;
       return (
         <MessageItem
-          defaultWorkflowExpanded={false}
           id={id}
           index={index}
           isLatestItem={isLatestItem}

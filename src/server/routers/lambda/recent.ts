@@ -40,10 +40,8 @@ export const recentRouter = router({
           case 'topic': {
             if (item.routeGroupId) {
               routePath = `/group/${item.routeGroupId}?topic=${item.id}`;
-            } else if (item.routeId) {
-              routePath = `/agent/${item.routeId}?topic=${item.id}`;
             } else {
-              routePath = '/';
+              routePath = `/agent/${item.routeId || 'inbox'}?topic=${item.id}`;
             }
             break;
           }
@@ -52,7 +50,7 @@ export const recentRouter = router({
             break;
           }
           case 'task': {
-            routePath = item.routeId ? `/agent/${item.routeId}` : '/';
+            routePath = `/agent/${item.routeId || 'inbox'}`;
             break;
           }
         }

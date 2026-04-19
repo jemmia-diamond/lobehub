@@ -6,7 +6,6 @@ import { useTranslation } from 'react-i18next';
 
 import { CURRENT_VERSION } from '@/const/version';
 import SideBarLayout from '@/features/NavPanel/SideBarLayout';
-import { useInitRecentTopic } from '@/hooks/useInitRecentTopic';
 import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors';
 
@@ -44,7 +43,6 @@ const VersionFooter = memo(() => {
 VersionFooter.displayName = 'VersionFooter';
 
 const Sidebar = memo(() => {
-  useInitRecentTopic();
   const expand = useGlobalStore(systemStatusSelectors.showLeftPanel);
 
   return (

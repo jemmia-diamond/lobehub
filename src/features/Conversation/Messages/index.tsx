@@ -41,7 +41,6 @@ const styles = createStaticStyles(({ css }) => ({
 
 export interface MessageItemProps {
   className?: string;
-  defaultWorkflowExpanded?: boolean;
   disableEditing?: boolean;
   enableHistoryDivider?: boolean;
   endRender?: ReactNode;
@@ -54,7 +53,6 @@ export interface MessageItemProps {
 const MessageItem = memo<MessageItemProps>(
   ({
     className,
-    defaultWorkflowExpanded,
     enableHistoryDivider,
     id,
     endRender,
@@ -131,7 +129,6 @@ const MessageItem = memo<MessageItemProps>(
         case 'assistantGroup': {
           return (
             <AssistantGroupMessage
-              defaultWorkflowExpanded={defaultWorkflowExpanded}
               disableEditing={disableEditing}
               id={id}
               index={index}
@@ -183,7 +180,7 @@ const MessageItem = memo<MessageItemProps>(
       }
 
       return null;
-    }, [role, defaultWorkflowExpanded, disableEditing, id, index, isLatestItem]);
+    }, [role, disableEditing, id, index, isLatestItem]);
 
     if (!role) return;
 

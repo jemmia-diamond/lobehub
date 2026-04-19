@@ -10,55 +10,48 @@ import { useTopicItemDropdownMenu } from '../../../agent/_layout/Sidebar/Topic/L
 
 interface RecentTopicItemProps {
   active?: boolean;
-  agent: RecentTopicAgent | null;
-  group: RecentTopicGroup | null;
+  agent?: RecentTopicAgent | null;
+  group?: RecentTopicGroup | null;
   id: string;
+  routePath?: string;
   title: string;
-  type: 'agent' | 'group';
+  type?: string;
 }
 
-const RecentTopicItem = memo<RecentTopicItemProps>(({ id, title, active, type, agent, group }) => {
-  const navigate = useNavigate();
-  const [editing, setEditing] = useState(false);
+const RecentTopicItem = memo<RecentTopicItemProps>(
+  ({ id, title, active, agent, group, routePath }) => {
+    const navigate = useNavigate();
+    const [editing, setEditing] = useState(false);
 
-  const toggleEditing = (visible?: boolean) => {
-    setEditing(visible ?? !editing);
-  };
+    const toggleEditing = (visible?: boolean) => {
+      setEditing(visible ?? !editing);
+    };
 
-  const { dropdownMenu } = useTopicItemDropdownMenu({
-    id,
-    toggleEditing,
-  });
+    const { dropdownMenu } = useTopicItemDropdownMenu({
+      id,
+      toggleEditing,
+    });
 
-  const topicUrl =
-    type === 'group' && group
-      ? `/group/${group.id}?topic=${id}`
-      : `/agent/${agent?.id}?topic=${id}`;
+    const displayTitle = title || group?.title || agent?.title || '';
 
-  const displayTitle = title || group?.title || agent?.title || '';
-
-  return (
-    <NavItem
-      active={active}
-      contextMenuItems={dropdownMenu}
-      paddingInline={8}
-      /**
-         actions={
-          <DropdownMenu items={dropdownMenu}>
-            <ActionIcon icon={MoreHorizontalIcon} size={'small'} />
-          </DropdownMenu>
-        }
-        */
-      title={displayTitle}
-      style={{
-        marginRight: 8,
-        backgroundColor: active ? '#E4E2DB' : undefined,
-      }}
-      onClick={() => {
-        navigate(topicUrl);
-      }}
-    />
-  );
-});
+    return (
+      <NavItem
+        active={active}
+        contextMenuItems={dropdownMenu}
+        paddingInline={8}
+        title={displayTitle}
+        style={{
+          marginRight: 8,
+          backgroundColor: active ? '#E4E2DB' : undefined,
+        }}
+        onClick={() => {
+          if (routePath) {
+            navigate(routePath);
+          }
+        }}
+      />
+    );
+  },
+);
 
 export default RecentTopicItem;

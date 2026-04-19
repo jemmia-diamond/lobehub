@@ -13,9 +13,7 @@ import { authSelectors } from '@/store/user/slices/auth/selectors';
 import HomeHeader from './HomeHeader';
 import InputArea from './InputArea';
 import ModeSelection from './ModeSelection';
-import RecentPage from './RecentPage';
-import RecentResource from './RecentResource';
-import RecentTopic from './RecentTopic';
+import RecentsList from './Recents/List';
 
 export const ScrollableContent = memo(() => {
   useTranslation();
@@ -23,9 +21,6 @@ export const ScrollableContent = memo(() => {
   const inputActiveMode = useHomeStore((s) => s.inputActiveMode);
   const {
     enableAgent,
-    showHomeRecentTopic,
-    showHomeRecentPage,
-    showHomeRecentResource,
     showHomeTopicHistory,
     showHomeModeSelection,
   } = useServerConfigStore(featureFlagsSelectors);
@@ -42,11 +37,9 @@ export const ScrollableContent = memo(() => {
       <Flexbox gap={40} style={{ display: hideOtherModules ? 'none' : undefined }}>
         {showHomeTopicHistory && enableAgent && isLogin && (
           <>
-            {showHomeRecentTopic && <RecentTopic />}
-            {showHomeRecentPage && <RecentPage />}
           </>
         )}
-        {isLogin && showHomeRecentResource && <RecentResource />}
+        {isLogin && <RecentsList />}
       </Flexbox>
     </Flexbox>
   );

@@ -11,7 +11,7 @@ import { builtinAgentSelectors } from '@/store/agent/selectors';
 import { useChatStore } from '@/store/chat';
 import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors';
-import { FETCH_RECENT_TOPICS_KEY } from '@/store/home/slices/recent';
+import { FETCH_RECENTS_KEY } from '@/store/home/slices/recent';
 
 import JemLogo from './components/JemLogo';
 
@@ -27,7 +27,7 @@ const Header = memo(() => {
     else router.push('/agent');
 
     await mutate();
-    await swrMutate((key) => Array.isArray(key) && key[0] === FETCH_RECENT_TOPICS_KEY);
+    await swrMutate((key) => Array.isArray(key) && key[0] === FETCH_RECENTS_KEY);
   };
 
   return (
