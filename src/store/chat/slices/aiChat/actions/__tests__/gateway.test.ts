@@ -278,12 +278,13 @@ describe('GatewayActionImpl', () => {
 
       const get = vi.fn(() => ({
         ...state,
-        startOperation: vi.fn(() => ({ operationId: 'gw-op-1' })),
         associateMessageWithOperation: vi.fn(),
+        completeOperation: vi.fn(),
         connectToGateway: vi.fn(),
         internal_updateTopicLoading: vi.fn(),
         onOperationCancel: vi.fn(),
         replaceMessages: vi.fn(),
+        startOperation: vi.fn(() => ({ operationId: 'gw-op-1' })),
         switchTopic: vi.fn(),
       })) as any;
 
