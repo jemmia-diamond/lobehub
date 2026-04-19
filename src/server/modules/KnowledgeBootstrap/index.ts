@@ -35,6 +35,10 @@ export class KnowledgeBootstrapService {
   private static globalInProgress = false;
   private static globalKbId: string | undefined = undefined;
 
+  static get isKbReady(): boolean {
+    return !!KnowledgeBootstrapService.globalKbId;
+  }
+
   constructor(userId?: string) {
     this.currentUserId = userId;
   }
@@ -66,7 +70,6 @@ export class KnowledgeBootstrapService {
 
       // 2. Ensure Jemmia Knowledge Base exists (Global copy)
       const kbId = await this.ensureKnowledgeBase(db, true);
-      KnowledgeBootstrapService.globalKbId = kbId;
 
       // 3. Scan and Ingest Seed Files — sync additions, updates, and deletions
       const seedFiles = fs
@@ -105,6 +108,7 @@ export class KnowledgeBootstrapService {
       }
 
       console.info(`[KnowledgeBootstrap] Global Knowledge ready (KB ID: ${kbId})`);
+      KnowledgeBootstrapService.globalKbId = kbId;
       return kbId;
     } catch (error) {
       console.error('[KnowledgeBootstrap] Global bootstrap failed:', error);

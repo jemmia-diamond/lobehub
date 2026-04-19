@@ -65,6 +65,7 @@ import { FileService } from '@/server/services/file';
 import { KlavisService } from '@/server/services/klavis';
 import { MarketService } from '@/server/services/market';
 import { deviceProxy } from '@/server/services/toolExecution/deviceProxy';
+import { KnowledgeBootstrapService } from '@/server/modules/KnowledgeBootstrap';
 
 import { ingestAttachment } from './ingestAttachment';
 
@@ -621,6 +622,21 @@ export class AiAgentService {
       if (agentSlug === BUILTIN_AGENT_SLUGS.inbox) {
         hasEnabledKnowledgeBases = true;
         agentConfig.chatConfig = { ...(agentConfig.chatConfig ?? {}), searchMode: 'auto' };
+
+        // If KB is still being indexed on cold start, wait silently (max 5s)
+        if (!KnowledgeBootstrapService.isKbReady) {
+          log('execAgent: KB not ready yet, waiting for bootstrap...');
+          await new Promise<void>((resolve) => {
+            const start = Date.now();
+            const check = setInterval(() => {
+              if (KnowledgeBootstrapService.isKbReady || Date.now() - start > 5_000) {
+                clearInterval(check);
+                resolve();
+              }
+            }, 500);
+          });
+          log('execAgent: KB wait finished, ready=%s', KnowledgeBootstrapService.isKbReady);
+        }
       }
 
       try {
