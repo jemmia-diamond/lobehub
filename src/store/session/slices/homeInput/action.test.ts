@@ -6,6 +6,7 @@ import { sessionService } from '@/services/session';
 import { useChatStore } from '@/store/chat';
 import { useGlobalStore } from '@/store/global';
 import { useSessionStore } from '@/store/session';
+import { getStableNavigate } from '@/utils/stableNavigate';
 
 // Mock dependencies
 vi.mock('@/services/document', () => ({
@@ -32,6 +33,10 @@ vi.mock('@/store/global', () => ({
   },
 }));
 
+vi.mock('@/utils/stableNavigate', () => ({
+  getStableNavigate: vi.fn(),
+}));
+
 describe('HomeInputAction', () => {
   const mockNavigate = vi.fn();
   const mockSendMessage = vi.fn().mockResolvedValue({});
@@ -44,6 +49,8 @@ describe('HomeInputAction', () => {
     vi.mocked(useGlobalStore.getState).mockReturnValue({
       navigate: mockNavigate,
     } as any);
+
+    vi.mocked(getStableNavigate).mockReturnValue(mockNavigate);
 
     vi.mocked(useChatStore.getState).mockReturnValue({
       sendMessage: mockSendMessage,
