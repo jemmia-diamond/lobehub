@@ -2,19 +2,16 @@ import isEqual from 'fast-deep-equal';
 import { type SWRResponse } from 'swr';
 
 import { useClientDataSWRWithSync } from '@/libs/swr';
-import { fileService } from '@/services/file';
-import { topicService } from '@/services/topic';
+import { type RecentItem } from '@/server/routers/lambda/recent';
+import { recentService } from '@/services/recent';
 import { type HomeStore } from '@/store/home/store';
 import { type StoreSetter } from '@/store/types';
-import { type FileListItem } from '@/types/files';
-import { type RecentTopic } from '@/types/topic';
 import { setNamespace } from '@/utils/storeDebug';
 
 const n = setNamespace('recent');
 
-export const FETCH_RECENT_TOPICS_KEY = 'fetchRecentTopics';
-const FETCH_RECENT_RESOURCES_KEY = 'fetchRecentResources';
-const FETCH_RECENT_PAGES_KEY = 'fetchRecentPages';
+export const FETCH_RECENTS_KEY = 'fetchRecents';
+export const ALL_RECENTS_DRAWER_SWR_PREFIX = 'allRecentsDrawer';
 
 type Setter = StoreSetter<HomeStore>;
 export const createRecentSlice = (set: Setter, get: () => HomeStore, _api?: unknown) =>
@@ -30,62 +27,42 @@ export class RecentActionImpl {
     this.#get = get;
   }
 
-  useFetchRecentPages = (isLogin: boolean | undefined): SWRResponse<any[]> => {
-    return useClientDataSWRWithSync<any[]>(
+  useFetchRecents = (isLogin: boolean | undefined, limit: number = 12): SWRResponse<RecentItem[]> => {
+    return useClientDataSWRWithSync<RecentItem[]>(
       // Only fetch when login status is explicitly true (not null/undefined)
-      isLogin === true ? [FETCH_RECENT_PAGES_KEY, isLogin] : null,
-      async () => fileService.getRecentPages(12),
+      isLogin === true ? [FETCH_RECENTS_KEY, isLogin, limit] : null,
+      async () => recentService.getAll(limit),
       {
         onData: (data) => {
-          if (this.#get().isRecentPagesInit && isEqual(this.#get().recentPages, data)) return;
+          if (this.#get().isRecentsInit && isEqual(this.#get().recents, data)) return;
 
           this.#set(
-            { isRecentPagesInit: true, recentPages: data },
+            { isRecentsInit: true, recents: data },
             false,
-            n('useFetchRecentPages/onData'),
+            n('useFetchRecents/onData'),
           );
         },
       },
     );
   };
 
-  useFetchRecentResources = (isLogin: boolean | undefined): SWRResponse<FileListItem[]> => {
-    return useClientDataSWRWithSync<FileListItem[]>(
-      // Only fetch when login status is explicitly true (not null/undefined)
-      isLogin === true ? [FETCH_RECENT_RESOURCES_KEY, isLogin] : null,
-      async () => fileService.getRecentFiles(12),
-      {
-        onData: (data) => {
-          if (this.#get().isRecentResourcesInit && isEqual(this.#get().recentResources, data))
-            return;
-
-          this.#set(
-            { isRecentResourcesInit: true, recentResources: data },
-            false,
-            n('useFetchRecentResources/onData'),
-          );
-        },
-      },
-    );
+  openAllRecentsDrawer = () => {
+    this.#set({ allRecentsDrawerOpen: true }, false, n('openAllRecentsDrawer'));
   };
 
-  useFetchRecentTopics = (isLogin: boolean | undefined): SWRResponse<RecentTopic[]> => {
-    return useClientDataSWRWithSync<RecentTopic[]>(
-      // Only fetch when login status is explicitly true (not null/undefined)
-      isLogin === true ? [FETCH_RECENT_TOPICS_KEY, isLogin] : null,
-      async () => topicService.getRecentTopics(12),
-      {
-        onData: (data) => {
-          if (this.#get().isRecentTopicsInit && isEqual(this.#get().recentTopics, data)) return;
+  closeAllRecentsDrawer = () => {
+    this.#set({ allRecentsDrawerOpen: false }, false, n('closeAllRecentsDrawer'));
+  };
 
-          this.#set(
-            { isRecentTopicsInit: true, recentTopics: data },
-            false,
-            n('useFetchRecentTopics/onData'),
-          );
-        },
-      },
-    );
+  updateRecentTitle = async (id: string, title: string) => {
+    const { recents } = this.#get();
+    const newRecents = recents.map(item => item.id === id ? { ...item, title } : item);
+    this.#set({ recents: newRecents }, false, n('updateRecentTitle'));
+  };
+
+  refreshRecents = async () => {
+    const data = await recentService.getAll(12);
+    this.#set({ recents: data }, false, n('refreshRecents'));
   };
 }
 

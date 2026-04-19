@@ -1,7 +1,7 @@
 'use client';
 
 import { Flexbox, Text } from '@lobehub/ui';
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useChatStore } from '@/store/chat';
@@ -42,12 +42,13 @@ const Body = memo(() => {
   const { showHomeTopicHistory, showAgentListSidebar } =
     useServerConfigStore(featureFlagsSelectors);
   const isLogin = useUserStore(authSelectors.isLogin);
-  const recentTopics = useHomeStore(homeRecentSelectors.recentTopics);
-  const isRecentTopicsInit = useHomeStore(homeRecentSelectors.isRecentTopicsInit);
+  const recents = useHomeStore(homeRecentSelectors.recents);
+  const isRecentsInit = useHomeStore(homeRecentSelectors.isRecentsInit);
+  const recentTopics = useMemo(() => recents?.filter(r => r.type === 'topic'), [recents]);
 
   const activeTopicId = useChatStore((s) => s.activeTopicId);
 
-  const hasRecentTopics = isRecentTopicsInit && recentTopics && recentTopics.length > 0;
+  const hasRecentTopics = isRecentsInit && recentTopics && recentTopics.length > 0;
 
   return (
     <Flexbox
@@ -78,12 +79,10 @@ const Body = memo(() => {
                 {recentTopics?.map((item: any) => (
                   <RecentTopicItem
                     active={activeTopicId === item.id}
-                    agent={item.agent}
-                    group={item.group}
                     id={item.id}
                     key={item.id}
+                    routePath={item.routePath}
                     title={item.title}
-                    type={item.type}
                   />
                 ))}
               </Flexbox>

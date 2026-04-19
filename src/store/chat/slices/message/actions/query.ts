@@ -3,15 +3,19 @@ import { type ConversationContext, type UIChatMessage } from '@lobechat/types';
 import isEqual from 'fast-deep-equal';
 import { type SWRResponse } from 'swr';
 
+import { INBOX_SESSION_ID } from '@/const/session';
 import { mutate, useClientDataSWRWithSync } from '@/libs/swr';
 import { messageService } from '@/services/message';
 import { type ChatStore } from '@/store/chat/store';
+import { FETCH_RECENTS_KEY } from '@/store/home/slices/recent';
 import { type StoreSetter } from '@/store/types';
+import { setNamespace } from '@/utils/storeDebug';
 
-import { type MessageMapKeyInput } from '../../../utils/messageMapKey';
 import { messageMapKey } from '../../../utils/messageMapKey';
+import { type MessageMapKeyInput } from '../../../utils/messageMapKey';
+import { FETCH_MESSAGES_KEY } from './constants';
 
-const SWR_USE_FETCH_MESSAGES = 'SWR_USE_FETCH_MESSAGES';
+const n = setNamespace('query');
 
 /**
  * Data query and synchronization actions
@@ -35,9 +39,16 @@ export class MessageQueryActionImpl {
   refreshMessages = async (context?: Partial<ConversationContext>): Promise<void> => {
     const agentId = context?.agentId ?? this.#get().activeAgentId;
     const topicId = context?.topicId !== undefined ? context.topicId : this.#get().activeTopicId;
-    // TODO: Support threadId refresh when needed
-    await mutate([SWR_USE_FETCH_MESSAGES, agentId, topicId, 'session']);
-    await mutate([SWR_USE_FETCH_MESSAGES, agentId, topicId, 'group']);
+
+    // 1. Refresh global messages for current context
+    await mutate([FETCH_MESSAGES_KEY, { agentId, topicId }]);
+
+    // 2. Refresh recents list (sidebar)
+    await mutate(
+      (key) =>
+        (typeof key === 'string' && key === FETCH_RECENTS_KEY) ||
+        (Array.isArray(key) && key[0] === FETCH_RECENTS_KEY),
+    );
   };
 
   replaceMessages = (
@@ -109,17 +120,20 @@ export class MessageQueryActionImpl {
     skipFetch?: boolean,
   ): SWRResponse<UIChatMessage[]> => {
     // Skip fetch when skipFetch is true or required fields are missing
-    const shouldFetch = !skipFetch && !!context.agentId && !!context.topicId;
+    // Allow topicId to be null ONLY for the inbox, but not for other agents (new topic state)
+    const isInbox = context.agentId === INBOX_SESSION_ID;
+    const shouldFetch = !skipFetch && !!context.agentId && (!!context.topicId || isInbox);
 
     return useClientDataSWRWithSync<UIChatMessage[]>(
-      shouldFetch ? ['CHAT_STORE_FETCH_MESSAGES', context] : null,
+      shouldFetch ? [FETCH_MESSAGES_KEY, context] : null,
       () => messageService.getMessages(context),
       {
         onData: (data) => {
-          if (!data || !context.topicId) return;
+          if (!data || context.topicId === undefined) return;
 
           // Use replaceMessages to store the fetched messages
           this.#get().replaceMessages(data, { action: 'useFetchMessages', context });
+          this.#set({ messagesInit: true }, false, n('useFetchMessages/init'));
         },
       },
     );

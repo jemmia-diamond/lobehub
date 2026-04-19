@@ -1,6 +1,7 @@
 'use client';
 
-import { Center, Flexbox, Icon, Input, Modal, Text, TextArea, Tooltip } from '@lobehub/ui';
+import { Center, Flexbox, Icon, Input, Text, TextArea, Tooltip } from '@lobehub/ui';
+import { Modal } from '@lobehub/ui/base-ui';
 import { type UploadProps } from 'antd';
 import { App, Form, Modal as AntModal, Upload } from 'antd';
 import { cssVar } from 'antd-style';
@@ -127,7 +128,7 @@ const ProfileSetupModal = memo<ProfileSetupModalProps>(
         };
         fetchProfiles();
       }
-    }, [open, isFirstTimeSetup, githubConnect.fetchProfile, twitterConnect.fetchProfile]);
+    }, [open, isFirstTimeSetup, githubConnect, twitterConnect]);
 
     // Reset form when modal opens
     useEffect(() => {
@@ -365,7 +366,7 @@ const ProfileSetupModal = memo<ProfileSetupModalProps>(
         closable={!isFirstTimeSetup}
         confirmLoading={loading}
         keyboard={!isFirstTimeSetup}
-        mask={{ closable: !isFirstTimeSetup }}
+        maskClosable={!isFirstTimeSetup}
         okText={isFirstTimeSetup ? t('profileSetup.getStarted') : t('profileSetup.save')}
         open={open}
         title={false}

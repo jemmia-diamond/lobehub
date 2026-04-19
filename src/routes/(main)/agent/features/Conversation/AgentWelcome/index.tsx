@@ -19,9 +19,7 @@ import { authSelectors } from '@/store/user/slices/auth/selectors';
 
 import HomeHeader from '../../../../home/features/HomeHeader';
 import ModeSelection from '../../../../home/features/ModeSelection';
-import RecentPage from '../../../../home/features/RecentPage';
-import RecentResource from '../../../../home/features/RecentResource';
-import RecentTopic from '../../../../home/features/RecentTopic';
+import RecentsList from '../../../../home/features/Recents/List';
 import OpeningQuestions from './OpeningQuestions';
 import ToolAuthAlert from './ToolAuthAlert';
 
@@ -38,8 +36,6 @@ const InboxWelcome = memo(() => {
   const isLogin = useUserStore(authSelectors.isLogin);
   const {
     enableAgent,
-    showHomeRecentTopic,
-    showHomeRecentPage,
     showHomeRecentResource,
     showHomeTopicHistory,
     showHomeModeSelection,
@@ -79,13 +75,7 @@ const InboxWelcome = memo(() => {
         {((showHomeTopicHistory && enableAgent && isLogin) ||
           (isLogin && showHomeRecentResource)) && (
           <Flexbox gap={40}>
-            {showHomeTopicHistory && enableAgent && isLogin && (
-              <>
-                {showHomeRecentTopic && <RecentTopic />}
-                {showHomeRecentPage && <RecentPage />}
-              </>
-            )}
-            {isLogin && showHomeRecentResource && <RecentResource />}
+            <RecentsList />
           </Flexbox>
         )}
         {openingQuestions.length > 0 && (

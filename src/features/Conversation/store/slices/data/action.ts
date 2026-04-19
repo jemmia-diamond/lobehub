@@ -160,9 +160,8 @@ export const dataSlice: StateCreator<
   useFetchMessages: (context, skipFetch) => {
     // When skipFetch is true, SWR key is null - no fetch occurs
     // This is used when external messages are provided (e.g., creating new thread)
-    // Also skip fetch when topicId is null (new conversation state) - there's no server data,
-    // only local optimistic updates. Fetching would return empty array and overwrite local data.
-    const shouldFetch = !skipFetch && !!context.agentId && !!context.topicId;
+    // Allow topicId to be null (inbox), but not undefined
+    const shouldFetch = !skipFetch && !!context.agentId && context.topicId !== undefined;
     const contextKey = messageMapKey(context);
 
     log(
@@ -181,7 +180,7 @@ export const dataSlice: StateCreator<
       {
         onData: (data) => {
           if (!data) return;
-          if (!context.topicId) return;
+          if (context.topicId === undefined) return;
 
           const prevDbMessages = get().dbMessages;
           const storeContextKey = messageMapKey(get().context);

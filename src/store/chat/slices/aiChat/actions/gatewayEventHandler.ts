@@ -1,11 +1,12 @@
-import type { ConversationContext } from '@lobechat/types';
-
 import type {
   AgentStreamEvent,
   StepCompleteData,
   StreamChunkData,
   StreamStartData,
-} from '@/libs/agent-stream';
+  ToolExecuteData,
+} from '@lobechat/agent-gateway-client';
+import type { ConversationContext } from '@lobechat/types';
+
 import { messageService } from '@/services/message';
 import type { ChatStore } from '@/store/chat/store';
 
@@ -42,7 +43,8 @@ export const createGatewayEventHandler = (
     operationId: string;
   },
 ) => {
-  const { context, gatewayOperationId: _gatewayOperationId, operationId } = params;
+  const { context, operationId } = params;
+  const gatewayOperationId = params.gatewayOperationId ?? operationId;
 
   // Dispatch context — ensures internal_dispatchMessage resolves the correct messageMapKey
   const dispatchContext = { operationId };
@@ -176,6 +178,13 @@ export const createGatewayEventHandler = (
           get().completeOperation(operationId);
           await fetchAndReplaceMessages(get, context).catch(console.error);
         });
+        break;
+      }
+
+      case 'tool_execute': {
+        const data = event.data as ToolExecuteData | undefined;
+        if (!data) break;
+        void get().internal_executeClientTool(data, { operationId: gatewayOperationId });
         break;
       }
 

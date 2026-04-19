@@ -11,6 +11,7 @@ import { useInitBuiltinAgent } from '@/hooks/useInitBuiltinAgent';
 import { type StarterMode } from '@/store/home';
 import { useHomeStore } from '@/store/home';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
+import { getStableNavigate } from '@/utils/stableNavigate';
 
 const styles = createStaticStyles(({ css, cssVar }) => ({
   active: css`
@@ -56,10 +57,9 @@ const StarterList = memo(() => {
   const { enableAgent, enableImageGeneration, enableVideoGeneration } =
     useServerConfigStore(featureFlagsSelectors);
 
-  const [inputActiveMode, setInputActiveMode, navigate] = useHomeStore((s) => [
+  const [inputActiveMode, setInputActiveMode] = useHomeStore((s) => [
     s.inputActiveMode,
     s.setInputActiveMode,
-    s.navigate,
   ]);
 
   const items: StarterItem[] = useMemo(
@@ -97,6 +97,7 @@ const StarterList = memo(() => {
 
   const handleClick = useCallback(
     (key: StarterMode) => {
+      const navigate = getStableNavigate();
       if (key === 'video') {
         navigate?.('/video');
         return;
@@ -114,7 +115,7 @@ const StarterList = memo(() => {
         setInputActiveMode(key);
       }
     },
-    [inputActiveMode, setInputActiveMode, navigate],
+    [inputActiveMode, setInputActiveMode],
   );
 
   return (

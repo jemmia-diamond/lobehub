@@ -8,6 +8,7 @@ import { Editor, FloatMenu, useEditorState } from '@lobehub/editor/react';
 import { combineKeys } from '@lobehub/ui';
 import { css, cx } from 'antd-style';
 import Fuse from 'fuse.js';
+import type { ReactNode} from 'react';
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useHotkeysContext } from 'react-hotkeys-hook';
 import { useTranslation } from 'react-i18next';
@@ -50,7 +51,7 @@ const className = cx(css`
   }
 `);
 
-const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
+const InputEditor = memo<{ defaultRows?: number; placeholder?: ReactNode }>(({ defaultRows = 2, placeholder }) => {
   const { t } = useTranslation('tool');
   const [editor, slashMenuRef, send, updateMarkdownContent, expand, slashPlacement] =
     useChatInputStore((s) => [
@@ -367,7 +368,7 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
       {...{ slashPlacement }}
       {...richRenderProps}
       mentionOption={mentionOption}
-      placeholder={<Placeholder />}
+      placeholder={placeholder || <Placeholder />}
       slashOption={slashOption}
       type={'text'}
       variant={'chat'}

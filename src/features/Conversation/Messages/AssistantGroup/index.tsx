@@ -40,13 +40,14 @@ const actionBarHolder = (
   />
 );
 interface GroupMessageProps {
+  defaultWorkflowExpanded?: boolean;
   disableEditing?: boolean;
   id: string;
   index: number;
   isLatestItem?: boolean;
 }
 
-const GroupMessage = memo<GroupMessageProps>(({ id, index, disableEditing }) => {
+const GroupMessage = memo<GroupMessageProps>(({ defaultWorkflowExpanded, id, index, disableEditing }) => {
   // Get message and actionsConfig from ConversationStore
   const item = useConversationStore(dataSelectors.getDisplayMessageById(id), isEqual)!;
 
@@ -163,6 +164,7 @@ const GroupMessage = memo<GroupMessageProps>(({ id, index, disableEditing }) => 
           blocks={children}
           content={lastAssistantMsg?.content}
           contentId={contentId}
+          defaultWorkflowExpanded={defaultWorkflowExpanded}
           disableEditing={disableEditing}
           id={id}
           messageIndex={index}

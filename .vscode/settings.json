@@ -7,9 +7,18 @@
   "editor.formatOnSave": true,
   // don't show errors, but fix when save and git pre commit
   "eslint.rules.customizations": [
-    { "rule": "simple-import-sort/exports", "severity": "off" },
-    { "rule": "perfectionist/sort-interfaces", "severity": "off" },
-    { "rule": "simple-import-sort/imports", "severity": "off" }
+    {
+      "rule": "simple-import-sort/exports",
+      "severity": "off"
+    },
+    {
+      "rule": "perfectionist/sort-interfaces",
+      "severity": "off"
+    },
+    {
+      "rule": "simple-import-sort/imports",
+      "severity": "off"
+    }
   ],
   "eslint.validate": [
     "json",

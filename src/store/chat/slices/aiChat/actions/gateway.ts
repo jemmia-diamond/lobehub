@@ -1,11 +1,11 @@
-import type { ConversationContext, ExecAgentResult } from '@lobechat/types';
-
 import type {
   AgentStreamClientOptions,
   AgentStreamEvent,
   ConnectionStatus,
-} from '@/libs/agent-stream';
-import { AgentStreamClient } from '@/libs/agent-stream/client';
+} from '@lobechat/agent-gateway-client';
+import { AgentStreamClient } from '@lobechat/agent-gateway-client';
+import type { ConversationContext, ExecAgentResult } from '@lobechat/types';
+
 import { aiAgentService } from '@/services/aiAgent';
 import { messageService } from '@/services/message';
 import { topicService } from '@/services/topic';
@@ -20,7 +20,7 @@ type Setter = StoreSetter<ChatStore>;
 // ─── Types ───
 
 export interface GatewayConnection {
-  client: Pick<AgentStreamClient, 'connect' | 'disconnect' | 'on' | 'sendInterrupt'>;
+  client: Pick<AgentStreamClient, 'connect' | 'disconnect' | 'on' | 'sendInterrupt' | 'sendToolResult'>;
   status: ConnectionStatus;
 }
 
@@ -96,7 +96,7 @@ export class GatewayActionImpl {
     );
 
     // Wire up status changes
-    client.on('status_changed', (status) => {
+    client.on('status_changed', (status: ConnectionStatus) => {
       this.#set(
         (state) => {
           const conn = state.gatewayConnections[operationId];
@@ -136,7 +136,7 @@ export class GatewayActionImpl {
     });
 
     // Handle auth failures
-    client.on('auth_failed', (reason) => {
+    client.on('auth_failed', (reason: string) => {
       console.error(`[Gateway] Auth failed for operation ${operationId}: ${reason}`);
 
       if (params.localOperationId) {
@@ -235,8 +235,10 @@ export class GatewayActionImpl {
     onComplete?: () => void;
     /** Parent message ID for regeneration/continue (skip user message creation, branch from this message) */
     parentMessageId?: string;
+    /** File IDs to attach to the task */
+    fileIds?: string[];
   }): Promise<ExecAgentResult> => {
-    const { context, message, onComplete, parentMessageId } = params;
+    const { context, message, onComplete, parentMessageId, fileIds } = params;
 
     const agentGatewayUrl =
       window.global_serverConfigStore!.getState().serverConfig.agentGatewayUrl!;
@@ -251,6 +253,7 @@ export class GatewayActionImpl {
         threadId: context.threadId,
         topicId: context.topicId,
       },
+      fileIds,
       parentMessageId,
       prompt: message,
     });
