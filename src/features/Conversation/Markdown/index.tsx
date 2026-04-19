@@ -14,12 +14,34 @@ const MarkdownMessage = memo<MarkdownProps>(({ children, componentProps, compone
       ({
         ...(components as MarkdownProps['components']),
         a: ({ node: _node, href, children: linkChildren, ...props }: any) => {
-          const resolvedHref = href ? (getLarkUrlForR2(href) ?? href) : href;
-          if (resolvedHref !== href) {
-            console.info('[R2→Lark] Redirecting:', href, '→', resolvedHref);
+          let resolvedHref = href;
+          const dataLink = props['data-link'];
+          if (dataLink && href?.startsWith('#')) {
+            try {
+              const parsed = typeof dataLink === 'string' ? JSON.parse(dataLink) : dataLink;
+              if (parsed?.url) {
+                resolvedHref = getLarkUrlForR2(parsed.url) ?? parsed.url;
+              }
+            } catch {}
+          } else {
+            resolvedHref = href ? (getLarkUrlForR2(href) ?? href) : href;
           }
+          const isRedirected = resolvedHref !== href;
           return (
-            <a href={resolvedHref} rel="noopener noreferrer" target="_blank" {...props}>
+            <a
+              href={isRedirected ? resolvedHref : href}
+              rel="noopener noreferrer"
+              target={isRedirected ? '_blank' : props.target}
+              onClick={
+                isRedirected
+                  ? (e) => {
+                      e.preventDefault();
+                      window.open(resolvedHref, '_blank', 'noopener,noreferrer');
+                    }
+                  : props.onClick
+              }
+              {...props}
+            >
               {linkChildren}
             </a>
           );
