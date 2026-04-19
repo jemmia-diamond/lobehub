@@ -19,7 +19,7 @@
 ### 1.1 Đối với khối văn phòng
 
 - **Thời gian làm việc**: 9h00 - 18h00.
-- **Lịch làm việc**: Từ thứ 2 - thứ 6, thứ 7 làm cách tuần.
+- **Lịch làm việc**: Từ thứ 2 - thứ 6.
 - **Thông báo từ Bot**: Bot sẽ gửi thông báo chấm công vào lúc **8h55** và **18h05** hàng ngày.
 
 ### 1.2 Đối với phòng kinh doanh

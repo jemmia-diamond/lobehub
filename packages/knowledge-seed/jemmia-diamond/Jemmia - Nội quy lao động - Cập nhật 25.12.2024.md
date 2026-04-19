@@ -63,7 +63,7 @@ _(Ban hành kèm theo Quyết định số 25122024/QĐ/JEMMIA ngày 25/12/2024)
 - **Sáng**: 9 giờ 00 đến 12 giờ 30.
 - **Chiều**: 13 giờ 30 đến 18 giờ 00.
 - **Nghỉ trưa**: 12h30 - 13h30.
-- **Ngày nghỉ**: Nghỉ cách tuần vào Thứ 7 và nghỉ Chủ nhật hàng tuần. (Lịch có thể thay đổi linh hoạt theo thông báo từ Công ty).
+- **Ngày nghỉ**: Nghỉ Thứ 7 và Chủ nhật hàng tuần. (Lịch có thể thay đổi linh hoạt theo thông báo từ Công ty).
 
 **2.2 Khối kinh doanh (Sales):**
 
