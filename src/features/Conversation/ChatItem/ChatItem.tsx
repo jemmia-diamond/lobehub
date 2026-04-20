@@ -76,11 +76,17 @@ const ChatItem = memo<ChatItemProps>(
           align={'center'}
           className={'message-header'}
           direction={isUser ? 'horizontal-reverse' : 'horizontal'}
-          gap={8}
+          gap={isUser ? 8 : 5}
         >
           {showAvatar &&
             (customAvatarRender ? customAvatarRender(avatar, avatarContent) : avatarContent)}
-          <Title avatar={avatar} showTitle={showTitle} time={time} titleAddon={titleAddon} />
+          <Title
+            avatar={avatar}
+            isAgent={!isUser}
+            showTitle={showTitle}
+            time={time}
+            titleAddon={titleAddon}
+          />
         </Flexbox>
         <Flexbox
           className={'message-body'}

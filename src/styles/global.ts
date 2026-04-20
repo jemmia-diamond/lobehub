@@ -61,6 +61,13 @@ export default ({ token }: { prefixCls: string; token: Theme }) => css`
     background-color: color-mix(in srgb, ${token.colorBgLayout} 70%, transparent);
   }
 
+  @font-face {
+    font-family: 'BeautiqueDisplay';
+    src: url('/fonts/BeautiqueDisplay-Bold.otf') format('opentype');
+    font-weight: bold;
+    font-style: normal;
+  }
+
   button {
     -webkit-app-region: no-drag;
   }
