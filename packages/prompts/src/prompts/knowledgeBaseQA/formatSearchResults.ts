@@ -27,7 +27,7 @@ const getCitationUrl = (
 ): string | null => {
   if (!fileUrl?.startsWith('local://jemmia-diamond/')) return null;
   const name = fileUrl.replace('local://jemmia-diamond/', '');
-  return (larkUrlMap?.[name]) ?? `https://${R2_BASE}${encodeURIComponent(name)}`;
+  return (larkUrlMap?.[name] || undefined) ?? `https://${R2_BASE}${encodeURIComponent(name)}`;
 };
 
 /**

@@ -20,6 +20,38 @@ export interface KnowledgeFileEntry {
 }
 
 export const JEMMIA_KNOWLEDGE_FILES: Record<string, KnowledgeFileEntry> = {
+  '1 - Basic company info - Thông tin cơ bản về Jemmia.md': {
+    label: 'Thông tin cơ bản về Jemmia',
+    larkUrl: '',
+  },
+  '2 - Organizational structure - Cơ cấu tổ chức.md': {
+    label: 'Cơ cấu tổ chức',
+    larkUrl: '',
+  },
+  '3 - Location - Vị trí công ty Jemmia.md': {
+    label: 'Vị trí công ty Jemmia',
+    larkUrl: '',
+  },
+  '4 - Contact for support - Thông tin liên hệ để hỗ trợ.md': {
+    label: 'Thông tin liên hệ hỗ trợ',
+    larkUrl: '',
+  },
+  '5 - Brand information - Thông tin về thương hiệu.md': {
+    label: 'Thông tin thương hiệu',
+    larkUrl: '',
+  },
+  '6 - Basic product info - Sản Phẩm Của Jemmia.md': {
+    label: 'Sản phẩm của Jemmia',
+    larkUrl: '',
+  },
+  '7 - Product quality - Chất lượng sản phẩm.md': {
+    label: 'Chất lượng sản phẩm',
+    larkUrl: '',
+  },
+  '8 - Diamond know - Kiến thức về kim cương.md': {
+    label: 'Kiến thức về kim cương',
+    larkUrl: '',
+  },
   'Hướng Dẫn Sử Dụng Lark Approval.md': {
     label: 'Hướng Dẫn Lark Approval',
     larkUrl: 'https://jemmiadiamond.sg.larksuite.com/wiki/ZByVw6jQDiEbKFk55eYlYj3ggUg',
@@ -99,7 +131,8 @@ export const getLarkUrlForR2 = (url: string): string | null => {
     if (!encodedFilename) return null;
 
     const filename = decodeURIComponent(encodedFilename);
-    return R2_TO_LARK_MAP[filename] ?? null;
+    const larkUrl = R2_TO_LARK_MAP[filename];
+    return larkUrl || null;
   } catch {
     return null;
   }
