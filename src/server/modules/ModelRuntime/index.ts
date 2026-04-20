@@ -377,14 +377,19 @@ const getJemOrchestrationHooks = (
       try {
         console.info('[Brainy] AUTO mode — calling evaluate()');
         const routerRuntime = initModelRuntimeWithUserPayload(provider, userPayload, userParams);
+        const abortController = new AbortController();
         const routingTimeout = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Routing timeout')), 15_000),
+          setTimeout(() => {
+            abortController.abort();
+            reject(new Error('Routing timeout'));
+          }, 30_000),
         );
         const { model } = await Promise.race([
           ModelRouterService.evaluate({
             messages: payload.messages,
             modelRuntime: routerRuntime,
             tools: payload.tools || [],
+            signal: abortController.signal,
           }),
           routingTimeout,
         ]);

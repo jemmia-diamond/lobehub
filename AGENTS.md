@@ -64,7 +64,7 @@ The Jemmia provider (`src/server/modules/ModelRuntime/index.ts`) intercepts ever
 - KB tool present OR `Knowledge-First` in system prompt OR Lark integration OR 1-2 files OR >128k tokens → `thinking`
 - Everything else → `fast`
 
-**Important**: When KB tool (`lobe-knowledge-base`) is in the tool list and `evaluate()` picks FAST, it is automatically upgraded to THINKING. FAST model corrupts Vietnamese tool calls with long tool names.
+**Important**: When KB tool (`lobe-knowledge-base`) is in the tool list and `evaluate()` picks FAST, it is automatically upgraded to THINKING. FAST model (`gemini-2.5-flash-lite`) corrupts long Vietnamese tool names causing stream corruption artifacts (e.g. "ETF" appearing in responses).
 
 ### Inbox Agent (Brainy)
 
@@ -84,25 +84,32 @@ Two separate knowledge sources — never mix their citation behavior:
 **KB Tool** (`lobe-knowledge-base`):
 - Searches indexed local markdown files via pgvector (3072-dim embeddings, `gemini-embedding-2-preview`)
 - Returns relevant chunks to the LLM
-- **Can generate R2 URL citations** via `formatSearchResults.ts` — when file has `local://jemmia-diamond/` URL, an R2 URL is generated and the LLM is instructed to use markdown footnotes `[^1]: [filename](r2Url)`
-- Clicking footnote → `getLarkUrlForR2()` maps R2 URL to Lark wiki URL
+- **Cites Lark URLs directly** via `formatSearchResults.ts` — when file has `local://jemmia-diamond/` URL, the Lark wiki URL is looked up from `R2_TO_LARK_MAP` and passed as `citationUrl` attribute. The LLM is instructed to use `[^1]: [filename](citationUrl)` footnotes.
+- Falls back to R2 URL if no Lark mapping exists for the file
+- `R2_TO_LARK_MAP` is passed from `executor/index.ts` (client) which imports from `src/config/r2ToLarkMapping.ts`
 
 **Web Browsing Tool** (`lobe-web-browsing`):
 - Used when KB returns no results, or for real-time web search
-- Contains hardcoded R2 URLs for Jemmia documents (`packages/builtin-tool-web-browsing/src/systemRole.ts`)
+- Knowledge base list generated from `buildKnowledgeBaseList()` in `src/config/r2ToLarkMapping.ts` — format: `- label: r2Url [lark: larkUrl]`
 - Crawls R2 markdown files directly via `crawlSinglePage`/`crawlMultiPages`
-- **Cites R2 URLs in footnotes** → `getLarkUrlForR2()` maps them to Lark wiki URLs on click
+- **Cites Lark URLs directly** — instructed to use the `[lark: ...]` URL from the KB list, not the R2 URL
 
 ### Citation Types
 
 | Type | Source | Component | Click Behavior |
 |------|--------|-----------|----------------|
-| Web search | `lobe-web-browsing` | `SearchGrounding.tsx` | R2→Lark redirect or open URL |
+| Web search | `lobe-web-browsing` | `SearchGrounding.tsx` | Open URL directly |
 | KB chunks | `lobe-knowledge-base` | `FileChunks.tsx` | Internal file preview |
-| KB footnotes | `lobe-knowledge-base` | `Markdown/index.tsx` | R2→Lark redirect |
-| Model-native | LLM provider (Google/OpenAI) | `SearchGrounding.tsx` | R2→Lark redirect or open URL |
+| KB footnotes | `lobe-knowledge-base` | `Markdown/index.tsx` | Lark URL directly (no redirect needed) |
+| Web browsing R2 | `lobe-web-browsing` | `Markdown/index.tsx` | Lark URL directly (no redirect needed) |
+| Model-native | LLM provider (Google/OpenAI) | `SearchGrounding.tsx` | Open URL directly |
 
-**R2→Lark mapping**: `src/config/r2ToLarkMapping.ts` — maps R2 filenames to Lark wiki URLs. Update this when adding/renaming knowledge files.
+**R2→Lark mapping**: `src/config/r2ToLarkMapping.ts` — single source of truth. Contains `JEMMIA_KNOWLEDGE_FILES` with `label`, `larkUrl` per file. Exports:
+- `R2_TO_LARK_MAP` — passed to `formatSearchResults()` for KB citations
+- `buildKnowledgeBaseList()` — used in web browsing systemRole
+- `getLarkUrlForR2()` — used in `Markdown/index.tsx` and `Link.tsx` as fallback redirect for any R2 URLs that slip through
+
+**When adding/renaming knowledge files**: update ONLY `src/config/r2ToLarkMapping.ts`. Everything else derives from it automatically.
 
 ### Knowledge Bootstrap
 
@@ -125,6 +132,7 @@ The operation lifecycle (`src/store/chat/slices/aiChat/actions/streamingExecutor
 - Any crash → `failOperation()` clears loading state
 - Loop exits with unexpected status → `default:` case calls `completeOperation()`
 - Gateway disconnect/error → `failOperation()` via `gateway.ts` and `gatewayEventHandler.ts`
+- Gateway disconnect without terminal event → `onSessionError` callback clears `topicLoading` (both `executeGatewayAgent` and `reconnectToGatewayOperation`)
 - Stop button cancels both `execAgentRuntime` and `execServerAgentRuntime` ops
 
 ## Development Workflow
@@ -227,9 +235,11 @@ Both files must be kept in sync. The inbox `systemRole.ts` takes precedence at r
 - Location: `packages/knowledge-seed/jemmia-diamond/`
 - Format: Markdown (`.md`)
 - Auto-indexed on server startup via `KnowledgeBootstrapService`
-- After adding/renaming files, also update:
-  1. `src/config/r2ToLarkMapping.ts` — add filename → Lark wiki URL mapping
-  2. `packages/builtin-tool-web-browsing/src/systemRole.ts` — add R2 URL to KB section
+- After adding/renaming files, update ONLY:
+  1. `src/config/r2ToLarkMapping.ts` — add filename → Lark wiki URL mapping (single source of truth)
+  - `buildKnowledgeBaseList()` for web browsing systemRole is auto-derived
+  - `R2_TO_LARK_MAP` for KB citation URLs is auto-derived
+  - `getLarkUrlForR2()` redirect fallback is auto-derived
 
 ## Skills (Auto-loaded)
 

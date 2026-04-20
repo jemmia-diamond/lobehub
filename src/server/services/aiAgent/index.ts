@@ -47,6 +47,7 @@ import { UserModel } from '@/database/models/user';
 import { UserPersonaModel } from '@/database/models/userMemory/persona';
 import { shouldEnableBuiltinSkill } from '@/helpers/skillFilters';
 import { signUserJWT } from '@/libs/trpc/utils/internalJwt';
+import { KnowledgeBootstrapService } from '@/server/modules/KnowledgeBootstrap';
 import {
   createServerAgentToolsEngine,
   type EvalContext,
@@ -65,7 +66,6 @@ import { FileService } from '@/server/services/file';
 import { KlavisService } from '@/server/services/klavis';
 import { MarketService } from '@/server/services/market';
 import { deviceProxy } from '@/server/services/toolExecution/deviceProxy';
-import { KnowledgeBootstrapService } from '@/server/modules/KnowledgeBootstrap';
 
 import { ingestAttachment } from './ingestAttachment';
 
@@ -621,7 +621,7 @@ export class AiAgentService {
       // Inbox agent always has KB, web browsing — no user config needed
       if (agentSlug === BUILTIN_AGENT_SLUGS.inbox) {
         hasEnabledKnowledgeBases = true;
-        agentConfig.chatConfig = { ...(agentConfig.chatConfig ?? {}), searchMode: 'auto' };
+        agentConfig.chatConfig = { ...agentConfig.chatConfig, searchMode: 'auto' };
 
         // If KB is still being indexed on cold start, wait silently (max 5s)
         if (!KnowledgeBootstrapService.isKbReady) {

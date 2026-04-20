@@ -39,9 +39,10 @@ export class ModelRouterService {
   public static async evaluate(params: {
     messages: any[];
     modelRuntime: ModelRuntime;
+    signal?: AbortSignal;
     tools: any[];
   }): Promise<ModelRoute> {
-    const { messages, tools, modelRuntime } = params;
+    const { messages, tools, modelRuntime, signal } = params;
 
     try {
       console.info(`[Brainy] evaluate() — messages: ${messages.length}, tools: ${tools.length}`);
@@ -68,6 +69,8 @@ export class ModelRouterService {
         },
       });
 
+      if (signal?.aborted) return this.resolve({ messages, tools });
+
       let modelId = (result as any)?.modelId;
 
       // Fallback: scan any string representation for a valid model ID 
@@ -91,7 +94,7 @@ export class ModelRouterService {
         }
       }
 
-      if (modelId) {
+      if (modelId && !signal?.aborted) {
         console.info(`[Brainy Intelligent Routing] Selected Model: ${modelId}`);
         return { model: modelId, provider: this.JEMMIA_PROVIDER };
       }

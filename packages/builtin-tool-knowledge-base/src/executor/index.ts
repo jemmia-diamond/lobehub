@@ -2,6 +2,7 @@ import { formatSearchResults, promptFileContents, promptNoSearchResults } from '
 import type { BuiltinToolContext, BuiltinToolResult } from '@lobechat/types';
 import { BaseExecutor } from '@lobechat/types';
 
+import { R2_TO_LARK_MAP } from '@/config/r2ToLarkMapping';
 import { lambdaClient } from '@/libs/trpc/client';
 import { ragService } from '@/services/rag';
 import { agentSelectors } from '@/store/agent/selectors';
@@ -169,7 +170,7 @@ class KnowledgeBaseExecutor extends BaseExecutor<typeof KnowledgeBaseApiName> {
         return { content: promptNoSearchResults(query), state, success: true };
       }
 
-      const formattedContent = formatSearchResults(fileResults, query);
+      const formattedContent = formatSearchResults(fileResults, query, R2_TO_LARK_MAP);
       const state: SearchKnowledgeBaseState = { chunks, fileResults, totalResults: chunks.length };
 
       return { content: formattedContent, state, success: true };

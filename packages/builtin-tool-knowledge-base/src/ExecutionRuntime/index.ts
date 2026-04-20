@@ -245,6 +245,7 @@ export class KnowledgeBaseExecutionRuntime {
     args: SearchKnowledgeBaseArgs,
     options?: {
       knowledgeBaseIds?: string[];
+      larkUrlMap?: Record<string, string>;
       messageId?: string;
       signal?: AbortSignal;
     },
@@ -262,7 +263,7 @@ export class KnowledgeBaseExecutionRuntime {
         return { content: promptNoSearchResults(query), state, success: true };
       }
 
-      const formattedContent = formatSearchResults(fileResults, query);
+      const formattedContent = formatSearchResults(fileResults, query, options?.larkUrlMap);
       const state: SearchKnowledgeBaseState = { chunks, fileResults, totalResults: chunks.length };
 
       return { content: formattedContent, state, success: true };
