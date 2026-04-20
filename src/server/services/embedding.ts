@@ -32,6 +32,37 @@ export class ServerEmbeddingService {
     });
   }
 
+  private static getGoogleBackupProvider() {
+    return createGoogleGenerativeAI({
+      apiKey: process.env.GOOGLE_API_KEY_BACKUP,
+    });
+  }
+
+  private static async embedWithSdkFallback(
+    operation: (provider: ReturnType<typeof createGoogleGenerativeAI>) => Promise<any>,
+    logPrefix: string,
+    maxRetries: number = 3,
+  ) {
+    try {
+      return await withRateLimitRetry(() => operation(this.getGoogleProvider()), maxRetries, logPrefix);
+    } catch (primaryError: any) {
+      const isRateLimit =
+        primaryError?.status === 429 ||
+        String(primaryError).includes('429') ||
+        primaryError?.errorType === 'QuotaLimitReached';
+
+      if (isRateLimit && process.env.GOOGLE_API_KEY_BACKUP) {
+        console.warn(`${logPrefix} Primary key exhausted, switching to backup key`);
+        return await withRateLimitRetry(
+          () => operation(this.getGoogleBackupProvider()),
+          maxRetries,
+          `${logPrefix}[backup]`,
+        );
+      }
+      throw primaryError;
+    }
+  }
+
   static async generateEmbedding(
     text: string,
     db: LobeChatDatabase,
@@ -42,17 +73,17 @@ export class ServerEmbeddingService {
       getServerDefaultFilesConfig().embeddingModel || DEFAULT_FILE_EMBEDDING_MODEL_ITEM;
 
     if (this.getMode() === 'sdk') {
-      const result = await withRateLimitRetry(
-        () =>
+      const result = await this.embedWithSdkFallback(
+        (provider) =>
           embed({
-            model: this.getGoogleProvider().embedding(model),
+            model: provider.embedding(model),
             providerOptions: {
               google: { outputDimensionality: VECTOR_DIMENSIONS },
             },
             value: text,
           }),
-        3,
         logPrefix,
+        3,
       );
       return result.embedding;
     }
@@ -89,17 +120,17 @@ export class ServerEmbeddingService {
       getServerDefaultFilesConfig().embeddingModel || DEFAULT_FILE_EMBEDDING_MODEL_ITEM;
 
     if (this.getMode() === 'sdk') {
-      const result = await withRateLimitRetry(
-        () =>
+      const result = await this.embedWithSdkFallback(
+        (provider) =>
           embedMany({
-            model: this.getGoogleProvider().embedding(model),
+            model: provider.embedding(model),
             providerOptions: {
               google: { outputDimensionality: VECTOR_DIMENSIONS },
             },
             values: texts,
           }),
-        5,
         logPrefix,
+        5,
       );
       return result.embeddings;
     }
