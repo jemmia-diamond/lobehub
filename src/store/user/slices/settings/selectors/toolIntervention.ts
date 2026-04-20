@@ -13,7 +13,7 @@ const interventionApprovalMode = (s: UserStore): ApprovalMode => {
   const mode = currentSettings(s).tool?.humanIntervention?.approvalMode;
   // Filter out 'headless' mode as it's not user-selectable (fallback to auto-run as similar behavior)
   if (mode === 'headless') return 'auto-run';
-  return mode || 'manual';
+  return mode || 'auto-run';
 };
 
 const interventionAllowList = (s: UserStore) =>

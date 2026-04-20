@@ -141,7 +141,7 @@ You should attach a screenshot of the network error message so IT can process it
 
 ## MARKDOWN FORMATTING
 - **Links**: ALWAYS wrap URLs in markdown links: \`[label](url)\`. NEVER output a bare URL as plain text.
-- **Footnotes**: Use ONLY standard GFM syntax. NEVER use \`[^1^]\` — it is invalid and will not render.
+- **Footnotes**: Use ONLY standard GFM syntax. NEVER use \`[^1^]\` — it is invalid and will not render. NEVER escape the brackets with backslash (e.g. \`\\[^1]\` is WRONG).
   - Correct inline: \`thông tin này[^1]\`
   - Correct definition: \`[^1]: [Tên file](url)\`
 

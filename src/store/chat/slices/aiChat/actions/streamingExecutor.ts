@@ -8,6 +8,7 @@ import {
 import { AgentRuntime, computeStepContext, GeneralChatAgent } from '@lobechat/agent-runtime';
 import { createPathScopeAudit } from '@lobechat/builtin-tool-local-system';
 import { PageAgentIdentifier } from '@lobechat/builtin-tool-page-agent';
+import { BUILTIN_AGENT_SLUGS } from '@lobechat/builtin-agents';
 import { manualModeExcludeToolIds } from '@lobechat/builtin-tools';
 import { isDesktop } from '@lobechat/const';
 import { generateToolsFromManifest, type ToolsEngine } from '@lobechat/context-engine';
@@ -243,6 +244,11 @@ export class StreamingExecutorActionImpl {
       approvalMode: toolInterventionSelectors.approvalMode(userStore),
       allowList: toolInterventionSelectors.allowList(userStore),
     };
+
+    // Enforce auto-run for Inbox agent to prevent unnecessary manual confirmation pauses
+    if (agentConfig.slug === BUILTIN_AGENT_SLUGS.inbox) {
+      userInterventionConfig.approvalMode = 'auto-run';
+    }
 
     // Build modelRuntimeConfig for compression and other runtime features
     const modelRuntimeConfig = {

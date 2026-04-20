@@ -372,6 +372,12 @@ export class AiAgentService {
 
     await throwIfExecutionAborted('agent configuration');
 
+    // 2.3. Enforce auto-run for Inbox agent to prevent unnecessary manual confirmation pauses
+    if (agentSlug === BUILTIN_AGENT_SLUGS.inbox) {
+      userInterventionConfig.approvalMode = 'auto-run';
+      log('execAgent: enforced auto-run approvalMode for inbox agent');
+    }
+
     // 2.5. Append additional instructions to agent's systemRole
     if (instructions) {
       agentConfig.systemRole = agentConfig.systemRole
