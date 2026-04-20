@@ -19,7 +19,7 @@ const HomeHeader = memo(() => {
             color: 'inherit',
             fontSize: 18,
             fontWeight: 200,
-            margin: 0,
+                        margin: 0,
             textAlign: 'center',
           }}
         >

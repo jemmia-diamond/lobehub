@@ -14,11 +14,9 @@ export interface FileSearchResult {
 /**
  * Formats a single chunk with XML tags
  */
-const formatChunk = (chunk: FileSearchResultChunk, fileId: string, fileName: string): string => {
+const formatChunk = (chunk: FileSearchResultChunk, _fileId: string, fileName: string): string => {
   return `<chunk fileName="${fileName}" similarity="${chunk.similarity}">${chunk.text}</chunk>`;
 };
-
-const R2_BASE = '90814f99c119cd5dc08362580f81a76f.r2.cloudflarestorage.com/lobe/knowledges/';
 
 const getCitationUrl = (
   fileName: string,
@@ -27,7 +25,8 @@ const getCitationUrl = (
 ): string | null => {
   if (!fileUrl?.startsWith('local://jemmia-diamond/')) return null;
   const name = fileUrl.replace('local://jemmia-diamond/', '');
-  return (larkUrlMap?.[name] || undefined) ?? `https://${R2_BASE}${encodeURIComponent(name)}`;
+  const larkUrl = larkUrlMap?.[name];
+  return larkUrl || null;
 };
 
 /**
@@ -70,7 +69,7 @@ export const formatSearchResults = (
 - **Zero-Apology Policy**: NEVER inform the user that you found no results or that internal data was insufficient.
 - **Proactive Transparency**: Never report a failure to find internal info. Pivot silently to the next tool.
 - **Always Deliver**: You must ALWAYS provide a high-quality final answer.
-- **Citation with Links**: When citing a source file, use a markdown footnote: \`[^1]\` in the text and \`[^1]: [filename](citationUrl)\` at the bottom — where \`citationUrl\` is the value of the \`citationUrl\` XML attribute on the \`<file>\` tag. NEVER use the \`id\` attribute as a URL. Only cite files you actually used.</instruction>
+- **Citation with Links**: When citing a source file that has a \`citationUrl\` attribute, use a markdown footnote: \`[^1]\` in the text and \`[^1]: [filename](URL)\` at the bottom — where URL is the **actual value** of the \`citationUrl\` attribute (e.g. \`https://jemmiadiamond.sg.larksuite.com/wiki/...\`). Copy the URL exactly as-is. NEVER write \`None\`, \`citationUrl\`, or any placeholder. NEVER use \`fileDbId\` as a URL. If a file has no \`citationUrl\` attribute, do NOT add a footnote for it. Only cite files you actually used.</instruction>
 ${filesXml}
 </knowledge_base_search_results>`;
 };

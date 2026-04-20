@@ -1,10 +1,8 @@
 'use client';
 
-import { Flexbox, Text } from '@lobehub/ui';
-import { useTheme } from 'antd-style';
+import { Flexbox } from '@lobehub/ui';
 import { memo } from 'react';
 
-import BrandingLogo from '@/components/Branding/JemLogo';
 import ToggleLeftPanelButton from '@/features/NavPanel/ToggleLeftPanelButton';
 import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors';
@@ -12,7 +10,6 @@ import { systemStatusSelectors } from '@/store/global/selectors';
 const JemLogo = memo(() => {
   const expand = useGlobalStore((s) => systemStatusSelectors.showLeftPanel(s));
 
-  const theme = useTheme();
   return (
     <Flexbox
       horizontal
@@ -24,18 +21,7 @@ const JemLogo = memo(() => {
     >
       {expand && (
         <Flexbox horizontal align="center" gap={8} style={{ flex: 1 }}>
-          <BrandingLogo size={24} />
-          <Text
-            style={{
-              color: theme.colorText,
-              fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-              fontSize: 16,
-              fontWeight: 600,
-              lineHeight: '24px',
-            }}
-          >
-            Brainy
-          </Text>
+          <img alt="Jemmia" height={40} src="/logo_horizontal.svg" style={{ objectFit: 'contain' }} />
         </Flexbox>
       )}
       <Flexbox
