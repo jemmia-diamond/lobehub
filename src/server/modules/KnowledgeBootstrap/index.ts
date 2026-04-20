@@ -39,6 +39,10 @@ export class KnowledgeBootstrapService {
     return !!KnowledgeBootstrapService.globalKbId;
   }
 
+  static get globalKnowledgeBaseId(): string | undefined {
+    return KnowledgeBootstrapService.globalKbId;
+  }
+
   constructor(userId?: string) {
     this.currentUserId = userId;
   }
