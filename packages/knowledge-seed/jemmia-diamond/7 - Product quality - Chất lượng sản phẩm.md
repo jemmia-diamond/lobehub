@@ -1,7 +1,41 @@
 # 7 - Product quality - Chất lượng sản phẩm
 
-Chất lượng kim cương tại Jemmia Diamond
-Quy trình kiểm định kim cương và máy móc tại showroom
+PRODUCT_QUALITY - Chất lượng sản phẩm
+
+## Tiêu chuẩn tuyển chọn kim cương
+
+Jemmia Diamond cam kết chỉ chọn lọc top 2% kim cương tự nhiên đẹp nhất trên thị trường quốc tế – đạt chuẩn kiểm định GIA và vượt tiêu chí tuyển chọn tại Jemmia:
+
+- **Không BGM**: Loại bỏ các viên có ánh nâu (Brown), xanh lá (Green), sữa (Milky) gây ảnh hưởng đến độ trong và ánh sáng.
+- **Không huỳnh quang** hoặc chỉ chấp nhận mức None đến Medium
+- **Màu sắc (Color)**: Nước từ D đến I – là nhóm nước sáng, giá trị cao.
+- **Độ sạch (Clarity)**: Từ VS2 đến FL – bảo đảm độ tinh khiết tốt, hạn chế mắt thường nhìn thấy tạp chất.
+- **Giác cắt (Cut), Đánh bóng (Polish), Đối xứng (Symmetry)**: Đạt chuẩn 3EX – cấp độ hoàn hảo nhất.
+- Tuyệt đối không nhập những viên có lỗi ảnh hưởng đến cấu trúc hoặc hiệu ứng ánh sáng của kim cương.
+- Lỗi cho phép là: Vết mây mờ (Cloud), Vết nứt (Feather), Tinh thể (Crystal), Vết hình kim (Needle), Dấu chấm rất nhỏ (Pinpoint). Còn lại các lỗi khác sẽ bị loại.
+
+Tất cả kim cương đều trải qua:
+
+- 1 lớp kiểm định quốc tế từ GIA.
+- 1 lớp kiểm định nội bộ bởi chuyên gia Jemmia: đánh giá lại vị trí tạp chất, độ lửa, độ sáng và các yếu tố phong thủy cá nhân.
+
+Gợi ý phân khúc khuyên dùng: Nước G-H, độ sạch VS1-VS2 - chất lượng rất tốt, giá tối ưu hơn so với các phân khúc cao cấp hơn.
+
+**Từ vựng chuyên ngành:**
+
+- **BGM**: Brown, Green, Milky - Những màu không mong muốn trong kim cương (nâu, xanh lá, sữa).
+- **Huỳnh quang**: Hiện tượng kim cương phát sáng dưới ánh sáng UV.
+
+**Câu hỏi thường gặp:**
+
+- **Hỏi**: Tiêu chuẩn tuyển chọn kim cương tại Jemmia Diamond là gì?
+- **Cách hỏi khác**: Jemmia chọn kim cương như thế nào? | Kim cương ở công ty mình có chất lượng tốt không? | Kim cương của chúng ta có đẹp không? | Có đáng tin không?
+- **Trả lời**: Đẹp – Sáng – Tinh tuyển: Kim cương tại Jemmia chỉ chọn top 2% tinh hoa kim cương tự nhiên GIA trên thế giới, đạt chuẩn 3EX (giác cắt – độ bóng – đối xứng đều Excellent), nước sáng D-I, độ sạch VS2 trở lên, không BGM, không huỳnh quang mạnh, và tuyệt đối không có lỗi ảnh hưởng đến cấu trúc hoặc hiệu ứng ánh sáng. Tất cả đều qua 2 lớp kiểm định: GIA quốc tế + chuyên gia nội bộ Jemmia, đảm bảo minh bạch – an tâm tuyệt đối.
+
+## Chất lượng kim cương tại Jemmia Diamond
+
+### Quy trình kiểm định kim cương và máy móc tại showroom
+
 Tất cả kim cương trước khi đưa ra thị trường đều qua máy GIA ID 100 để xác định nguồn gốc 100% tự nhiên. Hệ thống Match ID giúp đối soát mã số cạnh của viên đá trùng khớp 100% với thông tin trên giấy chứng nhận GIA. Quy trình kiểm định độc lập tại các trung tâm uy tín bậc nhất thế giới.
 
 **Câu hỏi thường gặp:**
@@ -10,7 +44,9 @@ Tất cả kim cương trước khi đưa ra thị trường đều qua máy GIA
 - **Cách hỏi khác**: Cách kiểm tra kim cương thật giả tại Jemmia? | Máy móc kiểm định tại Jemmia như thế nào? | Mã số cạnh là gì?
 - **Trả lời**: Tất cả kim cương trước khi đưa ra thị trường đều qua máy GIA ID 100 để xác định nguồn gốc 100% tự nhiên. Hệ thống Match ID giúp đối soát mã số cạnh của viên đá trùng khớp 100% với thông tin trên giấy chứng nhận GIA. Sản phẩm của Jemmia mình luôn kèm theo bộ chứng nhận quốc tế và hóa đơn pháp lý minh bạch, khách hoàn toàn có thể an tâm nhé.
 
-## Chất liệu vàng trang sức
+## Chất liệu vỏ trang sức
+
+Vỏ trang sức tại Jemmia chỉ dùng vàng 14K và 18K (Au750) – tỷ lệ lý tưởng giúp giữ chắc form, gắn kim cương bền đẹp, màu sắc trẻ trung, sang trọng, ít xỉn, an toàn cho da.
 
 Jemmia Diamond chỉ sử dụng vàng 14k và 18k (Au750) – đây là 2 loại vàng lý tưởng nhất để chế tác kim cương.
 

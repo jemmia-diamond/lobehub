@@ -246,3 +246,5 @@ Both files must be kept in sync. The inbox `systemRole.ts` takes precedence at r
 All AI development skills are available in `.agents/skills/` directory and auto-loaded by Claude Code when relevant.
 
 **IMPORTANT**: When reviewing PRs or code diffs, ALWAYS read `.agents/skills/code-review/SKILL.md` first.
+
+**IMPORTANT**: When converting knowledge from raw files (docx) to markdown, ALWAYS read `.agents/skills/docx-to-markdown/SKILL.md` to handle read and convert file

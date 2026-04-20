@@ -40,7 +40,7 @@ Jemmia cam kết chất lượng kim cương tự nhiên với các tiêu chuẩ
   - Nước D – I
   - Độ sạch từ VS2 trở lên (VS2 – VVS1 – IF – FL)
   - 3EX: Giác cắt – Bóng – Đối xứng đều đạt Excellent
-  - Không huỳnh quang mạnh (phản quang mạnh) (chỉ chọn None – Faint – Medium)
+  - Không huỳnh quang mạnh (chỉ chọn None – Faint – Medium)
   - Không lỗi ảnh hưởng đến cấu trúc hoặc độ lửa
   - Không BGM (không ánh xanh)
 
@@ -65,7 +65,7 @@ Jemmia Diamond cam kết chính sách thu mua và thu đổi trọn đời với
 **Chính sách thu đổi vỏ trang sức chế tác theo yêu cầu, mẫu đặc biệt hoặc size ngoại cỡ:**
 
 - Thu mua lại vỏ trang sức với giá 50% giá trị hóa đơn
-- Thu đổi vỏ trang sức sang sản phẩm mới with giá 60% giá trị hóa đơn
+- Thu đổi vỏ trang sức sang sản phẩm mới với giá 60% giá trị hóa đơn
 
 **Chính sách thu đổi kim cương viên chủ (Từ 4.0 ly đến dưới 6.3 ly, có chứng nhận GIA):**
 
@@ -119,7 +119,7 @@ Jemmia đảm bảo chất lượng vỏ trang sức với các tiêu chuẩn:
 - **Trả lời**: Jemmia cam kết cung cấp kim cương tự nhiên với tiêu chuẩn cao nhất: 100% có kiểm định GIA, nhập khẩu chính ngạch, có đầy đủ hóa đơn VAT. Jemmia chỉ chọn 2% kim cương đẹp nhất thế giới với các tiêu chí nghiêm ngặt: Nước D–I, độ sạch từ VS2 trở lên (VS2–VVS1–IF–FL), 3EX (Giác cắt–Bóng–Đối xứng đều đạt Excellent), không huỳnh quang mạnh (chỉ chọn None – Faint – Medium), không lỗi ảnh hưởng đến cấu trúc hoặc độ lửa, và không BGM (không ánh xanh).
 - **Hỏi**: Vỏ trang sức của Jemmia có chất lượng như thế nào?
 - **Cách hỏi khác**: Vàng của Jemmia có tốt không? | Jemmia dùng loại vàng gì cho trang sức? | Chất lượng vỏ trang sức của Jemmia ra sao?
-- **Trả lời**: Vỏ trang sức của Jemmia đạt chuẩn quốc tế với chất liệu vàng 18K750 và 14K585, đảm bảo không pha tạp, không gây kích ứng da. Kim cương tấm đi kèm đều đạt chuẩn từ VS trở lên with độ sáng cao. Tất cả sản phẩm đều được gia công tinh xảo bởi nghệ nhân có trên 20 năm kinh nghiệm và có thiết kế độc quyền kết hợp yếu tố văn hóa Việt Nam, phù hợp với gu thẩm mỹ của khách hàng cao cấp.
+- **Trả lời**: Vỏ trang sức của Jemmia đạt chuẩn quốc tế với chất liệu vàng 18K750 và 14K585, đảm bảo không pha tạp, không gây kích ứng da. Kim cương tấm đi kèm đều đạt chuẩn từ VS trở lên với độ sáng cao. Tất cả sản phẩm đều được gia công tinh xảo bởi nghệ nhân có trên 20 năm kinh nghiệm và có thiết kế độc quyền kết hợp yếu tố văn hóa Việt Nam, phù hợp với gu thẩm mỹ của khách hàng cao cấp.
 
 ## Lưu ý về các sản phẩm của Jemmia
 
