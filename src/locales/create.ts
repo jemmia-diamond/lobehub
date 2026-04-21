@@ -11,6 +11,7 @@ import editor from '@/../locales/vi-VN/editor.json';
 import error from '@/../locales/vi-VN/error.json';
 import file from '@/../locales/vi-VN/file.json';
 import home from '@/../locales/vi-VN/home.json';
+import plugin from '@/../locales/vi-VN/plugin.json';
 import topic from '@/../locales/vi-VN/topic.json';
 import welcome from '@/../locales/vi-VN/welcome.json';
 import { DEFAULT_LANG } from '@/const/locale';
@@ -28,6 +29,7 @@ const createBundledResources = () => ({
   error: { ...error },
   file: { ...file },
   home: { ...home },
+  plugin: { ...plugin },
   topic: { ...topic },
   welcome: { ...welcome },
 });

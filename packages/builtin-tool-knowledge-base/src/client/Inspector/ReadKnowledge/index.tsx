@@ -27,18 +27,21 @@ export const ReadKnowledgeInspector = memo<
   const firstFilename = files[0]?.filename;
   const remainingCount = files.length - 1;
 
-  // During argument streaming - show file count since we don't have filenames yet
+  const readLabel = t('builtins.lobe-knowledge-base.apiName.readKnowledge', {
+    defaultValue: 'Đọc nội dung Thư viện',
+  });
+
   if (isArgumentsStreaming) {
     if (fileCount === 0)
       return (
         <div className={cx(inspectorTextStyles.root, shinyTextStyles.shinyText)}>
-          <span>{t('builtins.lobe-knowledge-base.apiName.readKnowledge')}</span>
+          <span>{readLabel}</span>
         </div>
       );
 
     return (
       <div className={cx(inspectorTextStyles.root, shinyTextStyles.shinyText)}>
-        <span>{t('builtins.lobe-knowledge-base.apiName.readKnowledge')}: </span>
+        <span>{readLabel}: </span>
         <span className={highlightTextStyles.gold}>
           {fileCount} {fileCount === 1 ? 'file' : 'files'}
         </span>
@@ -46,22 +49,23 @@ export const ReadKnowledgeInspector = memo<
     );
   }
 
-  // After loading - show filename(s)
+  const andMoreLabel = (count: number) =>
+    t('builtins.lobe-knowledge-base.inspector.andMoreFiles', {
+      count,
+      defaultValue: `và ${count} tệp nữa`,
+    });
+
   const renderFileInfo = () => {
-    // If we have filenames from pluginState, show them
     if (firstFilename) {
       return (
         <>
           <span className={highlightTextStyles.gold}>{firstFilename}</span>
           {remainingCount > 0 && (
-            <span className={styles.moreFiles}>
-              {t('builtins.lobe-knowledge-base.inspector.andMoreFiles', { count: remainingCount })}
-            </span>
+            <span className={styles.moreFiles}>{andMoreLabel(remainingCount)}</span>
           )}
         </>
       );
     }
-    // Fallback to file count if no filenames available yet
     if (fileCount > 0) {
       return (
         <span className={highlightTextStyles.gold}>
@@ -75,7 +79,7 @@ export const ReadKnowledgeInspector = memo<
   return (
     <div className={cx(inspectorTextStyles.root, isLoading && shinyTextStyles.shinyText)}>
       <span style={{ marginInlineStart: 2 }}>
-        <span>{t('builtins.lobe-knowledge-base.apiName.readKnowledge')}: </span>
+        <span>{readLabel}: </span>
         {renderFileInfo()}
       </span>
     </div>

@@ -16,10 +16,17 @@ export const SearchInspector = memo<BuiltinInspectorProps<SearchQuery, UniformSe
     const resultCount = pluginState?.results?.length ?? 0;
     const hasResults = resultCount > 0;
 
+    const searchLabel = t('builtins.lobe-web-browsing.apiName.search', {
+      defaultValue: 'Tìm kiếm trang',
+    });
+    const noResultsLabel = t('builtins.lobe-web-browsing.inspector.noResults', {
+      defaultValue: 'Không có kết quả',
+    });
+
     if (isArgumentsStreaming && !query) {
       return (
         <div className={cx(inspectorTextStyles.root, shinyTextStyles.shinyText)}>
-          <span>{t('builtins.lobe-web-browsing.apiName.search')}</span>
+          <span>{searchLabel}</span>
         </div>
       );
     }
@@ -32,7 +39,7 @@ export const SearchInspector = memo<BuiltinInspectorProps<SearchQuery, UniformSe
         )}
       >
         <span>
-          {t('builtins.lobe-web-browsing.apiName.search')}:{'\u00A0'}
+          {searchLabel}:{'\u00A0'}
         </span>
         {query && <span className={highlightTextStyles.primary}>{query}</span>}
         {!isLoading &&
@@ -47,7 +54,7 @@ export const SearchInspector = memo<BuiltinInspectorProps<SearchQuery, UniformSe
               fontSize={12}
               style={{ marginInlineStart: 4 }}
             >
-              ({t('builtins.lobe-web-browsing.inspector.noResults')})
+              ({noResultsLabel})
             </Text>
           ))}
       </div>

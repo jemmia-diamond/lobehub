@@ -20,18 +20,24 @@ export const SearchKnowledgeBaseInspector = memo<
   const resultCount = pluginState?.fileResults?.length ?? 0;
   const hasResults = resultCount > 0;
 
-  // During argument streaming
+  const searchLabel = t('builtins.lobe-knowledge-base.apiName.searchKnowledgeBase', {
+    defaultValue: 'Tìm kiếm Thư viện',
+  });
+  const noResultsLabel = t('builtins.lobe-knowledge-base.inspector.noResults', {
+    defaultValue: 'Không có kết quả',
+  });
+
   if (isArgumentsStreaming) {
     if (!query)
       return (
         <div className={cx(inspectorTextStyles.root, shinyTextStyles.shinyText)}>
-          <span>{t('builtins.lobe-knowledge-base.apiName.searchKnowledgeBase')}</span>
+          <span>{searchLabel}</span>
         </div>
       );
 
     return (
       <div className={cx(inspectorTextStyles.root, shinyTextStyles.shinyText)}>
-        <span>{t('builtins.lobe-knowledge-base.apiName.searchKnowledgeBase')}: </span>
+        <span>{searchLabel}: </span>
         <span className={highlightTextStyles.gold}>{query}</span>
       </div>
     );
@@ -40,7 +46,7 @@ export const SearchKnowledgeBaseInspector = memo<
   return (
     <div className={cx(inspectorTextStyles.root, isLoading && shinyTextStyles.shinyText)}>
       <span style={{ marginInlineStart: 2 }}>
-        <span>{t('builtins.lobe-knowledge-base.apiName.searchKnowledgeBase')}: </span>
+        <span>{searchLabel}: </span>
         {query && <span className={highlightTextStyles.gold}>{query}</span>}
         {!isLoading &&
           pluginState?.fileResults &&
@@ -53,7 +59,7 @@ export const SearchKnowledgeBaseInspector = memo<
               fontSize={12}
               style={{ marginInlineStart: 4 }}
             >
-              ({t('builtins.lobe-knowledge-base.inspector.noResults')})
+              ({noResultsLabel})
             </Text>
           ))}
       </span>

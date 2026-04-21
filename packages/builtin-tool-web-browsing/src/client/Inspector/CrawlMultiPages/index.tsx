@@ -29,10 +29,14 @@ export const CrawlMultiPagesInspector = memo<BuiltinInspectorProps<CrawlMultiPag
       }
     }
 
+    const label = t('builtins.lobe-web-browsing.apiName.crawlMultiPages', {
+      defaultValue: 'Đọc nhiều trang',
+    });
+
     if (isArgumentsStreaming && !displayText) {
       return (
         <div className={cx(inspectorTextStyles.root, shinyTextStyles.shinyText)}>
-          <span>{t('builtins.lobe-web-browsing.apiName.crawlMultiPages')}</span>
+          <span>{label}</span>
         </div>
       );
     }
@@ -42,7 +46,7 @@ export const CrawlMultiPagesInspector = memo<BuiltinInspectorProps<CrawlMultiPag
         className={cx(inspectorTextStyles.root, isArgumentsStreaming && shinyTextStyles.shinyText)}
       >
         <span>
-          {t('builtins.lobe-web-browsing.apiName.crawlMultiPages')}:{'\u00A0'}
+          {label}:{'\u00A0'}
         </span>
         {displayText && <span className={highlightTextStyles.gold}>{displayText}</span>}
       </div>

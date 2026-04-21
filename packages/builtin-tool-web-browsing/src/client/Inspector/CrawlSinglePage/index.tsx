@@ -17,10 +17,14 @@ export const CrawlSinglePageInspector = memo<BuiltinInspectorProps<CrawlSinglePa
 
     const url = args?.url || partialArgs?.url;
 
+    const label = t('builtins.lobe-web-browsing.apiName.crawlSinglePage', {
+      defaultValue: 'Đọc nội dung trang',
+    });
+
     if (isArgumentsStreaming && !url) {
       return (
         <div className={cx(inspectorTextStyles.root, shinyTextStyles.shinyText)}>
-          <span>{t('builtins.lobe-web-browsing.apiName.crawlSinglePage')}</span>
+          <span>{label}</span>
         </div>
       );
     }
@@ -30,7 +34,7 @@ export const CrawlSinglePageInspector = memo<BuiltinInspectorProps<CrawlSinglePa
         className={cx(inspectorTextStyles.root, isArgumentsStreaming && shinyTextStyles.shinyText)}
       >
         <span>
-          {t('builtins.lobe-web-browsing.apiName.crawlSinglePage')}:{'\u00A0'}
+          {label}:{'\u00A0'}
         </span>
         {url && <span className={highlightTextStyles.gold}>{url}</span>}
       </div>

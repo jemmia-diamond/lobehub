@@ -29,6 +29,7 @@ const MarkdownMessage = memo<MarkdownProps>(({ children, componentProps, compone
           const isRedirected = resolvedHref !== href;
           return (
             <a
+              {...props}
               href={isRedirected ? resolvedHref : href}
               rel="noopener noreferrer"
               target={isRedirected ? '_blank' : props.target}
@@ -40,7 +41,6 @@ const MarkdownMessage = memo<MarkdownProps>(({ children, componentProps, compone
                     }
                   : props.onClick
               }
-              {...props}
             >
               {linkChildren}
             </a>
