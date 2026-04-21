@@ -237,18 +237,20 @@ const Footer = memo(() => {
           </Flexbox>
         </Flexbox>
       ) : (
-        <Flexbox horizontal align={'center'} gap={2} padding={8}>
-          {showHelpMenu && (
-            <DropdownMenu items={helpMenuItems} placement="topLeft">
-              <ActionIcon aria-label={t('userPanel.help')} icon={CircleHelp} size={16} />
-            </DropdownMenu>
-          )}
-          {isDevMode && !isSettingsPage && (
-            <Link to="/settings">
-              <ActionIcon aria-label={t('userPanel.setting')} icon={Settings} size={16} />
-            </Link>
-          )}
-        </Flexbox>
+        (showHelpMenu || (isDevMode && !isSettingsPage)) && (
+          <Flexbox horizontal align={'center'} gap={2} padding={8}>
+            {showHelpMenu && (
+              <DropdownMenu items={helpMenuItems} placement="topLeft">
+                <ActionIcon aria-label={t('userPanel.help')} icon={CircleHelp} size={16} />
+              </DropdownMenu>
+            )}
+            {isDevMode && !isSettingsPage && (
+              <Link to="/settings">
+                <ActionIcon aria-label={t('userPanel.setting')} icon={Settings} size={16} />
+              </Link>
+            )}
+          </Flexbox>
+        )
       )}
       <ChangelogModal
         open={isChangelogModalOpen}
