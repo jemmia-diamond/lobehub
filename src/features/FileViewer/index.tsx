@@ -264,7 +264,7 @@ const FileViewer = memo<FileViewerProps>(({ id, style, fileType, url, name }) =>
   // Microsoft Office documents - check before code files to avoid false matches
   // (e.g., 'doc' contains 'c' which would match CODE_EXTENSIONS)
   if (matchesFileType(fileType, name, MSDOC_EXTENSIONS, MSDOC_MIME_TYPES)) {
-    return <MSDocViewer fileId={id} url={url} />;
+    return <MSDocViewer fileId={id} name={name} url={url} />;
   }
 
   // Code files (JavaScript, TypeScript, Python, Java, C++, Go, Rust, Markdown, etc.)

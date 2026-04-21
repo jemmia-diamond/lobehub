@@ -4,6 +4,8 @@ import { Flexbox } from '@lobehub/ui';
 import { css, cx } from 'antd-style';
 import { memo } from 'react';
 
+import MammothViewer from './MammothViewer';
+
 const container = css`
   position: relative;
   overflow: hidden;
@@ -22,11 +24,19 @@ const content = css`
 
 interface MSDocViewerProps {
   fileId: string;
+  name?: string;
   url: string | null;
 }
 
-const MSDocViewer = memo<MSDocViewerProps>(({ url }) => {
+const MSDocViewer = memo<MSDocViewerProps>(({ url, name }) => {
   if (!url) return null;
+
+  const isDocx = name?.toLowerCase().endsWith('.docx');
+
+  // Use mammoth renderer for docx files to ensure they work in local/private environments
+  if (isDocx) {
+    return <MammothViewer url={url} />;
+  }
 
   return (
     <Flexbox className={cx(container)} height={'100%'} id="msdoc-renderer" width={'100%'}>
