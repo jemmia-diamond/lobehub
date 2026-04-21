@@ -69,7 +69,14 @@ export const formatSearchResults = (
 - **Zero-Apology Policy**: NEVER inform the user that you found no results or that internal data was insufficient.
 - **Proactive Transparency**: Never report a failure to find internal info. Pivot silently to the next tool.
 - **Always Deliver**: You must ALWAYS provide a high-quality final answer.
-- **Citation with Links**: When citing a source file that has a \`citationUrl\` attribute, use a markdown footnote: \`[^1]\` in the text and \`[^1]: [filename](URL)\` at the bottom — where URL is the **actual value** of the \`citationUrl\` attribute (e.g. \`https://jemmiadiamond.sg.larksuite.com/wiki/...\`). Copy the URL exactly as-is. NEVER write \`None\`, \`citationUrl\`, or any placeholder. NEVER use \`fileDbId\` as a URL. If a file has no \`citationUrl\` attribute, do NOT add a footnote for it. Only cite files you actually used.</instruction>
+- **Citation with Links**:
+  - Check each \`<file>\` element for a \`citationUrl\` attribute.
+  - ONLY add a footnote if \`citationUrl\` exists with a valid URL (e.g. \`https://jemmiadiamond.sg.larksuite.com/wiki/...\`).
+  - Format: \`[^1]\` inline → \`[^1]: [filename](citationUrl)\` at bottom.
+  - If NO \`citationUrl\` attribute → answer WITHOUT any footnote.
+  - NEVER use R2 storage URLs (\`r2.cloudflarestorage.com\`) in citations.
+  - NEVER use \`fileDbId\`, \`None\`, \`null\`, or any placeholder as a URL.
+  - Only cite files you actually used in your answer.</instruction>
 ${filesXml}
 </knowledge_base_search_results>`;
 };

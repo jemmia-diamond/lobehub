@@ -110,9 +110,11 @@ export const getR2Url = (filename: string): string =>
 /** Build the jemmia_diamond_knowledge_base bullet list for web browsing systemRole */
 export const buildKnowledgeBaseList = (): string =>
   Object.entries(JEMMIA_KNOWLEDGE_FILES)
-    .map(([filename, { label, larkUrl }]) =>
-      `- ${label}\n  - crawl: ${getR2Url(filename)}\n  - cite: ${larkUrl}`,
-    )
+    .map(([filename, { label, larkUrl }]) => {
+      const crawlUrl = getR2Url(filename);
+      const citeEntry = larkUrl ? `\n  - cite: ${larkUrl}` : '';
+      return `- ${label}\n  - crawl: ${crawlUrl}${citeEntry}`;
+    })
     .join('\n');
 
 const R2_HOST = 'r2.cloudflarestorage.com';

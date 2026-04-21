@@ -71,7 +71,7 @@ The Jemmia provider (`src/server/modules/ModelRuntime/index.ts`) intercepts ever
 The inbox agent is Jemmia's internal AI assistant. Key behaviors enforced server-side regardless of user settings:
 
 - **KB always enabled**: `hasEnabledKnowledgeBases = true` for inbox agent (`src/server/services/aiAgent/index.ts`)
-- **Memory always enabled**: `globalMemoryEnabled = true`
+- **Memory follows standard logic**: Agent-level config takes priority, falls back to user setting (`globalMemoryEnabled = agentMemoryEnabled ?? memorySettings?.enabled !== false`)
 - **Web search always on**: `searchMode = 'auto'`
 - **KB tool in plugins**: `KnowledgeBaseIdentifier` added to inbox agent plugins (`packages/builtin-agents/src/agents/inbox/index.ts`)
 
@@ -85,14 +85,15 @@ Two separate knowledge sources — never mix their citation behavior:
 - Searches indexed local markdown files via pgvector (3072-dim embeddings, `gemini-embedding-2-preview`)
 - Returns relevant chunks to the LLM
 - **Cites Lark URLs directly** via `formatSearchResults.ts` — when file has `local://jemmia-diamond/` URL, the Lark wiki URL is looked up from `R2_TO_LARK_MAP` and passed as `citationUrl` attribute. The LLM is instructed to use `[^1]: [filename](citationUrl)` footnotes.
-- Falls back to R2 URL if no Lark mapping exists for the file
+- **No citation when Lark URL is missing** — if no Lark mapping exists for the file, no `citationUrl` attribute is added and the LLM provides the answer without footnote citation
 - `R2_TO_LARK_MAP` is passed from `executor/index.ts` (client) which imports from `src/config/r2ToLarkMapping.ts`
 
 **Web Browsing Tool** (`lobe-web-browsing`):
 - Used when KB returns no results, or for real-time web search
-- Knowledge base list generated from `buildKnowledgeBaseList()` in `src/config/r2ToLarkMapping.ts` — format: `- label: r2Url [lark: larkUrl]`
+- Knowledge base list generated from `buildKnowledgeBaseList()` in `src/config/r2ToLarkMapping.ts` — format: `- label\n  - crawl: r2Url\n  - cite: larkUrl` (cite line omitted when larkUrl is empty)
 - Crawls R2 markdown files directly via `crawlSinglePage`/`crawlMultiPages`
-- **Cites Lark URLs directly** — instructed to use the `[lark: ...]` URL from the KB list, not the R2 URL
+- **Cites Lark URLs directly** — instructed to use the `cite:` URL from the KB list when available, not the R2 URL
+- **No citation when Lark URL is missing** — if no `cite:` entry exists for a file, provides the answer without footnote citation
 
 ### Citation Types
 
