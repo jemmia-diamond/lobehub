@@ -21,9 +21,19 @@ const FilePreview = () => {
   const { t } = useTranslation('portal');
 
   const [tab, setTab] = useState<FilePreviewTab>(FilePreviewTab.File);
-  const { data, isLoading } = useFetchFileItem(previewFileId);
+  const { data: fetchedData, isLoading } = useFetchFileItem(previewFileId);
 
-  if (isLoading || !data) return <Loading />;
+  const currentFile = useChatStore(chatPortalSelectors.currentFile);
+
+  const data = fetchedData || (currentFile ? ({
+    fileType: currentFile.fileType,
+    id: currentFile.fileId,
+    name: currentFile.name,
+    url: currentFile.url,
+  } as any) : undefined);
+
+  if (!data && isLoading) return <Loading />;
+  if (!data) return null;
 
   const showChunk = tab === FilePreviewTab.Chunk && !!chunkText;
   return (

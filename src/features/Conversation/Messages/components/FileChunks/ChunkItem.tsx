@@ -27,7 +27,13 @@ const ChunkItem = memo<ChunkItemProps>(({ id, fileId, similarity, text, filename
       key={id}
       onClick={(e) => {
         e.stopPropagation();
-        openFilePreview({ chunkId: id, chunkText: text, fileId });
+        openFilePreview({
+          chunkId: id,
+          chunkText: text,
+          fileId,
+          fileType,
+          name: filename,
+        });
       }}
     >
       <FileIcon fileName={filename} fileType={fileType} size={20} variant={'raw'} />

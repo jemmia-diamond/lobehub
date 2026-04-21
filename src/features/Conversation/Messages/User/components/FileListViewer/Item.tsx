@@ -57,7 +57,7 @@ const FileItem = memo<ChatFileItem>(({ id, fileType, size, name, url }) => {
           const larkUrl = url || `${LARK_BASE_URL}/wiki/${token}`;
           openLarkPreview(larkUrl, name);
         } else {
-          openFilePreview({ fileId: id });
+          openFilePreview({ fileId: id, fileType, name, url });
         }
       }}
     >

@@ -7,9 +7,10 @@ import { useFileStore } from '@/store/file';
 import { oneLineEllipsis } from '@/styles';
 
 const Title = () => {
-  const [closeFilePreview, previewFileId] = useChatStore((s) => [
+  const [closeFilePreview, previewFileId, currentFile] = useChatStore((s) => [
     s.closeFilePreview,
     chatPortalSelectors.previewFileId(s),
+    chatPortalSelectors.currentFile(s),
   ]);
 
   const useFetchFileItem = useFileStore((s) => s.useFetchKnowledgeItem);
@@ -20,11 +21,11 @@ const Title = () => {
     <Flexbox horizontal align={'center'} gap={4}>
       <ActionIcon icon={ArrowLeft} size={'small'} onClick={() => closeFilePreview()} />
 
-      {isLoading ? (
+      {isLoading && !currentFile?.name ? (
         <Skeleton.Button active style={{ height: 28 }} />
       ) : (
         <Text className={oneLineEllipsis} style={{ fontSize: 16 }} type={'secondary'}>
-          {data?.name}
+          {data?.name || currentFile?.name}
         </Text>
       )}
     </Flexbox>

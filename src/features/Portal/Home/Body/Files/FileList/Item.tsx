@@ -36,7 +36,7 @@ const FileItem = memo<ChatFileItem>(({ name, fileType, size, id }) => {
       className={styles.container}
       gap={8}
       onClick={() => {
-        openFilePreview({ fileId: id });
+        openFilePreview({ fileId: id, fileType, name });
       }}
     >
       <FileIcon fileName={name} fileType={fileType} />

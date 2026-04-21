@@ -39,11 +39,12 @@ const styles = createStaticStyles(({ css, cssVar }) => ({
 }));
 
 const PortalPanel = memo(({ children }: PropsWithChildren) => {
-  const [showPortal, showToolUI, showArtifactUI, showThread] = useChatStore((s) => [
+  const [showPortal, showToolUI, showArtifactUI, showThread, _portalStackLength] = useChatStore((s) => [
     chatPortalSelectors.showPortal(s),
     chatPortalSelectors.showPluginUI(s),
     chatPortalSelectors.showArtifactUI(s),
     portalThreadSelectors.showThread(s),
+    s.portalStack.length,
   ]);
 
   const [portalWidth, updateSystemStatus] = useGlobalStore((s) => [

@@ -6,7 +6,10 @@ import pdfjsWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { type ComponentProps } from 'react';
 import { Document as PdfDocument, type Page as PdfPage, pdfjs } from 'react-pdf';
 
-pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
+// Fallback to CDN for the worker if local loading fails (common in some dev environments)
+const pdfjsWorkerUrlFallback = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
+
+pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl || pdfjsWorkerUrlFallback;
 
 export type DocumentProps = ComponentProps<typeof PdfDocument>;
 export type PageProps = ComponentProps<typeof PdfPage>;

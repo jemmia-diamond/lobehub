@@ -108,7 +108,14 @@ const FileChatChips = memo<FileChatChipsProps>(({ onAdd }) => {
           className={styles.chip}
           gap={8}
           key={item.id}
-          onClick={() => openFilePreview({ fileId: item.id })}
+          onClick={() =>
+            openFilePreview({
+              fileId: item.id,
+              fileType: item.file.type,
+              name: item.file.name,
+              url: item.previewUrl || item.fileUrl,
+            })
+          }
         >
           <div className={styles.iconWrapper}>{renderIcon(item.file.type, item.file.name)}</div>
           <span className={styles.text}>{item.file.name}</span>

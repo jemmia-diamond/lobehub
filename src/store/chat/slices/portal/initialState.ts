@@ -24,6 +24,9 @@ export interface PortalFile {
   chunkId?: string;
   chunkText?: string;
   fileId: string;
+  fileType?: string;
+  name?: string;
+  url?: string;
 }
 
 export type PortalViewData =

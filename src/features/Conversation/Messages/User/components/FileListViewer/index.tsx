@@ -13,7 +13,14 @@ const FileListViewer = memo<FileListViewerProps>(({ items }) => {
   return (
     <Flexbox gap={8}>
       {items.map((item) => (
-        <FileItem key={item.id} {...item} />
+        <FileItem
+          fileType={item.fileType}
+          id={item.id}
+          key={item.id}
+          name={item.name}
+          size={item.size}
+          url={item.url}
+        />
       ))}
     </Flexbox>
   );
