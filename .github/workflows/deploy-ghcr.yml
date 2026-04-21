@@ -3,7 +3,7 @@ name: Build and Push to GHCR
 on:
   push:
     branches:
-      - canary
+      - main
     paths-ignore:
       - '**.md'
       - '**.mdx'
@@ -52,7 +52,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/canary' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=sha,prefix=sha-,format=long
 
       - name: Build and push Docker image
@@ -70,7 +70,7 @@ jobs:
             SHA=${{ github.sha }}
 
       - name: Deploy to Dokploy (Webhook Trigger)
-        if: github.ref == 'refs/heads/canary' && success()
+        if: github.ref == 'refs/heads/main' && success()
         env:
           DOKPLOY_WEBHOOK_URL: ${{ secrets.DOKPLOY_WEBHOOK_URL }}
         run: |
