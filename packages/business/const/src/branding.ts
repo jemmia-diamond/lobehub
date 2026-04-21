@@ -5,7 +5,7 @@
 export const LOBE_CHAT_CLOUD = 'Brainy Cloud';
 
 export const BRANDING_NAME = 'Brainy';
-export const BRANDING_LOGO_URL = '/images/brainy_logo.png';
+export const BRANDING_LOGO_URL = '/logo.svg';
 export const DEFAULT_AVATAR = BRANDING_LOGO_URL || '/avatars/agent-default.png';
 
 export const ORG_NAME = 'Jemmia Diamond';
