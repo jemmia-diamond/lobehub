@@ -252,7 +252,7 @@ export const INITIAL_STATUS = {
   agentBuilderPanelWidth: 360,
   agentPageSize: 5,
   chatInputHeight: 64,
-  recentPageSize: 5,
+  recentPageSize: 20,
   disabledModelProvidersSortType: 'default',
   disabledModelsSortType: 'default',
   dismissedBannerIds: [],

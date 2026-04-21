@@ -62,10 +62,10 @@ export default ({ token }: { prefixCls: string; token: Theme }) => css`
   }
 
   @font-face {
-    font-family: 'BeautiqueDisplay';
-    src: url('/fonts/BeautiqueDisplay-Bold.otf') format('opentype');
+    font-family: BeautiqueDisplay;
     font-weight: bold;
     font-style: normal;
+    src: url('/fonts/BeautiqueDisplay-Bold.otf') format('opentype');
   }
 
   button {

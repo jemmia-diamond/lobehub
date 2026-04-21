@@ -276,6 +276,10 @@ export class GatewayActionImpl {
         clearNewKey: true,
         skipRefreshMessage: true,
       });
+
+      // Refresh sidebar topic list and recents after creating new topic
+      // This ensures the new topic appears in the left sidebar history immediately
+      await this.#get().refreshTopic();
     }
 
     // Use the server-created topicId for the execution context

@@ -19,8 +19,11 @@ const ChatHydration = memo(() => {
   useLayoutEffect(() => {
     const unsubscribeTopic = useChatStore.subscribe(
       (s) => s.activeTopicId,
-      (state) => {
+      (state, prevState) => {
         setTopic(!state ? null : state);
+        if (state !== prevState) {
+          useChatStore.getState().clearPortalStack();
+        }
       },
     );
     const unsubscribeThread = useChatStore.subscribe(
@@ -34,7 +37,7 @@ const ChatHydration = memo(() => {
       unsubscribeTopic();
       unsubscribeThread();
     };
-  }, [setTopic, setThread]); // ✅ Now setValue is stable and can be safely added to the dependency array
+  }, [setTopic, setThread]);
 
   return null;
 });

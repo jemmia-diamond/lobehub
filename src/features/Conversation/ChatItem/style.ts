@@ -52,9 +52,9 @@ export const styles = createStaticStyles(({ css, cssVar }) => {
       background: ${cssVar.colorPrimary};
     `,
     agentName: css`
-      color: #d28571;
       font-family: 'BeautiqueDisplay', ${cssVar.fontFamily};
       font-weight: bold;
+      color: #d28571;
     `,
   };
 });

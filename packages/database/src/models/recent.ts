@@ -22,7 +22,7 @@ export class RecentModel {
     this.userId = userId;
   }
 
-  queryRecent = async (limit: number = 10): Promise<RecentDbItem[]> => {
+  queryRecent = async (limit: number = 10, offset: number = 0): Promise<RecentDbItem[]> => {
     const query = sql`
       SELECT * FROM (
         SELECT
@@ -72,7 +72,7 @@ export class RecentModel {
         WHERE ${tasks.createdByUserId} = ${this.userId}
       ) AS combined
       ORDER BY updated_at DESC
-      LIMIT ${limit}
+      LIMIT ${limit} OFFSET ${offset}
     `;
 
     const result = await this.db.execute(query);

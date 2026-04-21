@@ -94,6 +94,7 @@ export class ChatTopicActionImpl {
       await this.#get().refreshTopic();
     } else {
       await saveToTopic();
+      await this.#get().refreshTopic();
       refreshMessages();
     }
   };
@@ -507,7 +508,13 @@ export class ChatTopicActionImpl {
   switchTopic = async (id?: string | null, options?: SwitchTopicOptions): Promise<void> => {
     const opts = options ?? {};
 
-    const { activeAgentId, activeGroupId } = this.#get();
+    const { activeAgentId, activeGroupId, activeTopicId } = this.#get();
+
+    // Clear the portal stack whenever switching to a different topic
+    // This prevents stale context (like file previews) from persisting
+    if (id !== activeTopicId) {
+      this.#get().clearPortalStack();
+    }
 
     // Clear the _new key data in the following cases:
     // 1. When id is null or undefined (switching to empty topic state)
@@ -515,10 +522,6 @@ export class ChatTopicActionImpl {
     // This prevents stale data from previous conversations showing up
     // Note: Use == null to match both null and undefined
     const shouldClearNewKey = !id || opts.clearNewKey;
-
-    if (shouldClearNewKey) {
-      this.#get().clearPortalStack();
-    }
 
     if (shouldClearNewKey && activeAgentId) {
       // Determine scope: use explicit scope from options, or infer from activeGroupId

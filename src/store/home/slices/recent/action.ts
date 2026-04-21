@@ -27,17 +27,24 @@ export class RecentActionImpl {
     this.#get = get;
   }
 
-  useFetchRecents = (isLogin: boolean | undefined, limit: number = 12): SWRResponse<RecentItem[]> => {
+  useFetchRecents = (isLogin: boolean | undefined, limit: number = 20): SWRResponse<RecentItem[]> => {
     return useClientDataSWRWithSync<RecentItem[]>(
       // Only fetch when login status is explicitly true (not null/undefined)
       isLogin === true ? [FETCH_RECENTS_KEY, isLogin, limit] : null,
-      async () => recentService.getAll(limit),
+      async () => {
+        const currentLength = this.#get().recents?.length || 0;
+        const targetLimit = Math.max(limit, currentLength);
+        return recentService.getAll(targetLimit);
+      },
       {
         onData: (data) => {
           if (this.#get().isRecentsInit && isEqual(this.#get().recents, data)) return;
 
+          const currentLength = this.#get().recents?.length || 0;
+          const targetLimit = Math.max(limit, currentLength);
+
           this.#set(
-            { isRecentsInit: true, recents: data },
+            { hasMore: data.length >= targetLimit, isRecentsInit: true, recents: data },
             false,
             n('useFetchRecents/onData'),
           );
@@ -61,8 +68,34 @@ export class RecentActionImpl {
   };
 
   refreshRecents = async () => {
-    const data = await recentService.getAll(12);
-    this.#set({ recents: data }, false, n('refreshRecents'));
+    const currentLength = this.#get().recents?.length || 0;
+    const limit = Math.max(20, currentLength);
+    const data = await recentService.getAll(limit);
+    this.#set({ hasMore: data.length >= limit, recents: data }, false, n('refreshRecents'));
+  };
+
+  loadMoreRecents = async (limit: number = 20) => {
+    const { recents, isLoadingMore, hasMore } = this.#get();
+    if (isLoadingMore || !hasMore) return;
+
+    this.#set({ isLoadingMore: true }, false, n('loadMoreRecents/start'));
+
+    try {
+      const offset = recents.length;
+      const data = await recentService.getAll(limit, offset);
+
+      this.#set(
+        {
+          hasMore: data.length >= limit,
+          isLoadingMore: false,
+          recents: [...recents, ...data],
+        },
+        false,
+        n('loadMoreRecents/success'),
+      );
+    } catch {
+      this.#set({ isLoadingMore: false }, false, n('loadMoreRecents/error'));
+    }
   };
 }
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { Flexbox, Text } from '@lobehub/ui';
-import { memo, useMemo } from 'react';
+import { memo, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useChatStore } from '@/store/chat';
@@ -39,12 +39,38 @@ SectionLabel.displayName = 'SectionLabel';
 
 const Body = memo(() => {
   const { t } = useTranslation('home');
+  const { t: tCommon } = useTranslation('common');
   const { showHomeTopicHistory, showAgentListSidebar } =
     useServerConfigStore(featureFlagsSelectors);
   const isLogin = useUserStore(authSelectors.isLogin);
   const recents = useHomeStore(homeRecentSelectors.recents);
   const isRecentsInit = useHomeStore(homeRecentSelectors.isRecentsInit);
-  const recentTopics = useMemo(() => recents?.filter(r => r.type === 'topic'), [recents]);
+  const hasMore = useHomeStore((s) => s.hasMore);
+  const isLoadingMore = useHomeStore((s) => s.isLoadingMore);
+  const loadMoreRecents = useHomeStore((s) => s.loadMoreRecents);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const currentRef = loadMoreRef.current;
+    if (!currentRef || !hasMore || isLoadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMoreRecents(20);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(currentRef);
+
+    return () => {
+      observer.unobserve(currentRef);
+    };
+  }, [hasMore, isLoadingMore, loadMoreRecents]);
+
+  const recentTopics = useMemo(() => recents?.filter((r) => r.type === 'topic'), [recents]);
 
   const activeTopicId = useChatStore((s) => s.activeTopicId);
 
@@ -86,6 +112,20 @@ const Body = memo(() => {
                   />
                 ))}
               </Flexbox>
+              {hasMore && (
+                <Flexbox align={'center'} paddingBlock={8} ref={loadMoreRef}>
+                  <Text
+                    type={'secondary'}
+                    style={{
+                      fontSize: 12,
+                      opacity: 0.5,
+                      transition: 'opacity 0.2s',
+                    }}
+                  >
+                    {isLoadingMore ? '...' : tCommon('loadMore')}
+                  </Text>
+                </Flexbox>
+              )}
             </>
           ) : (
             <HistoryEmpty />

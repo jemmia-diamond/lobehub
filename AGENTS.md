@@ -1,10 +1,10 @@
-# LobeHub Development Guidelines
+# Jemmia Brainy Development Guidelines
 
-This document serves as a comprehensive guide for all team members when developing LobeHub.
+This document serves as a comprehensive guide for all team members when developing Brainy.
 
 ## Project Description
 
-You are developing an open-source, modern-design AI Agent Workspace: LobeHub (previously LobeChat).
+You are developing an open-source, modern-design AI Agent Workspace: Brainy forked from lobehub:lobehub and developed by Jemmia Diamond's Tech Team.
 This is a **Jemmia Diamond internal self-host deployment** — the default language is Vietnamese, the default agent is Brainy (Jemmia's internal AI assistant).
 
 ## Tech Stack
@@ -180,8 +180,9 @@ cd packages/[package-name] && bunx vitest run --silent='passed-only' '[file-path
 
 ### i18n
 
+- **Rule (CRITICAL)**: When introducing new text that is displayed to the user, you MUST add it to the Vietnamese (`vi-VN`) locale files (JSON), and you SHOULD add it to the English (`default`) TS source files. Do not hardcode user-facing text in components.
 - **Keys**: Add to `src/locales/default/namespace.ts`
-- **Dev**: Translate `locales/vi-VN/namespace.json` locale file only for preview
+- **Dev**: Translate `locales/vi-VN/namespace.json` locale file manually.
 - DON'T run `pnpm i18n`, let CI auto handle it
 
 #### Default Language: `vi-VN`

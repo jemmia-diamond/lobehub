@@ -6,9 +6,9 @@ import {
   type Usage,
 } from '@lobechat/agent-runtime';
 import { AgentRuntime, computeStepContext, GeneralChatAgent } from '@lobechat/agent-runtime';
+import { BUILTIN_AGENT_SLUGS } from '@lobechat/builtin-agents';
 import { createPathScopeAudit } from '@lobechat/builtin-tool-local-system';
 import { PageAgentIdentifier } from '@lobechat/builtin-tool-page-agent';
-import { BUILTIN_AGENT_SLUGS } from '@lobechat/builtin-agents';
 import { manualModeExcludeToolIds } from '@lobechat/builtin-tools';
 import { isDesktop } from '@lobechat/const';
 import { generateToolsFromManifest, type ToolsEngine } from '@lobechat/context-engine';

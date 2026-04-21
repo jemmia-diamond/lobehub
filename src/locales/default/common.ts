@@ -423,6 +423,7 @@ export default {
   'mail.business': 'Business Cooperation',
   'mail.support': 'Email Support',
   'more': 'More',
+  'loadMore': 'Load More',
   'navPanel.agent': 'Agents',
   'navPanel.customizeSidebar': 'Customize Sidebar',
   'navPanel.displayItems': 'Display Items',
