@@ -242,6 +242,20 @@ Both files must be kept in sync. The inbox `systemRole.ts` takes precedence at r
   - `R2_TO_LARK_MAP` for KB citation URLs is auto-derived
   - `getLarkUrlForR2()` redirect fallback is auto-derived
 
+### Feature Flags
+Feature flags are defined in `src/config/featureFlags/schema.ts`. All flags can be either:
+- **Boolean**: `true`/`false` for all users
+- **Array of user IDs**: `['user-id-1', 'user-id-2']` for per-user enablement
+
+Key flags for Jemmia deployment:
+- `enable_command_palette: false` — Disables Command Palette (Cmd+K / Ctrl+K) globally. Set to `false` by default to prevent accidental triggers.
+- `auth_sso_lark: true` — Enables Lark SSO OAuth login
+- `knowledge_base: true` — Enables knowledge base features
+- `enable_tools: true` — Enables tool/plugin system
+- `enable_model: true` — Enables model selection UI
+
+To modify defaults, edit `DEFAULT_FEATURE_FLAGS` in `schema.ts`. The `mapFeatureFlagsEnvToState()` function maps flags to store state using `evaluateFeatureFlag()`.
+
 ## Skills (Auto-loaded)
 
 All AI development skills are available in `.agents/skills/` directory and auto-loaded by Claude Code when relevant.

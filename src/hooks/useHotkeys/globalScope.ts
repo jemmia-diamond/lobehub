@@ -4,6 +4,7 @@ import { HotkeyEnum } from '@lobechat/types';
 import { useNavigateToAgent } from '@/hooks/useNavigateToAgent';
 import { usePinnedAgentState } from '@/hooks/usePinnedAgentState';
 import { useGlobalStore } from '@/store/global';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 import { useHotkeyById } from './useHotkeyById';
 
@@ -51,9 +52,11 @@ export const useToggleRightPanelHotkey = () => {
 // CMDK
 export const useCommandPaletteHotkey = () => {
   const toggleCommandMenu = useGlobalStore((s) => s.toggleCommandMenu);
+  const enableCommandPalette = useServerConfigStore((s) => featureFlagsSelectors(s).enableCommandPalette);
 
   return useHotkeyById(HotkeyEnum.CommandPalette, () => toggleCommandMenu(), {
     enableOnContentEditable: true,
+    enabled: !!enableCommandPalette,
   });
 };
 

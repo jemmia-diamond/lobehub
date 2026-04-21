@@ -98,6 +98,7 @@ export const FeatureFlagsSchema = z.object({
   show_chat_minimap: FeatureFlagValue.optional(),
 
   show_auth_theme_button: FeatureFlagValue.optional(),
+  enable_command_palette: FeatureFlagValue.optional(),
 });
 
 export type IFeatureFlags = z.infer<typeof FeatureFlagsSchema>;
@@ -208,6 +209,7 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   show_chat_minimap: false,
 
   show_auth_theme_button: false,
+  enable_command_palette: false,
 };
 
 export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string) => {
@@ -298,6 +300,7 @@ export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string
     showChatMinimap: evaluateFeatureFlag(config.show_chat_minimap, userId),
 
     showAuthThemeButton: evaluateFeatureFlag(config.show_auth_theme_button, userId),
+    enableCommandPalette: evaluateFeatureFlag(config.enable_command_palette, userId),
   };
 };
 
