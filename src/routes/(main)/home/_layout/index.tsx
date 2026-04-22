@@ -4,7 +4,6 @@ import { Activity, useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 
 import { useIsDark } from '@/hooks/useIsDark';
-import { userService } from '@/services/user';
 
 import HomeAgentIdSync from './HomeAgentIdSync';
 import RecentHydration from './RecentHydration';
@@ -24,13 +23,6 @@ const Layout: FC<LayoutProps> = ({ children }) => {
   useEffect(() => {
     if (isHomeRoute) setHasActivated(true);
   }, [isHomeRoute]);
-
-  useEffect(() => {
-    if (!hasActivated) return;
-    void userService.getUserState().catch((err) => {
-      console.error('Auth heartbeat (getUserState) failed:', err);
-    });
-  }, [hasActivated]);
 
   if (!hasActivated) return null;
 
