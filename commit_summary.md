@@ -1,8 +1,8 @@
 # Commit Summary — lamtungphan8@gmail.com
 
-**Period**: Mar 11 – Apr 21, 2026 (42 days)
-**Total commits**: 244
-**Branch**: `canary`
+**Period**: Mar 11 – Apr 22, 2026 (43 days)
+**Total commits**: 250+
+**Branch**: `canary` → `main`
 
 ---
 
@@ -16,6 +16,7 @@
 | Week 4 | Mar 31–Apr 6 | Knowledge bootstrap, embedding upgrade, system prompt hardening |
 | Week 5 | Apr 7–13 | RAG refinement, Lark citations, stale loading fixes, full branding |
 | Week 6 | Apr 14–21 | Lark user profile, approval links, mobile guard, i18n fixes |
+| Week 7 | Apr 22 | Bug fixes: topic list refresh, embedding key fallback, KB threshold |
 
 ---
 
@@ -209,6 +210,38 @@
 
 ---
 
+## Phase 7 — Bug Fixes & Embedding Hardening (Apr 22)
+
+**Goal**: Fix topic list not refreshing after new conversation; harden embedding key fallback across all 3 embedding paths; reduce duplicate Lark profile fetches.
+
+| Date | Hash | Description |
+|:-----|:-----|:------------|
+| Apr 22 | `010325a1` | Fix topic list refresh — call `refreshRecents()` directly; reorder Header button execution |
+| Apr 22 | `d0af4484` | Refactor embedding key fallback to `GOOGLE_EMBEDDING_API_KEYS`; add memory embedding fallback; lower KB search threshold to 0.1; remove duplicate Lark profile fetch |
+
+**Root cause (topic list)**: Desktop sidebar renders `recents` from `useHomeStore`, not `topicDataMap`. The agent `Sidebar/index.tsx` with `TopicList` is dead code — never imported on desktop. `refreshTopic` was invalidating SWR caches that nothing subscribed to. Fix: call `useHomeStore.getState().refreshRecents()` directly. Also: Header was navigating before `openNewTopicOrSaveTopic` completed, causing `refreshTopic` to run after `HomeAgentIdSync` cleared `activeAgentId`.
+
+**Embedding key fallback**:
+- New `src/server/utils/googleEmbeddingKeys.ts` — shared utility reading `GOOGLE_EMBEDDING_API_KEYS` (comma-separated), 3 retries per key before moving to next
+- `embedding.ts` — KB indexing and user query embedding now use shared utility; `maxRetries: 0` on AI SDK calls to prevent double-retry
+- `userMemories.ts` — memory search embedding now uses shared utility for Google/Jemmia provider; non-Google falls back to original `initModelRuntimeFromDB` path
+- Removed `GOOGLE_API_KEY_BACKUP` / `GOOGLE_API_KEY_BACKUP_BACKUP` — replaced by single `GOOGLE_EMBEDDING_API_KEYS`
+
+**Other fixes**:
+- KB search similarity threshold lowered 0.5 → 0.1 in `formatSearchResults.ts` (LLM instruction)
+- Removed redundant `getUserState` heartbeat from home layout (was causing duplicate Lark profile fetches on every reload)
+- Updated Lark approval links (Late/Early, Resignation, Purchase-Payment)
+- Auth sign-in subtitle changed from "Sign up or log in" → "Log in" (Jemmia is invite-only)
+- Branding logo updated: `/images/brainy_logo.png` → `/logo.svg`
+- Web browsing system role: clarified no-citation rule when KB entry has no `cite` URL; never use R2 crawl URL in footnotes
+- `buildKnowledgeBaseList()` in `r2ToLarkMapping.ts`: omit `cite:` line when `larkUrl` is empty (was always emitting empty cite)
+- `enable_command_palette` feature flag added (default `false`) — disables Cmd+K globally; hotkey respects the flag
+- Footer: fixed empty `<Flexbox>` rendering when both help menu and settings are hidden
+
+**Summary**: Fixed the long-standing topic list refresh bug (root cause: wrong data source — recents not topicDataMap). Unified all 3 embedding paths (KB indexing, query embedding, memory search) under a single `GOOGLE_EMBEDDING_API_KEYS` fallback chain with 3 retries per key. Eliminated duplicate Lark API calls on page load.
+
+---
+
 ## Cumulative Achievements
 
 ### 🏗️ Infrastructure
@@ -225,10 +258,11 @@
 ### 🧠 Knowledge Base & RAG
 - `KnowledgeBootstrapService`: auto-indexes seed files on startup (create/update/delete/rename)
 - 3072-dim embeddings via `gemini-embedding-2-preview`
-- Exponential backoff retry + `GOOGLE_API_KEY_BACKUP` fallback
-- 18+ company documents indexed
+- `GOOGLE_EMBEDDING_API_KEYS` — comma-separated key list, 3 retries per key, covers KB indexing + query embedding + memory search
+- 19+ company documents indexed
 - `R2→Lark URL mapping` — single source of truth for all citation URLs
 - Web browsing as mandatory fallback when KB returns no results
+- KB search similarity threshold: 0.1 (LLM instruction in `formatSearchResults.ts`)
 
 ### 🔗 Lark Integration
 - User profile injection: name, job title, department, unit from Lark Contact API
@@ -248,6 +282,8 @@
 - Robust gateway session management with server-side cancellation
 - `plugin` i18n namespace bundled at startup (no more raw key flash)
 - Salary advance correctly escalated to Finance (not IT)
+- Topic list refresh fixed — sidebar reads from `recents` (useHomeStore), not `topicDataMap`
+- Duplicate Lark profile fetch eliminated (removed redundant getUserState heartbeat)
 
 ---
 

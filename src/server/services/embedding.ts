@@ -7,6 +7,7 @@ import { type LobeChatDatabase } from '@/database/type';
 import { knowledgeEnv } from '@/envs/knowledge';
 import { getServerDefaultFilesConfig } from '@/server/globalConfig';
 import { initModelRuntimeFromDB } from '@/server/modules/ModelRuntime';
+import { withGoogleEmbeddingKeyFallback } from '@/server/utils/googleEmbeddingKeys';
 import { withRateLimitRetry } from '@/utils/retryPolicy';
 
 /**
@@ -26,41 +27,20 @@ export class ServerEmbeddingService {
     return knowledgeEnv.USE_EMBEDDING_PROXY ? 'proxy' : 'sdk';
   }
 
-  private static getGoogleProvider() {
-    return createGoogleGenerativeAI({
-      apiKey: process.env.GOOGLE_API_KEY,
-    });
-  }
-
-  private static getGoogleBackupProvider() {
-    return createGoogleGenerativeAI({
-      apiKey: process.env.GOOGLE_API_KEY_BACKUP,
-    });
-  }
-
   private static async embedWithSdkFallback(
     operation: (provider: ReturnType<typeof createGoogleGenerativeAI>) => Promise<any>,
     logPrefix: string,
     maxRetries: number = 3,
   ) {
-    try {
-      return await withRateLimitRetry(() => operation(this.getGoogleProvider()), maxRetries, logPrefix);
-    } catch (primaryError: any) {
-      const isRateLimit =
-        primaryError?.status === 429 ||
-        String(primaryError).includes('429') ||
-        primaryError?.errorType === 'QuotaLimitReached';
-
-      if (isRateLimit && process.env.GOOGLE_API_KEY_BACKUP) {
-        console.warn(`${logPrefix} Primary key exhausted, switching to backup key`);
-        return await withRateLimitRetry(
-          () => operation(this.getGoogleBackupProvider()),
+    return withGoogleEmbeddingKeyFallback(
+      (apiKey) =>
+        withRateLimitRetry(
+          () => operation(createGoogleGenerativeAI({ apiKey })),
           maxRetries,
-          `${logPrefix}[backup]`,
-        );
-      }
-      throw primaryError;
-    }
+          logPrefix,
+        ),
+      logPrefix,
+    );
   }
 
   static async generateEmbedding(
@@ -76,6 +56,7 @@ export class ServerEmbeddingService {
       const result = await this.embedWithSdkFallback(
         (provider) =>
           embed({
+            maxRetries: 0, // disable SDK retries — withRateLimitRetry handles per-minute 429s
             model: provider.embedding(model),
             providerOptions: {
               google: { outputDimensionality: VECTOR_DIMENSIONS },
@@ -123,6 +104,7 @@ export class ServerEmbeddingService {
       const result = await this.embedWithSdkFallback(
         (provider) =>
           embedMany({
+            maxRetries: 0, // disable SDK retries — withRateLimitRetry handles per-minute 429s
             model: provider.embedding(model),
             providerOptions: {
               google: { outputDimensionality: VECTOR_DIMENSIONS },
@@ -130,7 +112,7 @@ export class ServerEmbeddingService {
             values: texts,
           }),
         logPrefix,
-        5,
+        3,
       );
       return result.embeddings;
     }

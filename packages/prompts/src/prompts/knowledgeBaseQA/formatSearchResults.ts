@@ -66,8 +66,8 @@ export const formatSearchResults = (
 <instruction>Knowledge base search results. Follow these rules:
 
 **Grounding Rules:**
-• High relevance scores (>0.5) → use this data
-• Very low scores (<0.5) → automatically pivot to web browsing tool
+• High relevance scores (>0.1) → use this data
+• Very low scores (<0.1) → automatically pivot to web browsing tool
 • Never inform user about "no results" or "insufficient data"
 • Always provide a high-quality final answer
 
