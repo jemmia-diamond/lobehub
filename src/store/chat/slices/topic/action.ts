@@ -17,7 +17,6 @@ import { topicService } from '@/services/topic';
 import { type ChatStore } from '@/store/chat';
 import { topicMapKey } from '@/store/chat/utils/topicMapKey';
 import { useGlobalStore } from '@/store/global';
-import { systemStatusSelectors } from '@/store/global/selectors';
 import { useHomeStore } from '@/store/home';
 import { type StoreSetter } from '@/store/types';
 import { useUserStore } from '@/store/user';
@@ -101,7 +100,7 @@ export class ChatTopicActionImpl {
   };
 
   createTopic = async (sessionId?: string): Promise<string | undefined> => {
-    const { internal_createTopic } = this.#get();
+    const { activeAgentId, internal_createTopic } = this.#get();
 
     const messages = displayMessageSelectors.activeDisplayMessages(this.#get());
 
@@ -109,7 +108,7 @@ export class ChatTopicActionImpl {
     const topicId = await internal_createTopic({
       title: t('defaultTitle', { ns: 'topic' }),
       messages: messages.map((m) => m.id),
-      sessionId,
+      sessionId: sessionId || activeAgentId,
     });
     this.#set({ creatingTopic: false }, false, n('creatingTopic/end'));
 
@@ -361,11 +360,6 @@ export class ChatTopicActionImpl {
           this.#get().internal_updateTopicData(containerKey, { isExpandingPageSize: true });
         }
 
-        // Capture the directUpdateVersion BEFORE the fetch starts.
-        // If a direct update (internal_dispatchTopic / internal_updateTopics) happens
-        // while the fetch is in-flight, we'll detect it in onData and skip the stale result.
-        const versionAtFetchStart = this.#get().topicDataMap[containerKey]?.directUpdateVersion ?? 0;
-
         const result = await topicService.getTopics({
           agentId,
           current: 0,
@@ -379,9 +373,6 @@ export class ChatTopicActionImpl {
         if (isExpanding) {
           this.#get().internal_updateTopicData(containerKey, { isExpandingPageSize: false });
         }
-
-        // Attach the version snapshot to the result so onData can compare
-        (result as any).__versionAtFetchStart = versionAtFetchStart;
 
         return result;
       },
@@ -397,13 +388,6 @@ export class ChatTopicActionImpl {
 
           // no need to update map if the current key's data exists and is the same
           if (currentData && isEqual(topics, currentData.items)) return;
-
-          // Guard against stale fetch overwriting newer optimistic/direct data:
-          // If a direct update happened while this fetch was in-flight
-          // (directUpdateVersion increased), skip this stale result.
-          const versionAtFetchStart = (result as any).__versionAtFetchStart ?? 0;
-          const currentVersion = currentData?.directUpdateVersion ?? 0;
-          if (currentVersion > versionAtFetchStart) return;
 
           this.#set(
             {
@@ -641,33 +625,14 @@ export class ChatTopicActionImpl {
 
     const containerKey = topicMapKey({ agentId: activeAgentId, groupId: activeGroupId });
 
-    // 1. Invalidate topic SWR cache (for agent sidebar if mounted)
+    // Invalidate topic SWR cache (for agent sidebar if mounted)
     await mutate(
       (key) => Array.isArray(key) && key[0] === SWR_USE_FETCH_TOPIC && key[1] === containerKey,
     );
 
-    // 2. Directly refresh the recents store — this is what the home sidebar actually renders
-    // (the agent sidebar TopicList is not mounted on desktop; recents is the source of truth)
+    // Directly refresh the recents store — this is what the home sidebar actually renders.
+    // The agent sidebar TopicList is not mounted on desktop; recents is the source of truth.
     await useHomeStore.getState().refreshRecents();
-
-    // 3. Manually fetch fresh topics and push to Zustand store
-    // Covers the case where the agent sidebar IS mounted (e.g. after navigating to agent page)
-    const pageSize = systemStatusSelectors.topicPageSize(useGlobalStore.getState());
-    const freshData = await topicService.getTopics({
-      agentId: activeAgentId,
-      groupId: activeGroupId,
-      pageSize,
-      excludeTriggers: ['cron', 'eval'],
-    });
-
-    if (activeAgentId) {
-      this.#get().internal_updateTopics(activeAgentId, {
-        groupId: activeGroupId,
-        items: freshData.items,
-        pageSize,
-        total: freshData.total,
-      });
-    }
   };
 
   internal_updateTopicLoading = (id: string, loading: boolean): void => {
@@ -692,7 +657,6 @@ export class ChatTopicActionImpl {
   };
 
   internal_createTopic = async (params: CreateTopicParams): Promise<string> => {
-    const { activeAgentId } = this.#get();
     const tmpId = Date.now().toString();
     this.#get().internal_dispatchTopic(
       { type: 'addTopic', value: { ...params, id: tmpId } },
@@ -700,12 +664,7 @@ export class ChatTopicActionImpl {
     );
 
     this.#get().internal_updateTopicLoading(tmpId, true);
-    // Pass agentId to the service along with the other params
-    const topicId = await topicService.createTopic({
-      ...params,
-      // Add agentId to the service call (cast to bypass type check)
-      agentId: activeAgentId,
-    } as any);
+    const topicId = await topicService.createTopic(params);
     this.#get().internal_updateTopicLoading(tmpId, false);
 
     this.#get().internal_updateTopicLoading(topicId, true);
@@ -731,7 +690,6 @@ export class ChatTopicActionImpl {
           [key]: {
             ...currentData,
             currentPage: currentData?.currentPage ?? 0,
-            directUpdateVersion: (currentData?.directUpdateVersion ?? 0) + 1,
             hasMore: currentData?.hasMore ?? false,
             items: nextItems,
             total: currentData?.total ?? nextItems.length,
@@ -766,7 +724,6 @@ export class ChatTopicActionImpl {
           ...this.#get().topicDataMap,
           [key]: {
             currentPage,
-            directUpdateVersion: (currentData?.directUpdateVersion ?? 0) + 1,
             hasMore: items.length >= pageSize,
             isExpandingPageSize: false,
             isLoadingMore: false,
