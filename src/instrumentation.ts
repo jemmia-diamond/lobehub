@@ -1,4 +1,14 @@
 export async function register() {
+  // Initialize Sentry for server-side error tracking
+  if (process.env.SENTRY_DSN) {
+    if (process.env.NEXT_RUNTIME === 'nodejs') {
+      await import('../sentry.server.config');
+    }
+    if (process.env.NEXT_RUNTIME === 'edge') {
+      await import('../sentry.edge.config');
+    }
+  }
+
   // In local development, write debug logs to logs/server.log
   if (process.env.NODE_ENV !== 'production' && process.env.NEXT_RUNTIME === 'nodejs') {
     await import('./libs/debug-file-logger');
