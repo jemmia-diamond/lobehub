@@ -18,3 +18,22 @@ Sentry.init({
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
+
+// Intercept client-side console.error to auto-capture to Sentry
+if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
+  const originalConsoleError = console.error.bind(console);
+  console.error = (...args: unknown[]) => {
+    originalConsoleError(...args);
+    const error = args.find((a) => a instanceof Error) as Error | undefined;
+    if (error) {
+      Sentry.captureException(error, {
+        extra: { consoleArgs: args.filter((a) => !(a instanceof Error)) },
+      });
+    } else if (args.length > 0) {
+      const message = args
+        .map((a) => (typeof a === 'string' ? a : JSON.stringify(a)))
+        .join(' ');
+      Sentry.captureMessage(message, 'error');
+    }
+  };
+}

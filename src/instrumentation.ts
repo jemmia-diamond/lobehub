@@ -7,6 +7,29 @@ export async function register() {
     if (process.env.NEXT_RUNTIME === 'edge') {
       await import('../sentry.edge.config');
     }
+
+    // Intercept console.error on the server to auto-capture to Sentry.
+    // Covers all console.error() calls in server-side code without requiring
+    // manual Sentry.captureException() in each location.
+    if (process.env.NEXT_RUNTIME === 'nodejs') {
+      const Sentry = await import('@sentry/nextjs');
+      const originalConsoleError = console.error.bind(console);
+      console.error = (...args: unknown[]) => {
+        originalConsoleError(...args);
+        // Find the first Error object in args, or capture as a message
+        const error = args.find((a) => a instanceof Error) as Error | undefined;
+        if (error) {
+          Sentry.captureException(error, {
+            extra: { consoleArgs: args.filter((a) => !(a instanceof Error)) },
+          });
+        } else if (args.length > 0) {
+          const message = args
+            .map((a) => (typeof a === 'string' ? a : JSON.stringify(a)))
+            .join(' ');
+          Sentry.captureMessage(message, 'error');
+        }
+      };
+    }
   }
 
   // In local development, write debug logs to logs/server.log
