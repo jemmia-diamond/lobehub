@@ -18,7 +18,7 @@ import { type ChatStore } from '@/store/chat';
 import { topicMapKey } from '@/store/chat/utils/topicMapKey';
 import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors';
-import { FETCH_RECENTS_KEY } from '@/store/home/slices/recent';
+import { useHomeStore } from '@/store/home';
 import { type StoreSetter } from '@/store/types';
 import { useUserStore } from '@/store/user';
 import { systemAgentSelectors, userGeneralSettingsSelectors } from '@/store/user/selectors';
@@ -641,20 +641,17 @@ export class ChatTopicActionImpl {
 
     const containerKey = topicMapKey({ agentId: activeAgentId, groupId: activeGroupId });
 
-    // 1. Invalidate SWR cache
+    // 1. Invalidate topic SWR cache (for agent sidebar if mounted)
     await mutate(
       (key) => Array.isArray(key) && key[0] === SWR_USE_FETCH_TOPIC && key[1] === containerKey,
     );
 
-    // 2. Invalidate Recents SWR cache
-    await mutate(
-      (key) =>
-        (typeof key === 'string' && key === FETCH_RECENTS_KEY) ||
-        (Array.isArray(key) && key[0] === FETCH_RECENTS_KEY),
-    );
+    // 2. Directly refresh the recents store — this is what the home sidebar actually renders
+    // (the agent sidebar TopicList is not mounted on desktop; recents is the source of truth)
+    await useHomeStore.getState().refreshRecents();
 
-    // 3. Manually fetch fresh data and push directly to Zustand store to guarantee immediate UI update
-    // This bypasses SWR's brittle onData/re-render logic and directly updates the source of truth for the UI
+    // 3. Manually fetch fresh topics and push to Zustand store
+    // Covers the case where the agent sidebar IS mounted (e.g. after navigating to agent page)
     const pageSize = systemStatusSelectors.topicPageSize(useGlobalStore.getState());
     const freshData = await topicService.getTopics({
       agentId: activeAgentId,
