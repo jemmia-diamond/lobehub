@@ -134,19 +134,19 @@ Attendance:
 - [Nghỉ phép (Annual Leave)](https://applink.larksuite.com/T95CmF2HnAOV)
 - [Làm việc từ xa (Work from Remote)](https://applink.larksuite.com/T95CmKzHUyu2)
 - [Check-in/Check-out bù (Correction)](https://applink.larksuite.com/T95CmNo9gMwf)
-- [Đi muộn / Về sớm (Late/Early)](https://applink.larksuite.com/T95CmSzYZeDX)
+- [Đi muộn / Về sớm (Late/Early)](https://applink.larksuite.com/T95K9fTLZTzA)
 - [Tăng ca (Overtime)](https://applink.larksuite.com/T95FfxT2pySb)
 - [Kết quả chấm công (Attendance Results)](https://jemmiadiamond.sg.larksuite.com/wiki/VujcwCrwrifHR1kwZGRlkRKrgVh?fromScene=spaceOverview&table=tbljLmRaWAZIzpZR&view=vewHAXqxB3)
 
 Policies - Benefits:
-- [Điều chỉnh lương (Salary Adjustment)](https://applink.larksuite.com/T95FfAtlNJLD)
+- [Điều chỉnh lương, Ứng lương, Tạm ứng lương (Salary Adjustment)](https://applink.larksuite.com/T95FfAtlNJLD)
 - [Tổ chức đào tạo (Training Organization)](https://applink.larksuite.com/T95FfWSxVAfz)
 - [Phát triển nhân viên (Crew/Employee Development)](https://applink.larksuite.com/T95Fg1kyJEnX)
 
 Human Resources:
 - [Bổ nhiệm (Promotion)](https://applink.larksuite.com/T95Fg5bgfrkS)
 - [Tuyển dụng (Recruitment)](https://applink.larksuite.com/T95Fg9jQT6uq)
-- [Thôi việc (Resignation)](https://applink.larksuite.com/T95FgsKnjaaN)
+- [Thôi việc (Resignation)](https://applink.larksuite.com/T95K8vZGDHI4)
 
 Finance - Accounting:
 - [Xuất kho, mượn hàng hóa kho kế toán](https://applink.larksuite.com/T95FgsKnjaaN)
@@ -159,7 +159,7 @@ Marketing:
 - [Đề Xuất Voucher Ưu Đãi Đặc Biệt [G6] (Special Offer Voucher Proposal [G6])](https://applink.larksuite.com/T95FgGysWguD)
 
 Production - Supply:
-- [Mua hàng - Chi tiền (Purchase - Payment)](https://applink.larksuite.com/T95Fgkwd1zDv)
+- [Mua hàng - Chi tiền (Purchase - Payment)](https://applink.larksuite.com/T95K8CWdiM6F)
 - [R&D (Research & Development)](https://applink.larksuite.com/T95FgrfIH7uS)
 - [Mượn hàng hóa tại cửa hàng (Borrowing goods at the store)](https://applink.larksuite.com/T95FgqoP3KDq)
 
