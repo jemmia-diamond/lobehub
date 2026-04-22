@@ -127,6 +127,8 @@ URL format: `local://jemmia-diamond/filename.md` — used as stable key for dele
 
 The RAG pipeline uses `gemini-embedding-2-preview` at **3072 dimensions** (native). The pgvector column uses a `halfvec` HNSW index cast for performance (pgvector 0.8+ supports halfvec up to 4000 dims). User memory tables intentionally stay at 1024 dims (`_1024` suffix columns) — different model, do not change.
 
+**API key fallback chain** (SDK mode only, not proxy mode): `GOOGLE_EMBEDDING_API_KEYS` — comma-separated list of Google API keys tried in order on 429. Each key is retried up to 3 times (with backoff for per-minute limits) before moving to the next. Applies to both KB file embedding (`generateEmbeddings`) and user query embedding (`generateEmbedding`). Memory search embedding uses the same key list but without backoff waits. Add keys to `GOOGLE_EMBEDDING_API_KEYS` only — `GOOGLE_API_KEY_BACKUP` / `GOOGLE_API_KEY_BACKUP_BACKUP` are no longer used.
+
 ### Stale Loading Fixes
 
 The operation lifecycle (`src/store/chat/slices/aiChat/actions/streamingExecutor.ts`) wraps the agent runtime loop in try/catch/finally:
@@ -135,6 +137,16 @@ The operation lifecycle (`src/store/chat/slices/aiChat/actions/streamingExecutor
 - Gateway disconnect/error → `failOperation()` via `gateway.ts` and `gatewayEventHandler.ts`
 - Gateway disconnect without terminal event → `onSessionError` callback clears `topicLoading` (both `executeGatewayAgent` and `reconnectToGatewayOperation`)
 - Stop button cancels both `execAgentRuntime` and `execServerAgentRuntime` ops
+
+### Sidebar Topic List Architecture
+
+The desktop sidebar renders **recents** from `useHomeStore`, not `topicDataMap`. Key facts:
+
+- **What the sidebar shows**: `src/routes/(main)/home/_layout/Body/index.tsx` renders `RecentTopicItem` items from `useHomeStore(homeRecentSelectors.recents)` — this is the history list users see.
+- **`TopicList` is dead code on desktop**: `src/routes/(main)/agent/_layout/Sidebar/index.tsx` (which contains `TopicList`) uses `NavPanelPortal navKey="agent"` but is **never imported anywhere** on desktop. Do not modify it expecting it to affect the sidebar.
+- **`RecentHydration`** (`src/routes/(main)/home/_layout/RecentHydration.tsx`) is always mounted (inside the persistent `Activity` layout) and keeps `useFetchRecents` active at all times.
+- **`refreshTopic()` must call `refreshRecents()`**: `useHomeStore.getState().refreshRecents()` directly updates the recents store, bypassing SWR. This is the only reliable way to update the sidebar after a topic is created.
+- **Header button order matters**: `handleCreateNewConversation` must `await mutate()` (which calls `openNewTopicOrSaveTopic` → `refreshTopic`) **before** `router.push(...)`. Navigating first clears `activeAgentId` via `HomeAgentIdSync.useUnmount`, causing `refreshTopic` to skip.
 
 ## Development Workflow
 

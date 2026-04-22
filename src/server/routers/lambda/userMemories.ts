@@ -22,8 +22,9 @@ import {
   RequestTrigger,
   searchMemorySchema,
 } from '@lobechat/types';
-import { type SQL } from 'drizzle-orm';
-import { and, asc, eq, gte, lte } from 'drizzle-orm';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { embedMany } from 'ai';
+import { and, asc, eq, gte, lte, type SQL } from 'drizzle-orm';
 import pMap from 'p-map';
 import { z } from 'zod';
 
@@ -31,6 +32,7 @@ import {
   type IdentityEntryBasePayload,
   type IdentityEntryPayload,
 } from '@/database/models/userMemory';
+import { withGoogleEmbeddingKeyFallback } from '@/server/utils/googleEmbeddingKeys';
 import {
   UserMemoryActivityModel,
   UserMemoryExperienceModel,
@@ -119,6 +121,42 @@ const applySearchLimitsByEffort = (
   };
 };
 
+/**
+ * Embed queries for memory search with key fallback on 429.
+ * Uses GOOGLE_EMBEDDING_API_KEYS for Google provider (comma-separated, tried in order).
+ * Falls back to initModelRuntimeFromDB for non-Google providers.
+ */
+const embedMemoryQueriesWithFallback = async (
+  ctx: { serverDB: LobeChatDatabase; userId: string },
+  queries: string[],
+  provider: string,
+  model: string,
+  dimensions: number,
+): Promise<number[][]> => {
+  // Google provider: use direct SDK calls with key fallback
+  if (provider === 'google' || provider === 'jemmia') {
+    const { embeddings } = await withGoogleEmbeddingKeyFallback(
+      (apiKey) =>
+        embedMany({
+          maxRetries: 0, // disable SDK retries — withGoogleEmbeddingKeyFallback handles key rotation
+          model: createGoogleGenerativeAI({ apiKey }).embedding(model),
+          providerOptions: { google: { outputDimensionality: dimensions } },
+          values: queries,
+        }),
+      '[MemoryEmbedding]',
+    );
+    return embeddings;
+  }
+
+  // Non-Google provider: use initModelRuntimeFromDB (original path)
+  const modelRuntime = await initModelRuntimeFromDB(ctx.serverDB, ctx.userId, provider);
+  const result = await modelRuntime.embeddings(
+    { dimensions, input: queries, model },
+    { metadata: { trigger: RequestTrigger.Memory }, user: ctx.userId },
+  );
+  return result ?? [];
+};
+
 const searchUserMemories = async (
   ctx: MemorySearchContext,
   input: z.infer<typeof searchMemorySchema>,
@@ -126,20 +164,18 @@ const searchUserMemories = async (
   const normalizedInput = normalizeSearchMemoryParams(input);
   const { provider, model: embeddingModel } =
     getServerDefaultFilesConfig().embeddingModel || DEFAULT_USER_MEMORY_EMBEDDING_MODEL_ITEM;
-  const modelRuntime = await initModelRuntimeFromDB(ctx.serverDB, ctx.userId, provider);
   const normalizedQueries = [
     ...new Set((normalizedInput.queries ?? []).map((query) => query.trim()).filter(Boolean)),
   ];
 
   const queryEmbeddings =
     normalizedQueries.length > 0
-      ? await modelRuntime.embeddings(
-          {
-            dimensions: DEFAULT_USER_MEMORY_EMBEDDING_DIMENSIONS,
-            input: normalizedQueries,
-            model: embeddingModel,
-          },
-          { metadata: { trigger: RequestTrigger.Memory }, user: ctx.userId },
+      ? await embedMemoryQueriesWithFallback(
+          ctx,
+          normalizedQueries,
+          provider,
+          embeddingModel,
+          DEFAULT_USER_MEMORY_EMBEDDING_DIMENSIONS,
         )
       : [];
 

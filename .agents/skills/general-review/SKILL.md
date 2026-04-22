@@ -107,7 +107,7 @@ Run this checklist after upstream merges, before deployments, or when asked for 
 - [ ] **`isKbReady` guard**: Inbox agent waits up to 5s for KB bootstrap before processing chat
 - [ ] **Embedding model**: `gemini-embedding-2-preview` at 3072 dimensions (`halfvec` HNSW index)
 - [ ] **Embedding retry**: Exponential backoff (10s, 20s, 40s, 80s, 160s) on 429 rate limit
-- [ ] **Backup API key**: `GOOGLE_API_KEY_BACKUP` fallback when primary key exhausted
+- [ ] **Backup API key**: `GOOGLE_EMBEDDING_API_KEYS` (comma-separated) in `src/server/utils/googleEmbeddingKeys.ts` — each key retried 3× with backoff before moving to next. Covers KB file embedding, user query embedding, and memory search embedding (Google/Jemmia provider only; non-Google falls back to `initModelRuntimeFromDB`). Do NOT use `GOOGLE_API_KEY_BACKUP` / `GOOGLE_API_KEY_BACKUP_BACKUP` — they are removed.
 - [ ] **Batch size**: 5 chunks per embedding batch, 500ms throttle between batches
 - [ ] **`R2_TO_LARK_MAP`**: `src/config/r2ToLarkMapping.ts` is single source of truth — `JEMMIA_KNOWLEDGE_FILES` typed record with `label` + `larkUrl` per file
 - [ ] **Citation URLs**: KB footnotes use Lark wiki URLs (not R2 URLs) via `formatSearchResults.ts` + `citationUrl` attribute
@@ -194,12 +194,21 @@ Run this checklist after upstream merges, before deployments, or when asked for 
 
 ---
 
-## 15. Known Gaps / Not Yet Implemented
+## 15. Sidebar Topic List (Jemmia-specific Architecture)
+
+These are **fixed behaviors** — verify they don't regress after upstream merges.
+
+- [ ] **Recents is the sidebar source of truth**: `src/routes/(main)/home/_layout/Body/index.tsx` renders `RecentTopicItem` from `useHomeStore(homeRecentSelectors.recents)`. This is what users see as their conversation history.
+- [ ] **`TopicList` is dead code on desktop**: `src/routes/(main)/agent/_layout/Sidebar/index.tsx` (with `NavPanelPortal navKey="agent"`) is never imported anywhere on desktop. Do not wire it up or modify it expecting sidebar changes.
+- [ ] **`refreshTopic()` calls `refreshRecents()` directly**: `useHomeStore.getState().refreshRecents()` must be called inside `refreshTopic()`. SWR invalidation of `FETCH_RECENTS_KEY` alone is insufficient — it only works if the SWR subscription is active and the re-fetch wins the race.
+- [ ] **Header button order**: `handleCreateNewConversation` in `src/routes/(main)/home/_layout/Header/index.tsx` must `await mutate()` (→ `openNewTopicOrSaveTopic` → `refreshTopic`) **before** `router.push(...)`. Navigating first triggers `HomeAgentIdSync.useUnmount` which clears `activeAgentId = ''`, causing `refreshTopic` to skip with the early-return guard.
+- [ ] **`RecentHydration` always mounted**: `src/routes/(main)/home/_layout/RecentHydration.tsx` is inside the persistent `Activity` layout — `useFetchRecents` is always active regardless of current route.
+- [ ] **`refreshRecents()` respects pagination**: Uses `Math.max(20, currentLength)` as limit — if user has loaded 40 items, refresh fetches 40, preserving the loaded state.
+
+---
+
+## 16. Known Gaps / Not Yet Implemented
 
 - [ ] **OCR for scanned PDFs**: `ContentChunk` has `doc2x` stub (`// Future implementation`) — scanned PDFs silently produce 0 chunks
 - [ ] **Large file handling (>25MB)**: No explicit size guard in `KnowledgeBootstrapService.syncSeedFile()` — `fs.readFileSync` reads entire file
-- [ ] **Topic history pagination**: Recents use `recentPageSize` default of `20` (in both `INITIAL_STATUS` and selector fallback). Verify `useFetchRecents` uses `Math.max(limit, currentLength)` to preserve loaded items on SWR revalidation. `loadMoreRecents` appends with offset.
-- [ ] **Topic list refresh on new topic**: `refreshTopic()` must be a clean SWR `mutate()` with filter — no debug hacks (force-rerender via `activeAgentId + '_temp'`, manual SWR cache seeding, direct topic fetching). Must invalidate BOTH `SWR_USE_FETCH_TOPIC` (agent sidebar) AND `FETCH_RECENTS_KEY` (home sidebar).
-- [ ] **`openNewTopicOrSaveTopic` integrity**: Must call `saveToTopic()` (saves existing messages, no-op if empty) — never `createTopic()` (creates empty topics). Original upstream pattern: `saveToTopic() → refreshTopic() → refreshMessages()`.
-- [ ] **No leftover `console.log('[DEBUG]')`**: Search `grep -r "\[DEBUG\]" src/store/ src/routes/` — all debug logging must use `debug` package or be removed.
 - [ ] **File preview error state**: `FilePreview/Body` shows infinite spinner on `NOT_FOUND` — no error UI
