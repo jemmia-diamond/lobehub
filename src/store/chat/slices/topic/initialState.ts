@@ -5,11 +5,6 @@ import { type ChatTopic } from '@/types/topic';
  */
 export interface TopicData {
   currentPage: number;
-  /**
-   * Version counter incremented on every direct store update (internal_dispatchTopic, internal_updateTopics).
-   * Used to detect stale SWR onData callbacks that should not overwrite newer data.
-   */
-  directUpdateVersion?: number;
   excludeTriggers?: string[];
   hasMore: boolean;
   isExpandingPageSize?: boolean;
