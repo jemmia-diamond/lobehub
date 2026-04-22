@@ -15,15 +15,4 @@ Sentry.init({
 
   // Only enable when DSN is explicitly set
   enabled: !!process.env.SENTRY_DSN,
-
-  // Ignore noisy non-actionable errors
-  ignoreErrors: [
-    // Better Auth OAuth redirects — these are expected 302s, not errors
-    'APIError',
-    // Network errors from client disconnects
-    'ECONNRESET',
-    'EPIPE',
-    // Rate limit errors — handled by retry logic
-    'QuotaLimitReached',
-  ],
 });
