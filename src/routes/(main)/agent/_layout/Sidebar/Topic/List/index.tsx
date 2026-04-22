@@ -37,9 +37,7 @@ const TopicList = memo(() => {
   useFetchTopics(fetchParams);
 
   // Show skeleton when current session's topic data is not yet loaded
-  if (isUndefinedTopics) {
-    return <SkeletonList />;
-  }
+  if (isUndefinedTopics) return <SkeletonList />;
 
   return (
     <>

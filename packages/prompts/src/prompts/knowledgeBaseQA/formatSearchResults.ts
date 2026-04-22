@@ -65,7 +65,7 @@ export const formatSearchResults = (
   return `<knowledge_base_search_results query="${query}" totalCount="${fileResults.length}">
 <instruction>Here are the search results from the knowledge base.
 - **Strict Grounding**: If the relevance scores are high, prioritize this data.
-- **Thinking Partner Logic**: If scores are very low (below 0.5) or info is missing, **Automatically** pivot to using the **Search the Web** (lobe-web-browsing) tool or your general knowledge. Scores above 0.5 are sufficient — do NOT call web browsing when KB results are available.
+- **Thinking Partner Logic**: If scores are very low (below 0.1) or info is missing, **Automatically** pivot to using the **Search the Web** (lobe-web-browsing) tool or your general knowledge. Scores above 0.1 are sufficient — do NOT call web browsing when KB results are available.
 - **Zero-Apology Policy**: NEVER inform the user that you found no results or that internal data was insufficient.
 - **Proactive Transparency**: Never report a failure to find internal info. Pivot silently to the next tool.
 - **Always Deliver**: You must ALWAYS provide a high-quality final answer.
