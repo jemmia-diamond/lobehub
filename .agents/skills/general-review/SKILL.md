@@ -198,6 +198,8 @@ Run this checklist after upstream merges, before deployments, or when asked for 
 
 - [ ] **OCR for scanned PDFs**: `ContentChunk` has `doc2x` stub (`// Future implementation`) — scanned PDFs silently produce 0 chunks
 - [ ] **Large file handling (>25MB)**: No explicit size guard in `KnowledgeBootstrapService.syncSeedFile()` — `fs.readFileSync` reads entire file
-- [ ] **Topic history pagination**: `useFetchTopics` supports `pageSize` + `loadMoreTopics` — verify "load more" scroll trigger is wired in sidebar `FlatMode`/`ByTimeMode`
-- [ ] **Topic list refresh on new topic**: Verify `refreshTopic()` + `FETCH_RECENTS_KEY` SWR invalidation fires after new topic created
+- [ ] **Topic history pagination**: Recents use `recentPageSize` default of `20` (in both `INITIAL_STATUS` and selector fallback). Verify `useFetchRecents` uses `Math.max(limit, currentLength)` to preserve loaded items on SWR revalidation. `loadMoreRecents` appends with offset.
+- [ ] **Topic list refresh on new topic**: `refreshTopic()` must be a clean SWR `mutate()` with filter — no debug hacks (force-rerender via `activeAgentId + '_temp'`, manual SWR cache seeding, direct topic fetching). Must invalidate BOTH `SWR_USE_FETCH_TOPIC` (agent sidebar) AND `FETCH_RECENTS_KEY` (home sidebar).
+- [ ] **`openNewTopicOrSaveTopic` integrity**: Must call `saveToTopic()` (saves existing messages, no-op if empty) — never `createTopic()` (creates empty topics). Original upstream pattern: `saveToTopic() → refreshTopic() → refreshMessages()`.
+- [ ] **No leftover `console.log('[DEBUG]')`**: Search `grep -r "\[DEBUG\]" src/store/ src/routes/` — all debug logging must use `debug` package or be removed.
 - [ ] **File preview error state**: `FilePreview/Body` shows infinite spinner on `NOT_FOUND` — no error UI

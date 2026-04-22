@@ -23,11 +23,13 @@ const Header = memo(() => {
   const { mutate } = useActionSWR('openNewTopicOrSaveTopic', openNewTopicOrSaveTopic);
 
   const handleCreateNewConversation = async () => {
+    // Save current topic BEFORE navigating so refreshTopic runs with the correct activeAgentId
+    await mutate();
+    // Invalidate recents cache so the home sidebar updates
+    await swrMutate((key) => Array.isArray(key) && key[0] === FETCH_RECENTS_KEY);
+    // Navigate after topic logic completes
     if (inboxAgentId) router.push(`/agent/${inboxAgentId}`);
     else router.push('/agent');
-
-    await mutate();
-    await swrMutate((key) => Array.isArray(key) && key[0] === FETCH_RECENTS_KEY);
   };
 
   return (
