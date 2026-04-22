@@ -53,6 +53,7 @@ Run this checklist after upstream merges, before deployments, or when asked for 
 - [ ] **Mention doc + upload from Lark**: Feature-flagged (`feat: temporarily hide mention doc + upload from lark`)
 - [ ] **Default Google models**: Hidden — only 3 Jemmia proxy models exposed (`hide default google models + only keeps 3 model of jemmia`)
 - [ ] **builtin-agent-onboarding**: Removed (`chore: remove builtin-agent-onboarding`)
+- [ ] **Command Palette**: `enable_command_palette: false` — Cmd+K / Ctrl+K disabled globally by default. Hotkey in `useHotkeys/globalScope.ts` respects this flag. Change in `DEFAULT_FEATURE_FLAGS` in `schema.ts`.
 
 ---
 
@@ -110,9 +111,10 @@ Run this checklist after upstream merges, before deployments, or when asked for 
 - [ ] **Backup API key**: `GOOGLE_EMBEDDING_API_KEYS` (comma-separated) in `src/server/utils/googleEmbeddingKeys.ts` — each key retried 3× with backoff before moving to next. Covers KB file embedding, user query embedding, and memory search embedding (Google/Jemmia provider only; non-Google falls back to `initModelRuntimeFromDB`). Do NOT use `GOOGLE_API_KEY_BACKUP` / `GOOGLE_API_KEY_BACKUP_BACKUP` — they are removed.
 - [ ] **Batch size**: 5 chunks per embedding batch, 500ms throttle between batches
 - [ ] **`R2_TO_LARK_MAP`**: `src/config/r2ToLarkMapping.ts` is single source of truth — `JEMMIA_KNOWLEDGE_FILES` typed record with `label` + `larkUrl` per file
+- [ ] **`buildKnowledgeBaseList()` cite omission**: When `larkUrl` is empty for a file, the `cite:` line is omitted from the web browsing KB list — agent must NOT add a footnote for that file
 - [ ] **Citation URLs**: KB footnotes use Lark wiki URLs (not R2 URLs) via `formatSearchResults.ts` + `citationUrl` attribute
+- [ ] **Web browsing cites Lark**: Uses `cite:` URL from KB list, not R2 crawl URL. If no `cite:` entry → no footnote
 - [ ] **Web browsing fallback**: `lobe-web-browsing` mandatory when KB returns no results — crawls R2 files directly before general web search
-- [ ] **Web browsing cites Lark**: Uses `[lark: ...]` URL from KB list, not R2 URL
 - [ ] **Scanned PDFs**: `PdfLoader` uses `pdf-parse` (text extraction only) — scanned image PDFs return 0 chunks silently. No OCR implemented yet.
 - [ ] **Adding/renaming KB files**: Update ONLY `src/config/r2ToLarkMapping.ts` — everything else derives automatically
 

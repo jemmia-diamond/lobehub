@@ -231,6 +231,12 @@
 - KB search similarity threshold lowered 0.5 → 0.1 in `formatSearchResults.ts` (LLM instruction)
 - Removed redundant `getUserState` heartbeat from home layout (was causing duplicate Lark profile fetches on every reload)
 - Updated Lark approval links (Late/Early, Resignation, Purchase-Payment)
+- Auth sign-in subtitle changed from "Sign up or log in" → "Log in" (Jemmia is invite-only)
+- Branding logo updated: `/images/brainy_logo.png` → `/logo.svg`
+- Web browsing system role: clarified no-citation rule when KB entry has no `cite` URL; never use R2 crawl URL in footnotes
+- `buildKnowledgeBaseList()` in `r2ToLarkMapping.ts`: omit `cite:` line when `larkUrl` is empty (was always emitting empty cite)
+- `enable_command_palette` feature flag added (default `false`) — disables Cmd+K globally; hotkey respects the flag
+- Footer: fixed empty `<Flexbox>` rendering when both help menu and settings are hidden
 
 **Summary**: Fixed the long-standing topic list refresh bug (root cause: wrong data source — recents not topicDataMap). Unified all 3 embedding paths (KB indexing, query embedding, memory search) under a single `GOOGLE_EMBEDDING_API_KEYS` fallback chain with 3 retries per key. Eliminated duplicate Lark API calls on page load.
 

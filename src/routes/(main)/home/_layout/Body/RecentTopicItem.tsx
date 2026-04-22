@@ -5,6 +5,7 @@ import { memo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import NavItem from '@/features/NavPanel/components/NavItem';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 import { useTopicItemDropdownMenu } from '../../../agent/_layout/Sidebar/Topic/List/Item/useDropdownMenu';
 
@@ -32,12 +33,16 @@ const RecentTopicItem = memo<RecentTopicItemProps>(
       toggleEditing,
     });
 
+    const enableTopicContextMenu = useServerConfigStore(
+      (s) => featureFlagsSelectors(s).enableTopicContextMenu,
+    );
+
     const displayTitle = title || group?.title || agent?.title || '';
 
     return (
       <NavItem
         active={active}
-        contextMenuItems={dropdownMenu}
+        contextMenuItems={enableTopicContextMenu ? dropdownMenu : undefined}
         paddingInline={8}
         title={displayTitle}
         style={{
