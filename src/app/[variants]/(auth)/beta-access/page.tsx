@@ -77,7 +77,7 @@ const BetaAccessPage = () => {
       )}
       <div style={{ display: 'flex', gap: 12 }}>
         <Button onClick={handleLogout}>{t('betaAccess.action.logout')}</Button>
-        <Button href="mailto:tech@jemmia.vn" target="_blank" type="primary">
+        <Button type="primary">
           {t('betaAccess.action.contact')}
         </Button>
       </div>

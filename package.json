@@ -168,7 +168,7 @@
     "stylelint-config-clean-order": "7.0.0"
   },
   "dependencies": {
-    "@ai-sdk/google": "^3.0.59",
+    "@ai-sdk/google": "^3.0.64",
     "@ant-design/icons": "^6.1.0",
     "@ant-design/pro-components": "^2.8.10",
     "@anthropic-ai/sdk": "^0.73.0",
@@ -309,7 +309,7 @@
     "@xterm/xterm": "^5.5.0",
     "@zumer/snapdom": "^1.9.14",
     "ahooks": "^3.9.6",
-    "ai": "^6.0.149",
+    "ai": "^6.0.168",
     "antd": "^6.2.1",
     "antd-style": "4.1.0",
     "async-retry": "^1.3.3",

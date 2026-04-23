@@ -7,8 +7,8 @@ Sentry.init({
   // Route browser Sentry requests through Next.js to avoid ad blockers
   tunnel: '/monitoring-tunnel',
 
-  // 10% of traces sampled in production
-  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1,
+  // 10% of traces sampled in production and development — adjust up if you need more detail
+  tracesSampleRate: 0.1,
 
   // Send logs to Sentry
   enableLogs: true,
@@ -16,8 +16,8 @@ Sentry.init({
   // Do NOT send PII — chat messages contain sensitive employee data
   sendDefaultPii: false,
 
-  // Only enable when DSN is explicitly set
-  enabled: !!process.env.NEXT_PUBLIC_SENTRY_DSN,
+  // Only enable in production
+  enabled: process.env.NODE_ENV === 'production' && !!process.env.NEXT_PUBLIC_SENTRY_DSN,
 
   integrations: [
     // Persistent feedback widget — bottom-right corner
@@ -58,7 +58,19 @@ if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
       const message = args
         .map((a) => (typeof a === 'string' ? a : JSON.stringify(a)))
         .join(' ');
-      Sentry.captureMessage(message, 'error');
+
+      // Filter out noisy warnings that aren't actual errors
+      const isNoise =
+        message.includes('【H5-JS-SDK】') ||
+        message.includes('cannot find pc bridge') ||
+        message.includes('hydration-mismatch') ||
+        message.includes('APIError: FOUND') ||
+        message.includes('status: "FOUND"') ||
+        message.includes('statusCode: 302');
+
+      if (!isNoise) {
+        Sentry.captureMessage(message, 'error');
+      }
     }
   };
 }

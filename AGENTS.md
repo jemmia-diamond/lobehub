@@ -270,6 +270,29 @@ Key flags for Jemmia deployment:
 
 To modify defaults, edit `DEFAULT_FEATURE_FLAGS` in `schema.ts`. The `mapFeatureFlagsEnvToState()` function maps flags to store state using `evaluateFeatureFlag()`.
 
+### Beta Access Control
+
+Jemmia uses a strict, whitelist-only access control during the beta phase.
+
+- **Enablement**: Set `APP_BETA_MODE=true` in `.env`.
+- **Enforcement**: 
+  - **Middleware**: `src/libs/next/proxy/define-config.ts` intercepts requests and redirects unauthorized users to `/beta-access`. It preserves the `hl` (locale) parameter.
+  - **Database Role**: `UserService.initUser` (`src/server/services/user/index.ts`) assigns `admin`, `beta`, or `user` roles based on `ADMIN_EMAILS` and `BETA_WHITE_LIST_EMAILS`.
+- **Exemptions**: `/beta-access` must be in `nextjsOnlyRoutes.ts` and `isPublicRoute` to avoid infinite loops and ensure App Router rendering.
+
+### Sentry Monitoring
+
+Sentry is used for error tracking and performance monitoring.
+
+- **Enablement**: Set `SENTRY_DSN` and `NEXT_PUBLIC_SENTRY_DSN`.
+- **Development Safety**: Sentry is **disabled in development** (`process.env.NODE_ENV === 'production'`) to eliminate terminal noise and network overhead on `localhost`.
+- **Noise Filtering**: Global filters are applied in `sentry.*.config.ts` and `instrumentation-client.ts` to ignore:
+  - Lark SDK warnings: `【H5-JS-SDK】`, `cannot find pc bridge`.
+  - React hydration mismatches: `hydration-mismatch`.
+  - Better Auth redirects: `APIError: FOUND` (302).
+- **Sampling**: `tracesSampleRate` is set to `0.1` (10%) to balance visibility and performance overhead.
+- **Tunneling**: Browser requests are tunneled through `/monitoring-tunnel` to avoid ad-blockers.
+
 ## Skills (Auto-loaded)
 
 All AI development skills are available in `.agents/skills/` directory and auto-loaded by Claude Code when relevant.

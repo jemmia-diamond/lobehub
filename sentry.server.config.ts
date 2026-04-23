@@ -13,6 +13,12 @@ Sentry.init({
   // Do NOT send PII — chat messages contain sensitive employee data
   sendDefaultPii: false,
 
-  // Only enable when DSN is explicitly set
-  enabled: !!process.env.SENTRY_DSN,
+  // Only enable in production
+  enabled: process.env.NODE_ENV === 'production' && !!process.env.SENTRY_DSN,
+  ignoreErrors: [
+    '【H5-JS-SDK】',
+    'cannot find pc bridge',
+    'hydration-mismatch',
+    'APIError: FOUND',
+  ],
 });

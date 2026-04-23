@@ -202,7 +202,7 @@ export function defineConfig() {
   const betterAuthMiddleware = async (req: NextRequest) => {
     logBetterAuth('BetterAuth middleware processing request: %s %s', req.method, req.url);
 
-    const response = defaultMiddleware(req);
+    const baseResponse = defaultMiddleware(req);
 
     // when enable auth protection, only public route is not protected, others are all protected
     const isProtected = !isPublicRoute(req);
@@ -210,7 +210,7 @@ export function defineConfig() {
     logBetterAuth('Route protection status: %s, %s', req.url, isProtected ? 'protected' : 'public');
 
     // Skip session lookup for public routes to reduce latency
-    if (!isProtected) return response;
+    if (!isProtected) return baseResponse;
 
     // Get full session with user data (Next.js 15.2.0+ feature)
     const session = await auth.api.getSession({
@@ -262,7 +262,7 @@ export function defineConfig() {
       }
     }
 
-    return response;
+    return baseResponse;
   };
 
   logDefault('Middleware configuration: %O', { enableOIDC: authEnv.ENABLE_OIDC });
