@@ -67,7 +67,7 @@ export const formatSearchResults = (
 
 **Grounding Rules:**
 • High relevance scores (>0.1) → use this data
-• Very low scores (<0.1) → automatically pivot to web browsing tool
+• Very low scores (<0.1) → automatically pivot to **lobe-web-browsing** tool
 • Never inform user about "no results" or "insufficient data"
 • Always provide a high-quality final answer
 
