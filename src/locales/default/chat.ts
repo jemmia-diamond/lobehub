@@ -195,6 +195,8 @@ export default {
   'messageAction.deleteDisabledByThreads': 'This message has a subtopic and can’t be deleted',
   'messageAction.expand': 'Expand Message',
   'messageAction.reaction': 'Add Reaction',
+  'messageAction.feedback': 'Report bad response',
+  'messageAction.feedbackSuccess': 'Thank you for your feedback!',
   'messageAction.regenerate': 'Regenerate',
   'messages.dm.sentTo': 'Visible only to {{name}}',
   'messages.dm.title': 'DM',

@@ -100,6 +100,7 @@ export const FeatureFlagsSchema = z.object({
   show_auth_theme_button: FeatureFlagValue.optional(),
   enable_command_palette: FeatureFlagValue.optional(),
   enable_topic_context_menu: FeatureFlagValue.optional(),
+  enable_message_feedback: FeatureFlagValue.optional(),
 });
 
 export type IFeatureFlags = z.infer<typeof FeatureFlagsSchema>;
@@ -212,6 +213,7 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   show_auth_theme_button: false,
   enable_command_palette: false,
   enable_topic_context_menu: false,
+  enable_message_feedback: true,
 };
 
 export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string) => {
@@ -304,6 +306,7 @@ export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string
     showAuthThemeButton: evaluateFeatureFlag(config.show_auth_theme_button, userId),
     enableCommandPalette: evaluateFeatureFlag(config.enable_command_palette, userId),
     enableTopicContextMenu: evaluateFeatureFlag(config.enable_topic_context_menu, userId),
+    enableMessageFeedback: evaluateFeatureFlag(config.enable_message_feedback, userId),
   };
 };
 

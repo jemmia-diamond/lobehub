@@ -1,8 +1,12 @@
 import { type UIChatMessage } from '@lobechat/types';
 import type { ActionIconGroupEvent, ActionIconGroupItemType } from '@lobehub/ui';
-import { ActionIconGroup, createRawModal, Flexbox } from '@lobehub/ui';
+import { ActionIcon, ActionIconGroup, createRawModal, Flexbox } from '@lobehub/ui';
+import { ThumbsDown } from 'lucide-react';
 import { memo, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
+import { message } from '@/components/AntdStaticMethods';
+import { useSentryFeedback } from '@/hooks/useSentryFeedback';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 import { ReactionPicker } from '../../../components/Reaction';
@@ -124,8 +128,12 @@ export const AssistantActionsBar = memo<AssistantActionsBarProps>(
         .filter((item): item is NonNullable<typeof item> => item !== null);
     }, [actionsConfig?.extraMenuActions, id]);
 
-    const { showMessageShare, showMessageActionMenu, showMessageEdit, showReactionBar } =
+    const { showMessageShare, showMessageActionMenu, showMessageEdit, showReactionBar, enableMessageFeedback } =
       useServerConfigStore(featureFlagsSelectors);
+
+    const topicId = useConversationStore((s) => s.context.topicId);
+    const { submitFeedback } = useSentryFeedback();
+    const { t } = useTranslation('chat');
 
     // Use external config if provided, otherwise use defaults
     // Append extra actions from factories
@@ -227,6 +235,21 @@ export const AssistantActionsBar = memo<AssistantActionsBarProps>(
           menu={showMessageActionMenu ? menu : undefined}
           onActionClick={handleAction}
         />
+        {enableMessageFeedback && (
+          <ActionIcon
+            icon={ThumbsDown}
+            size="small"
+            title={t('messageAction.feedback')}
+            onClick={() => {
+              submitFeedback({
+                messageId: id,
+                topicId: topicId ?? undefined,
+                sentiment: 'negative',
+              });
+              message.success(t('messageAction.feedbackSuccess' as any));
+            }}
+          />
+        )}
       </Flexbox>
     );
   },
