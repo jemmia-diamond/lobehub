@@ -1,8 +1,12 @@
 import { type AssistantContentBlock, type UIChatMessage } from '@lobechat/types';
 import type { ActionIconGroupEvent, ActionIconGroupItemType } from '@lobehub/ui';
-import { ActionIconGroup, createRawModal, Flexbox } from '@lobehub/ui';
+import { ActionIcon, ActionIconGroup, createRawModal, Flexbox } from '@lobehub/ui';
+import { ThumbsDown, ThumbsUp } from 'lucide-react';
 import { memo, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
+import { message } from '@/components/AntdStaticMethods';
+import { useSentryFeedback } from '@/hooks/useSentryFeedback';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 import { ReactionPicker } from '../../../components/Reaction';
@@ -110,8 +114,12 @@ const WithContentId = memo<GroupActionsProps>(({ actionsConfig, id, data, conten
   // Get collapse/expand action based on current state
   const collapseAction = isCollapsed ? defaultActions.expand : defaultActions.collapse;
 
-  const { showMessageShare, showMessageActionMenu, showMessageEdit, showReactionBar } =
+  const { showMessageShare, showMessageActionMenu, showMessageEdit, showReactionBar, enableMessageFeedback } =
     useServerConfigStore(featureFlagsSelectors);
+
+  const topicId = useConversationStore((s) => s.context.topicId);
+  const { submitFeedback } = useSentryFeedback();
+  const { t } = useTranslation('chat');
 
   const barItems = useMemo(
     () =>
@@ -206,6 +214,38 @@ const WithContentId = memo<GroupActionsProps>(({ actionsConfig, id, data, conten
         menu={showMessageActionMenu ? menu : undefined}
         onActionClick={handleAction}
       />
+      {enableMessageFeedback && (
+        <>
+          <ActionIcon
+            icon={ThumbsUp}
+            size="small"
+            title={t('messageAction.feedback' as any)}
+            onClick={() => {
+              submitFeedback({
+                content: data.content,
+                messageId: id,
+                sentiment: 'positive',
+                topicId: topicId ?? undefined,
+              });
+              message.success(t('messageAction.feedbackSuccess' as any));
+            }}
+          />
+          <ActionIcon
+            icon={ThumbsDown}
+            size="small"
+            title={t('messageAction.feedback')}
+            onClick={() => {
+              submitFeedback({
+                content: data.content,
+                messageId: id,
+                sentiment: 'negative',
+                topicId: topicId ?? undefined,
+              });
+              message.success(t('messageAction.feedbackSuccess' as any));
+            }}
+          />
+        </>
+      )}
     </Flexbox>
   );
 });

@@ -20,7 +20,11 @@ const SentryProvider = memo<PropsWithChildren>(({ children }) => {
       Sentry.init({
         dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
         environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ?? process.env.NODE_ENV,
-        tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+        tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1,
+
+        // Route browser Sentry requests through Next.js to avoid ad blockers
+        tunnel: '/monitoring-tunnel',
+
         enableLogs: true,
         sendDefaultPii: false,
         enabled: true,

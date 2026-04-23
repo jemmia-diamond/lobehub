@@ -178,6 +178,7 @@ export function defineConfig() {
     '/trpc(.*)',
     // version
     '/api/version',
+    '/monitoring-tunnel(.*)',
     '/api/desktop/(.*)',
     // better auth
     '/signin',

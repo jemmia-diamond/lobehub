@@ -1,7 +1,7 @@
 import { type UIChatMessage } from '@lobechat/types';
 import type { ActionIconGroupEvent, ActionIconGroupItemType } from '@lobehub/ui';
 import { ActionIcon, ActionIconGroup, createRawModal, Flexbox } from '@lobehub/ui';
-import { ThumbsDown } from 'lucide-react';
+import { ThumbsDown, ThumbsUp } from 'lucide-react';
 import { memo, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -236,19 +236,36 @@ export const AssistantActionsBar = memo<AssistantActionsBarProps>(
           onActionClick={handleAction}
         />
         {enableMessageFeedback && (
-          <ActionIcon
-            icon={ThumbsDown}
-            size="small"
-            title={t('messageAction.feedback')}
-            onClick={() => {
-              submitFeedback({
-                messageId: id,
-                topicId: topicId ?? undefined,
-                sentiment: 'negative',
-              });
-              message.success(t('messageAction.feedbackSuccess' as any));
-            }}
-          />
+          <>
+            <ActionIcon
+              icon={ThumbsUp}
+              size="small"
+              title={t('messageAction.feedback' as any)}
+              onClick={() => {
+                submitFeedback({
+                  content: data.content,
+                  messageId: id,
+                  sentiment: 'positive',
+                  topicId: topicId ?? undefined,
+                });
+                message.success(t('messageAction.feedbackSuccess' as any));
+              }}
+            />
+            <ActionIcon
+              icon={ThumbsDown}
+              size="small"
+              title={t('messageAction.feedback')}
+              onClick={() => {
+                submitFeedback({
+                  content: data.content,
+                  messageId: id,
+                  sentiment: 'negative',
+                  topicId: topicId ?? undefined,
+                });
+                message.success(t('messageAction.feedbackSuccess' as any));
+              }}
+            />
+          </>
         )}
       </Flexbox>
     );

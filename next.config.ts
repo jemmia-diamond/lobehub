@@ -42,7 +42,7 @@ export default withSentryConfig(nextConfig, {
   widenClientFileUpload: true,
 
   // Route browser Sentry requests through Next.js to avoid ad blockers
-  tunnelRoute: '/monitoring',
+  tunnelRoute: '/monitoring-tunnel',
 
   webpack: {
     // Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)

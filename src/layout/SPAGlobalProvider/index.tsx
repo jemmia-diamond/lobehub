@@ -16,13 +16,13 @@ import { GroupWizardProvider } from '@/layout/GlobalProvider/GroupWizardProvider
 import ImportSettings from '@/layout/GlobalProvider/ImportSettings';
 import NextThemeProvider from '@/layout/GlobalProvider/NextThemeProvider';
 import QueryProvider from '@/layout/GlobalProvider/Query';
+import SentryProvider from '@/layout/GlobalProvider/SentryProvider';
 import ServerVersionOutdatedAlert from '@/layout/GlobalProvider/ServerVersionOutdatedAlert';
 import StoreInitialization from '@/layout/GlobalProvider/StoreInitialization';
 import { ServerConfigStoreProvider } from '@/store/serverConfig/Provider';
 import type { SPAServerConfig } from '@/types/spaServerConfig';
 
 import Locale from './Locale';
-import SentryProvider from '@/layout/GlobalProvider/SentryProvider';
 
 const ModalHost = lazy(() => import('@lobehub/ui').then((m) => ({ default: m.ModalHost })));
 const ToastHost = lazy(() => import('@lobehub/ui/base-ui').then((m) => ({ default: m.ToastHost })));

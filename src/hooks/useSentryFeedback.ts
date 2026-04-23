@@ -4,14 +4,16 @@ import { useCallback } from 'react';
 import { useUserStore } from '@/store/user';
 
 interface FeedbackOptions {
-  /** The message ID this feedback is about */
-  messageId?: string;
-  /** The topic ID */
-  topicId?: string;
+  /** The content of the message being rated */
+  content?: string;
   /** Optional user-provided description */
   message?: string;
+  /** The message ID this feedback is about */
+  messageId?: string;
   /** Sentiment: thumbs up or down */
   sentiment?: 'positive' | 'negative';
+  /** The topic ID */
+  topicId?: string;
 }
 
 /**
@@ -23,27 +25,36 @@ export const useSentryFeedback = () => {
 
   const submitFeedback = useCallback(
     (options: FeedbackOptions) => {
-      if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return;
+      const { messageId, topicId, message, sentiment = 'negative', content } = options;
 
-      const { messageId, topicId, message, sentiment = 'negative' } = options;
+      const feedbackMessage =
+        (message ??
+          (sentiment === 'negative' ? 'Bad response from Brainy' : 'Good response from Brainy')) +
+        `\n\n[Metadata]\n- Message ID: ${messageId || 'unknown'}\n- Topic ID: ${topicId || 'unknown'}` +
+        (content ? `\n\n--- Content ---\n${content}` : '');
 
-      Sentry.captureFeedback(
-        {
-          name: larkProfile?.name ?? undefined,
-          email: larkProfile?.email ?? undefined,
-          message: message ?? (sentiment === 'negative' ? 'Bad response from Brainy' : 'Good response from Brainy'),
-        },
-        {
-          captureContext: {
-            tags: {
-              sentiment,
-              ...(messageId && { messageId }),
-              ...(topicId && { topicId }),
-              source: 'chat-reaction',
-            },
-          },
-        },
-      );
+      const feedbackData = {
+        email: larkProfile?.email ?? undefined,
+        message: feedbackMessage,
+        name: larkProfile?.name ?? undefined,
+      };
+
+      // Send as actual Sentry Feedback (appears in "User Feedback" section)
+      if (typeof Sentry.captureFeedback === 'function') {
+        Sentry.withScope((scope) => {
+          // Set tags on the scope so they are attached to the feedback event
+          // This allows filtering in Sentry using: sentiment:negative
+          scope.setTag('sentiment', sentiment);
+          if (messageId) scope.setTag('messageId', messageId);
+          if (topicId) scope.setTag('topicId', topicId);
+
+          Sentry.captureFeedback({
+            ...feedbackData,
+            // Associate with the last event if exists, or just send standalone
+            associatedEventId: Sentry.lastEventId(),
+          });
+        });
+      }
     },
     [larkProfile],
   );

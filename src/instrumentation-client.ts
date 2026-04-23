@@ -4,8 +4,11 @@ Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ?? process.env.NODE_ENV,
 
+  // Route browser Sentry requests through Next.js to avoid ad blockers
+  tunnel: '/monitoring-tunnel',
+
   // 10% of traces sampled in production
-  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1,
 
   // Send logs to Sentry
   enableLogs: true,

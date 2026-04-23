@@ -1,3 +1,4 @@
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { BRANDING_PROVIDER, ENABLE_BUSINESS_FEATURES } from '@lobechat/business-const';
 import {
   DEFAULT_SEARCH_USER_MEMORY_TOP_K,
@@ -22,7 +23,6 @@ import {
   RequestTrigger,
   searchMemorySchema,
 } from '@lobechat/types';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { embedMany } from 'ai';
 import { and, asc, eq, gte, lte, type SQL } from 'drizzle-orm';
 import pMap from 'p-map';
@@ -32,7 +32,6 @@ import {
   type IdentityEntryBasePayload,
   type IdentityEntryPayload,
 } from '@/database/models/userMemory';
-import { withGoogleEmbeddingKeyFallback } from '@/server/utils/googleEmbeddingKeys';
 import {
   UserMemoryActivityModel,
   UserMemoryExperienceModel,
@@ -54,6 +53,7 @@ import { serverDatabase } from '@/libs/trpc/lambda/middleware';
 import { getServerDefaultFilesConfig } from '@/server/globalConfig';
 import { initModelRuntimeFromDB } from '@/server/modules/ModelRuntime';
 import { normalizeSearchMemoryParams } from '@/server/services/memory/userMemory/searchParams';
+import { withGoogleEmbeddingKeyFallback } from '@/server/utils/googleEmbeddingKeys';
 
 const EMPTY_SEARCH_RESULT: SearchMemoryResult = {
   activities: [],

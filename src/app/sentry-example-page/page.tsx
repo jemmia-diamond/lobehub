@@ -1,6 +1,7 @@
 'use client';
 
 import * as Sentry from '@sentry/nextjs';
+import Link from 'next/link';
 import { useState } from 'react';
 
 export default function SentryExamplePage() {
@@ -26,13 +27,13 @@ export default function SentryExamplePage() {
   };
 
   const triggerFeedback = () => {
-    console.log('[SentryTest] Calling captureFeedback...');
+    console.info('[SentryTest] Calling captureFeedback...');
     const result = Sentry.captureFeedback({
       name: 'Test User',
       email: 'tech@jemmia.vn',
       message: 'Test feedback from Sentry example page — programmatic captureFeedback()',
     });
-    console.log('[SentryTest] captureFeedback result:', result);
+    console.info('[SentryTest] captureFeedback result:', result);
     setHasSentError(true);
   };
 
@@ -46,43 +47,43 @@ export default function SentryExamplePage() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 24, maxWidth: 400 }}>
         <button
-          onClick={throwError}
           style={{ padding: '8px 16px', background: '#e53e3e', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}
+          onClick={throwError}
         >
           1. Throw Frontend Error (unhandled)
         </button>
 
         <button
-          onClick={captureError}
           style={{ padding: '8px 16px', background: '#3182ce', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}
+          onClick={captureError}
         >
           2. Capture Error Manually (captureException)
         </button>
 
         <button
-          onClick={triggerConsoleError}
           style={{ padding: '8px 16px', background: '#805ad5', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}
+          onClick={triggerConsoleError}
         >
           3. console.error with Error object (interceptor test)
         </button>
 
         <button
-          onClick={triggerConsoleErrorNoObject}
           style={{ padding: '8px 16px', background: '#d69e2e', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}
+          onClick={triggerConsoleErrorNoObject}
         >
           4. console.error plain string (interceptor test)
         </button>
 
-        <a
+        <Link
           href="/api/sentry-example-api"
           style={{ padding: '8px 16px', background: '#38a169', color: 'white', borderRadius: 4, textDecoration: 'none', display: 'inline-block', textAlign: 'center' }}
         >
           5. Trigger Server-side API Error
-        </a>
+        </Link>
 
         <button
-          onClick={triggerFeedback}
           style={{ padding: '8px 16px', background: '#e53e3e', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', borderTop: '2px solid #ccc', marginTop: 8 }}
+          onClick={triggerFeedback}
         >
           6. Submit Feedback (captureFeedback API)
         </button>
