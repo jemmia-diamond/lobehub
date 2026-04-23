@@ -4,8 +4,8 @@ Sentry.init({
   dsn: process.env.SENTRY_DSN,
   environment: process.env.SENTRY_ENVIRONMENT ?? process.env.NODE_ENV,
 
-  // 10% of traces sampled in production — adjust up if you need more detail
-  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+  // 10% of traces sampled in production and development — adjust up if you need more detail
+  tracesSampleRate: 0.1,
 
   // Send logs (console.error etc.) to Sentry
   enableLogs: true,

@@ -7,7 +7,7 @@ import { Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
-import { signOut } from '@/libs/better-auth/auth-client';
+import { signOut, useSession } from '@/libs/better-auth/auth-client';
 
 const useStyles = createStyles(({ css, token }) => ({
   container: css`
@@ -43,6 +43,7 @@ const BetaAccessPage = () => {
   const { styles } = useStyles();
   const { t } = useTranslation('auth');
   const router = useRouter();
+  const { data: session } = useSession();
 
   const handleLogout = async () => {
     await signOut({
@@ -65,13 +66,18 @@ const BetaAccessPage = () => {
       <Typography.Paragraph className={styles.description}>
         {t('betaAccess.description')}
       </Typography.Paragraph>
+      {session?.user?.email && (
+        <Typography.Text
+          code
+          style={{ display: 'block', marginBlockEnd: 32, opacity: 0.66 }}
+          type="secondary"
+        >
+          {session.user.email}
+        </Typography.Text>
+      )}
       <div style={{ display: 'flex', gap: 12 }}>
         <Button onClick={handleLogout}>{t('betaAccess.action.logout')}</Button>
-        <Button
-          href="mailto:admin@jemmia.vn"
-          target="_blank"
-          type="primary"
-        >
+        <Button href="mailto:tech@jemmia.vn" target="_blank" type="primary">
           {t('betaAccess.action.contact')}
         </Button>
       </div>

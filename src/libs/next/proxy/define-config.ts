@@ -242,17 +242,23 @@ export function defineConfig() {
       logBetterAuth('Request a free route but not login, allow visit without auth header');
     }
 
-    // 2. Beta Mode Restriction
+    // 2. Beta Mode Restriction — check email directly against env vars, no DB role needed
     if (authEnv.APP_BETA_MODE && session?.user) {
-      const userRole = (session.user as any).role;
-      logBetterAuth('Beta mode enabled, checking user role: %s', userRole);
+      const userEmail = (session.user.email ?? '').toLowerCase();
+      const adminEmails = (authEnv.ADMIN_EMAILS ?? '').split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
+      const betaEmails = (authEnv.BETA_WHITE_LIST_EMAILS ?? '').split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
+      const isAllowed = adminEmails.includes(userEmail) || betaEmails.includes(userEmail);
 
-      if (userRole !== 'admin' && userRole !== 'beta') {
-        logBetterAuth(
-          'User role "%s" not allowed in beta mode, redirecting to /beta-access',
-          userRole,
-        );
-        return Response.redirect(new URL('/beta-access', appEnv.APP_URL));
+      logBetterAuth('Beta mode enabled, checking email: %s, allowed: %s', userEmail, isAllowed);
+
+      if (!isAllowed) {
+        logBetterAuth('Email "%s" not in whitelist, redirecting to /beta-access', userEmail);
+
+        const betaUrl = new URL('/beta-access', appEnv.APP_URL);
+        const hl = req.nextUrl.searchParams.get('hl');
+        if (hl) betaUrl.searchParams.set('hl', hl);
+
+        return Response.redirect(betaUrl);
       }
     }
 

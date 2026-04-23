@@ -210,7 +210,6 @@ export function defineConfig(customOptions: CustomBetterAuthOptions) {
               id: user.id,
               username: user.username as string | null,
               createdAt: user.createdAt,
-              // TODO: if add phone plugin, we should fill phone here
             });
           },
         },
