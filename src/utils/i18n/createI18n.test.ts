@@ -37,7 +37,7 @@ describe('createI18nNext', () => {
 
     expect(reloadSpy).toHaveBeenCalledWith(
       ['en-US'],
-      ['chat', 'common', 'editor', 'error', 'file', 'home', 'topic', 'welcome'],
+      ['chat', 'common', 'editor', 'error', 'file', 'home', 'plugin', 'topic', 'welcome'],
     );
     expect(loadI18nNamespaceModule).toHaveBeenCalledWith(
       expect.objectContaining({ lng: 'en-US', ns: 'common' }),

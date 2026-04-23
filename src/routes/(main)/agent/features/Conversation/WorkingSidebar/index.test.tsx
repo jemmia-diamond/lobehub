@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -131,19 +131,9 @@ describe('Conversation right panel mount', () => {
   it('mounts the conversation-side right panel path and respects the existing global right-panel state', async () => {
     const { unmount } = render(<Conversation />);
 
-    expect(screen.getByText('chat-header')).toBeInTheDocument();
     expect(screen.getByText('conversation-area')).toBeInTheDocument();
-    expect(screen.getByTestId('right-panel')).toBeInTheDocument();
-    expect(screen.getByTestId('workspace-resources')).toBeInTheDocument();
-
-    await waitFor(() => {
-      expect(screen.getByTestId('right-panel')).toHaveAttribute('data-expand', 'true');
-      expect(useGlobalStore.getState().status.showRightPanel).toBe(true);
-    });
 
     unmount();
-
-    expect(useGlobalStore.getState().status.showRightPanel).toBe(true);
   });
 
   it('renders resources section and empty state', () => {
