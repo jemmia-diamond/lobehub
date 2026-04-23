@@ -25,10 +25,24 @@ export default function SentryExamplePage() {
     setHasSentError(true);
   };
 
+  const triggerFeedback = () => {
+    console.log('[SentryTest] Calling captureFeedback...');
+    const result = Sentry.captureFeedback({
+      name: 'Test User',
+      email: 'tech@jemmia.vn',
+      message: 'Test feedback from Sentry example page — programmatic captureFeedback()',
+    });
+    console.log('[SentryTest] captureFeedback result:', result);
+    setHasSentError(true);
+  };
+
   return (
     <main style={{ padding: 40, fontFamily: 'monospace' }}>
       <h1>Sentry Test Page</h1>
       <p>Use these buttons to test Sentry error reporting.</p>
+      <p style={{ fontSize: 12, color: '#666' }}>
+        Also check bottom-right corner for the persistent feedback widget (requires DSN to be set).
+      </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 24, maxWidth: 400 }}>
         <button
@@ -65,6 +79,13 @@ export default function SentryExamplePage() {
         >
           5. Trigger Server-side API Error
         </a>
+
+        <button
+          onClick={triggerFeedback}
+          style={{ padding: '8px 16px', background: '#e53e3e', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', borderTop: '2px solid #ccc', marginTop: 8 }}
+        >
+          6. Submit Feedback (captureFeedback API)
+        </button>
       </div>
 
       {hasSentError && (
@@ -80,7 +101,9 @@ export default function SentryExamplePage() {
           <li>Button 2 → appears immediately as an issue</li>
           <li>Button 3 → captured by console.error interceptor (client-side)</li>
           <li>Button 4 → captured as a Sentry message (client-side)</li>
-          <li>Button 5 → server-side error, captured by server interceptor</li>
+          <li>Button 5 → server-side error + server console.error interceptor (2 events)</li>
+          <li>Button 6 → appears in Sentry User Feedback tab</li>
+          <li>Widget → bottom-right corner "Phản hồi" button</li>
         </ul>
       </div>
     </main>
