@@ -22,6 +22,7 @@ import { ServerConfigStoreProvider } from '@/store/serverConfig/Provider';
 import type { SPAServerConfig } from '@/types/spaServerConfig';
 
 import Locale from './Locale';
+import SentryProvider from '@/layout/GlobalProvider/SentryProvider';
 
 const ModalHost = lazy(() => import('@lobehub/ui').then((m) => ({ default: m.ModalHost })));
 const ToastHost = lazy(() => import('@lobehub/ui/base-ui').then((m) => ({ default: m.ToastHost })));
@@ -102,7 +103,11 @@ const SPAGlobalProvider = memo<PropsWithChildren>(({ children }) => {
                       <LazyMotion features={domMax}>
                         <TooltipGroup layoutAnimation={false}>
                           <StyleProvider speedy={import.meta.env.PROD}>
-                            <LobeAnalyticsProviderWrapper>{children}</LobeAnalyticsProviderWrapper>
+                            <LobeAnalyticsProviderWrapper>
+                              <SentryProvider>
+                                {children}
+                              </SentryProvider>
+                            </LobeAnalyticsProviderWrapper>
                           </StyleProvider>
                         </TooltipGroup>
                         <Suspense>

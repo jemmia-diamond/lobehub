@@ -15,6 +15,28 @@ Sentry.init({
 
   // Only enable when DSN is explicitly set
   enabled: !!process.env.NEXT_PUBLIC_SENTRY_DSN,
+
+  integrations: [
+    // Persistent feedback widget — bottom-right corner
+    // Users can submit feedback anytime without needing an error
+    Sentry.feedbackIntegration({
+      colorScheme: 'light',
+      triggerLabel: 'Phản hồi',
+      formTitle: 'Gửi phản hồi',
+      submitButtonLabel: 'Gửi',
+      cancelButtonLabel: 'Hủy',
+      nameLabel: 'Tên',
+      namePlaceholder: 'Tên của bạn',
+      emailLabel: 'Email',
+      emailPlaceholder: 'tech@jemmia.vn',
+      messageLabel: 'Mô tả',
+      messagePlaceholder: 'Bạn gặp vấn đề gì? Brainy trả lời sai điều gì?',
+      successMessageText: 'Cảm ơn bạn đã phản hồi!',
+      isEmailRequired: false,
+      isNameRequired: false,
+      enableScreenshot: true,
+    }),
+  ],
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

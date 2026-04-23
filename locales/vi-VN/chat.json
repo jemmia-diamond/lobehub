@@ -222,6 +222,8 @@
   "messageAction.interrupted": "Bị gián đoạn",
   "messageAction.interruptedHint": "Tôi nên làm gì thay thế?",
   "messageAction.reaction": "Thêm phản ứng",
+  "messageAction.feedback": "Báo cáo câu trả lời sai",
+  "messageAction.feedbackSuccess": "Cảm ơn bạn đã phản hồi!",
   "messageAction.regenerate": "Tạo lại",
   "messages.dm.sentTo": "Chỉ hiển thị với {{name}}",
   "messages.dm.title": "Tin nhắn riêng",
