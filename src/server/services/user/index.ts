@@ -3,6 +3,7 @@ import { type LobeChatDatabase } from '@lobechat/database';
 
 import { initNewUserForBusiness } from '@/business/server/user';
 import { UserModel } from '@/database/models/user';
+import { authEnv } from '@/envs/auth';
 import { initializeServerAnalytics } from '@/libs/analytics';
 import { KeyVaultsGateKeeper } from '@/server/modules/KeyVaultsEncrypt';
 import { FileS3 } from '@/server/modules/S3';
@@ -25,6 +26,28 @@ export class UserService {
   }
 
   async initUser(user: CreatedUser) {
+    // 1. Assign Role based on Whitelists
+    if (user.email) {
+      const adminEmails = authEnv.ADMIN_EMAILS?.split(',').map((e) => e.trim().toLowerCase()) || [];
+      const betaEmails =
+        authEnv.BETA_WHITE_LIST_EMAILS?.split(',').map((e) => e.trim().toLowerCase()) || [];
+
+      let role = 'user';
+      if (adminEmails.includes(user.email.toLowerCase())) {
+        role = 'admin';
+      } else if (betaEmails.includes(user.email.toLowerCase())) {
+        role = 'beta';
+      }
+
+      try {
+        const userModel = new UserModel(this.db, user.id);
+        await userModel.updateUser({ role });
+        console.info(`[UserService] Assigned role "${role}" to user ${user.email}`);
+      } catch (error) {
+        console.error(`[UserService] Failed to assign role to user ${user.email}`, error);
+      }
+    }
+
     if (ENABLE_BUSINESS_FEATURES) {
       try {
         await initNewUserForBusiness(user.id, user.createdAt);
@@ -45,6 +68,7 @@ export class UserService {
     analytics?.track({
       name: 'user_register_completed',
       properties: {
+        role: (user as any).role, // Capture role in analytics if possible
         spm: 'user_service.init_user.user_created',
       },
       userId: user.id,

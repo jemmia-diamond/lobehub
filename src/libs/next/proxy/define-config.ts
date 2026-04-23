@@ -186,6 +186,7 @@ export function defineConfig() {
     '/auth-error',
     '/verify-email',
     '/reset-password',
+    '/beta-access(.*)',
     // oauth
     // Make only the consent view public (GET page), not other oauth paths
     '/oauth/consent/(.*)',
@@ -239,6 +240,20 @@ export function defineConfig() {
         return Response.redirect(signInUrl);
       }
       logBetterAuth('Request a free route but not login, allow visit without auth header');
+    }
+
+    // 2. Beta Mode Restriction
+    if (authEnv.APP_BETA_MODE && session?.user) {
+      const userRole = (session.user as any).role;
+      logBetterAuth('Beta mode enabled, checking user role: %s', userRole);
+
+      if (userRole !== 'admin' && userRole !== 'beta') {
+        logBetterAuth(
+          'User role "%s" not allowed in beta mode, redirecting to /beta-access',
+          userRole,
+        );
+        return Response.redirect(new URL('/beta-access', appEnv.APP_URL));
+      }
     }
 
     return response;

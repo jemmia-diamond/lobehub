@@ -5,86 +5,102 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace NodeJS {
     interface ProcessEnv {
+      /**
+       * Comma-separated list of admin emails.
+       */
+      ADMIN_EMAILS?: string;
+      // ===== Beta Phase Control ===== //
+      /**
+       * Enable Beta Mode restriction.
+       * When true, only users with 'admin' or 'beta' roles can access the app.
+       */
+      APP_BETA_MODE?: string;
       AUTH_ALLOWED_EMAILS?: string;
       AUTH_APPLE_APP_BUNDLE_IDENTIFIER?: string;
       AUTH_APPLE_CLIENT_ID?: string;
       AUTH_APPLE_CLIENT_SECRET?: string;
       AUTH_AUTH0_ID?: string;
+
       AUTH_AUTH0_ISSUER?: string;
       AUTH_AUTH0_SECRET?: string;
 
       AUTH_AUTHELIA_ID?: string;
       AUTH_AUTHELIA_ISSUER?: string;
-
       AUTH_AUTHELIA_SECRET?: string;
+
       AUTH_AUTHENTIK_ID?: string;
       AUTH_AUTHENTIK_ISSUER?: string;
 
       AUTH_AUTHENTIK_SECRET?: string;
       AUTH_CASDOOR_ID?: string;
-
       AUTH_CASDOOR_ISSUER?: string;
       AUTH_CASDOOR_SECRET?: string;
       AUTH_CLOUDFLARE_ZERO_TRUST_ID?: string;
       AUTH_CLOUDFLARE_ZERO_TRUST_ISSUER?: string;
+
       AUTH_CLOUDFLARE_ZERO_TRUST_SECRET?: string;
       AUTH_COGNITO_DOMAIN?: string;
-
       AUTH_COGNITO_ID?: string;
       AUTH_COGNITO_ISSUER?: string;
+
       AUTH_COGNITO_REGION?: string;
       AUTH_COGNITO_SECRET?: string;
-
       AUTH_COGNITO_USERPOOL_ID?: string;
+
       AUTH_DISABLE_EMAIL_PASSWORD?: string;
       AUTH_EMAIL_VERIFICATION?: string;
-
       AUTH_ENABLE_MAGIC_LINK?: string;
+
       AUTH_FEISHU_APP_ID?: string;
       AUTH_FEISHU_APP_SECRET?: string;
-
       AUTH_GENERIC_OIDC_ID?: string;
+
       AUTH_GENERIC_OIDC_ISSUER?: string;
       AUTH_GENERIC_OIDC_SECRET?: string;
-
       AUTH_GITHUB_ID?: string;
+
       AUTH_GITHUB_SECRET?: string;
       // ===== Auth Provider Credentials ===== //
       AUTH_GOOGLE_ID?: string;
-
       AUTH_GOOGLE_SECRET?: string;
+
       AUTH_KEYCLOAK_ID?: string;
       AUTH_KEYCLOAK_ISSUER?: string;
-
       AUTH_KEYCLOAK_SECRET?: string;
       AUTH_LARK_APP_ID?: string;
+
       AUTH_LARK_APP_SECRET?: string;
       AUTH_LOGTO_ID?: string;
-
       AUTH_LOGTO_ISSUER?: string;
+
       AUTH_LOGTO_SECRET?: string;
       AUTH_MICROSOFT_AUTHORITY_URL?: string;
-
       AUTH_MICROSOFT_ID?: string;
+
       AUTH_MICROSOFT_SECRET?: string;
       AUTH_MICROSOFT_TENANT_ID?: string;
-
       AUTH_OKTA_ID?: string;
+
       AUTH_OKTA_ISSUER?: string;
       AUTH_OKTA_SECRET?: string;
-
       // ===== Better Auth ===== //
       AUTH_SECRET?: string;
+
       AUTH_SSO_PROVIDERS?: string;
       AUTH_TRUSTED_ORIGINS?: string;
 
       AUTH_WECHAT_ID?: string;
       AUTH_WECHAT_SECRET?: string;
-
       AUTH_ZITADEL_ID?: string;
+
       AUTH_ZITADEL_ISSUER?: string;
+
       AUTH_ZITADEL_SECRET?: string;
 
+      /**
+       * Comma-separated list of emails allowed to test the app during beta phase.
+       */
+      BETA_WHITE_LIST_EMAILS?: string;
       /**
        * Internal JWT expiration time for lambda → async calls.
        * Format: number followed by unit (s=seconds, m=minutes, h=hours)
@@ -93,7 +109,6 @@ declare global {
        * @default '30s'
        */
       INTERNAL_JWT_EXPIRATION?: string;
-
       // ===== JWKS Key ===== //
       /**
        * Generic JWKS key for signing/verifying JWTs.
@@ -201,6 +216,11 @@ export const getAuthConfig = () => {
 
       // Internal JWT expiration time (e.g., '10s', '1m', '1h')
       INTERNAL_JWT_EXPIRATION: z.string().default('30s'),
+
+      // Beta Phase Control
+      APP_BETA_MODE: z.boolean().default(false),
+      BETA_WHITE_LIST_EMAILS: z.string().optional(),
+      ADMIN_EMAILS: z.string().optional(),
     },
 
     runtimeEnv: {
@@ -297,6 +317,11 @@ export const getAuthConfig = () => {
 
       // Internal JWT expiration time
       INTERNAL_JWT_EXPIRATION: process.env.INTERNAL_JWT_EXPIRATION,
+
+      // Beta Phase Control
+      APP_BETA_MODE: process.env.APP_BETA_MODE === '1' || process.env.APP_BETA_MODE === 'true',
+      BETA_WHITE_LIST_EMAILS: process.env.BETA_WHITE_LIST_EMAILS,
+      ADMIN_EMAILS: process.env.ADMIN_EMAILS,
     },
   });
 };

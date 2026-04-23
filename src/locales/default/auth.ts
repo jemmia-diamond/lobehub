@@ -34,6 +34,11 @@ export default {
   'authModal.signIn': 'Sign In Again',
   'authModal.signingIn': 'Signing in...',
   'authModal.title': 'Session Expired',
+  'betaAccess.action.contact': 'Contact Admin',
+  'betaAccess.action.logout': 'Sign Out',
+  'betaAccess.description':
+    'Brainy is currently in its beta phase and is only available to invited testers. If you believe you should have access, please contact the administrator.',
+  'betaAccess.title': 'Beta Access Required',
   'betterAuth.errors.confirmPasswordRequired': 'Please confirm your password',
   'betterAuth.errors.emailExists': 'This email is already registered. Please sign in instead',
   'betterAuth.errors.emailInvalid': 'Please enter a valid email address or username',
