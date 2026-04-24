@@ -240,7 +240,7 @@ export const AssistantActionsBar = memo<AssistantActionsBarProps>(
             <ActionIcon
               icon={ThumbsUp}
               size="small"
-              title={t('messageAction.feedback' as any)}
+              title={t('messageAction.feedbackPositive' as any)}
               onClick={() => {
                 submitFeedback({
                   content: data.content,
@@ -254,7 +254,7 @@ export const AssistantActionsBar = memo<AssistantActionsBarProps>(
             <ActionIcon
               icon={ThumbsDown}
               size="small"
-              title={t('messageAction.feedback')}
+              title={t('messageAction.feedbackNegative' as any)}
               onClick={() => {
                 submitFeedback({
                   content: data.content,

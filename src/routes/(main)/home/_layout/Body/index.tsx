@@ -1,6 +1,7 @@
 'use client';
 
 import { Flexbox, Text } from '@lobehub/ui';
+import { createStyles } from 'antd-style';
 import { memo, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -16,24 +17,30 @@ import BottomMenu from './BottomMenu';
 import HistoryEmpty from './HistoryEmpty';
 import RecentTopicItem from './RecentTopicItem';
 
-const SectionLabel = memo<{ children: React.ReactNode }>(({ children }) => (
-  <Text
-    ellipsis
-    style={{
-      color: '#0A0A0A',
-      fontFamily: 'Inter, system-ui, sans-serif',
-      fontSize: 12,
-      fontStyle: 'normal',
-      fontWeight: 400,
-      letterSpacing: 'normal',
-      lineHeight: '16px',
-      paddingBlock: '12px 8px',
-      paddingInline: 0,
-    }}
-  >
-    {children}
-  </Text>
-));
+const useStyles = createStyles(({ css, token }) => ({
+  sectionLabel: css`
+    padding-block: 12px 8px;
+    padding-inline: 0;
+
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    font-style: normal;
+    line-height: 16px;
+    color: ${token.colorTextSecondary};
+    letter-spacing: normal;
+  `,
+}));
+
+const SectionLabel = memo<{ children: React.ReactNode }>(({ children }) => {
+  const { styles } = useStyles();
+
+  return (
+    <Text ellipsis className={styles.sectionLabel}>
+      {children}
+    </Text>
+  );
+});
 
 SectionLabel.displayName = 'SectionLabel';
 

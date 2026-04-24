@@ -343,13 +343,13 @@ export class AiAgentService {
       try {
         const { fetchLarkUserProfile } = await import('@/server/routers/lambda/user');
         const profile = await fetchLarkUserProfile(this.db, this.userId);
-        console.info('[execAgent] fetchLarkUserProfile result:', profile);
+        log('fetchLarkUserProfile result:', profile);
         if (profile) userProfile = profile;
       } catch (e) {
-        console.error('[execAgent] failed to fetch user profile:', e);
+        log('failed to fetch user profile:', e);
         log('execAgent: failed to fetch user profile for system role: %O', e);
       }
-      console.info('[execAgent] userProfile passed to runtimeConfig:', userProfile);
+      log('userProfile passed to runtimeConfig:', userProfile);
 
       const runtimeConfig = getAgentRuntimeConfig(agentSlug, {
         model: agentConfig.model,

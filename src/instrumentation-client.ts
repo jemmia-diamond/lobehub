@@ -48,6 +48,21 @@ export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
 if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
   const originalConsoleError = console.error.bind(console);
   console.error = (...args: unknown[]) => {
+    const message = args
+      .map((a) => (typeof a === 'string' ? a : JSON.stringify(a)))
+      .join(' ');
+
+    // Filter out noisy warnings that aren't actual errors
+    const isNoise =
+      message.includes('【H5-JS-SDK】') ||
+      message.includes('cannot find pc bridge') ||
+      message.includes('hydration-mismatch') ||
+      message.includes('APIError: FOUND') ||
+      message.includes('"status":"FOUND"') ||
+      message.includes('"statusCode":302');
+
+    if (isNoise) return;
+
     originalConsoleError(...args);
     const error = args.find((a) => a instanceof Error) as Error | undefined;
     if (error) {
@@ -55,22 +70,7 @@ if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
         extra: { consoleArgs: args.filter((a) => !(a instanceof Error)) },
       });
     } else if (args.length > 0) {
-      const message = args
-        .map((a) => (typeof a === 'string' ? a : JSON.stringify(a)))
-        .join(' ');
-
-      // Filter out noisy warnings that aren't actual errors
-      const isNoise =
-        message.includes('【H5-JS-SDK】') ||
-        message.includes('cannot find pc bridge') ||
-        message.includes('hydration-mismatch') ||
-        message.includes('APIError: FOUND') ||
-        message.includes('status: "FOUND"') ||
-        message.includes('statusCode: 302');
-
-      if (!isNoise) {
-        Sentry.captureMessage(message, 'error');
-      }
+      Sentry.captureMessage(message, 'error');
     }
   };
 }

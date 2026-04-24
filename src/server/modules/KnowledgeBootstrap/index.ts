@@ -1,21 +1,16 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import debug from 'debug';
 import { and, eq } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
 import { ChunkModel } from '@/database/models/chunk';
-import {
-  agents,
-  agentsKnowledgeBases,
-  files,
-  globalFiles,
-  knowledgeBaseFiles,
-  knowledgeBases,
-  users,
-} from '@/database/schemas';
+import { agents, agentsKnowledgeBases, files, globalFiles, knowledgeBaseFiles, knowledgeBases, users } from '@/database/schemas';
 import { getServerDB } from '@/database/server';
 import { RagService } from '@/server/services/rag';
+
+const log = debug('lobe-server:knowledge-bootstrap');
 
 export const JEMMORA_ADMIN_ID = 'user_jemmora_admin';
 export const JEMMORA_KB_NAME = 'Jemmia Diamond Knowledge';
@@ -64,11 +59,11 @@ export class KnowledgeBootstrapService {
       await this.ensureAdminUser(db);
       this.userId = JEMMORA_ADMIN_ID;
 
-      console.info(`[KnowledgeBootstrap] Starting Global Knowledge Indexing...`);
+      log(`Starting Global Knowledge Indexing...`);
 
       const seedDir = path.join(process.cwd(), 'packages/knowledge-seed/jemmia-diamond');
       if (!fs.existsSync(seedDir)) {
-        console.warn(`[KnowledgeBootstrap] Seed directory not found: ${seedDir}`);
+        log(`Seed directory not found: ${seedDir}`);
         return;
       }
 
@@ -87,7 +82,7 @@ export class KnowledgeBootstrapService {
       });
       const seedFileUrls = new Set(seedFiles.map((f) => `local://jemmia-diamond/${f}`));
       const seedFilenames = new Set(seedFiles);
-      console.info(`[KnowledgeBootstrap] Checking ${existingFiles.length} DB files for deletion. Disk has ${seedFiles.length} files.`);
+      log(`Checking ${existingFiles.length} DB files for deletion. Disk has ${seedFiles.length} files.`);
       for (const dbFile of existingFiles) {
         if (!dbFile.url?.startsWith('local://')) continue;
 
@@ -99,10 +94,10 @@ export class KnowledgeBootstrapService {
           : !seedFilenames.has(dbFile.name);
 
         if (shouldDelete) {
-          console.info(`[KnowledgeBootstrap] Removing deleted file: ${dbFile.name} (${dbFile.url})`);
+          log(`Removing deleted file: ${dbFile.name} (${dbFile.url})`);
           await db.delete(files).where(eq(files.id, dbFile.id));
         } else if (isOldFormat) {
-          console.info(`[KnowledgeBootstrap] Legacy URL: ${dbFile.name} — still on disk, skipping`);
+          log(`Legacy URL: ${dbFile.name} — still on disk, skipping`);
         }
       }
 
@@ -111,11 +106,11 @@ export class KnowledgeBootstrapService {
         await sleep(500);
       }
 
-      console.info(`[KnowledgeBootstrap] Global Knowledge ready (KB ID: ${kbId})`);
+      log(`Global Knowledge ready (KB ID: ${kbId})`);
       KnowledgeBootstrapService.globalKbId = kbId;
       return kbId;
     } catch (error) {
-      console.error('[KnowledgeBootstrap] Global bootstrap failed:', error);
+      log('Global bootstrap failed:', error);
     } finally {
       KnowledgeBootstrapService.globalInProgress = false;
     }
@@ -133,7 +128,7 @@ export class KnowledgeBootstrapService {
     // Ensure global indexing has at least tried to run
     const globalKbId = await this.bootstrapOnce();
     if (!globalKbId) {
-      console.warn('[KnowledgeBootstrap] Global KB not ready. Skipping link for user:', userId);
+      log('Global KB not ready. Skipping link for user:', userId);
       return;
     }
 
@@ -142,7 +137,7 @@ export class KnowledgeBootstrapService {
     // Link this specific user's Inbox Agent to the Global KB
     await this.linkKnowledgeToInbox(db, globalKbId);
 
-    console.info(`[KnowledgeBootstrap] Linked user ${userId} to Global Knowledge (Inbox).`);
+    log(`Linked user ${userId} to Global Knowledge (Inbox).`);
   }
 
   private async ensureAdminUser(db: any) {
@@ -151,7 +146,7 @@ export class KnowledgeBootstrapService {
     });
 
     if (!admin) {
-      console.info(`[KnowledgeBootstrap] Creating System Admin user (${JEMMORA_ADMIN_ID})...`);
+      log(`Creating System Admin user (${JEMMORA_ADMIN_ID})...`);
       await db.insert(users).values({
         id: JEMMORA_ADMIN_ID,
         email: 'admin@jemmia.vn',
@@ -167,9 +162,7 @@ export class KnowledgeBootstrapService {
     });
 
     if (!inboxAgent) {
-      console.warn(
-        `[KnowledgeBootstrap] Inbox agent not found for user ${this.userId}. Skipping linkage.`,
-      );
+      log(`Inbox agent not found for user ${this.userId}. Skipping linkage.`);
       return;
     }
 
@@ -184,7 +177,7 @@ export class KnowledgeBootstrapService {
     if (existingLink) {
       // Enforce the 'Enabled' state every time the bootstrap runs
       if (!existingLink.enabled) {
-        console.info(`[KnowledgeBootstrap] Re-enabling knowledge base for Inbox agent...`);
+        log(`Re-enabling knowledge base for Inbox agent...`);
         await db
           .update(agentsKnowledgeBases)
           .set({ enabled: true })
@@ -199,8 +192,8 @@ export class KnowledgeBootstrapService {
     }
 
     // 3. Create the link
-    console.info(
-      `[KnowledgeBootstrap] Linking knowledge base to Inbox agent (${inboxAgent.id})...`,
+    log(
+      `Linking knowledge base to Inbox agent (${inboxAgent.id})...`,
     );
     await db.insert(agentsKnowledgeBases).values({
       agentId: inboxAgent.id,
@@ -212,7 +205,7 @@ export class KnowledgeBootstrapService {
     // 4. Ensure the knowledge-base tool is enabled in agent's plugins
     const existingPlugins = (inboxAgent.plugins as string[]) || [];
     if (!existingPlugins.includes('lobe-knowledge-base')) {
-      console.info(`[KnowledgeBootstrap] Enabling lobe-knowledge-base tool for Inbox agent...`);
+      log(`Enabling lobe-knowledge-base tool for Inbox agent...`);
       await db
         .update(agents)
         .set({ plugins: [...existingPlugins, 'lobe-knowledge-base'] })
@@ -257,17 +250,17 @@ export class KnowledgeBootstrapService {
       if (count > 0) {
         // Same content — but check if the filename/URL changed (rename)
         if (existingByHash.url !== fileUrl || existingByHash.name !== filename) {
-          console.info(`[KnowledgeBootstrap] File renamed: ${existingByHash.name} → ${filename}. Updating record.`);
+          log(`File renamed: ${existingByHash.name} → ${filename}. Updating record.`);
           await db.update(files).set({ name: filename, url: fileUrl }).where(eq(files.id, existingByHash.id));
         } else {
-          console.info(
-            `[KnowledgeBootstrap] Skipped (already indexed with ${count} embeddings): ${filename}`,
+          log(
+            `Skipped (already indexed with ${count} embeddings): ${filename}`,
           );
         }
         return existingByHash.id;
       }
-      console.warn(
-        `[KnowledgeBootstrap] File ${filename} exists but has no embeddings. Re-indexing...`,
+      log(
+        `File ${filename} exists but has no embeddings. Re-indexing...`,
       );
       await db.delete(files).where(eq(files.id, existingByHash.id));
     } else {
@@ -276,7 +269,7 @@ export class KnowledgeBootstrapService {
         where: and(eq(files.url, fileUrl), eq(files.userId, this.userId)),
       });
       if (previousVersion) {
-        console.info(`[KnowledgeBootstrap] File updated, removing old version: ${filename}`);
+        log(`File updated, removing old version: ${filename}`);
         await db.delete(files).where(eq(files.id, previousVersion.id));
       }
     }
@@ -296,7 +289,7 @@ export class KnowledgeBootstrapService {
       });
     }
 
-    console.info(`[KnowledgeBootstrap] Indexing new file: ${filename}...`);
+    log(`Indexing new file: ${filename}...`);
 
     // 1. Create File Record
     const fileId = uuidv4();
@@ -329,7 +322,7 @@ export class KnowledgeBootstrapService {
       });
       return fileId;
     } catch (error) {
-      console.error(`[KnowledgeBootstrap] RAG processing failed for ${filename}:`, error);
+      log(`RAG processing failed for ${filename}:`, error);
       return undefined;
     }
   }

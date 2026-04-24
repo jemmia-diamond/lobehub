@@ -16,6 +16,7 @@ import {
   UserSettingsSchema,
 } from '@lobechat/types';
 import { TRPCError } from '@trpc/server';
+import debug from 'debug';
 import { after } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
@@ -33,6 +34,8 @@ import { FileS3 } from '@/server/modules/S3';
 import { AgentDocumentsService } from '@/server/services/agentDocuments';
 import { FileService } from '@/server/services/file';
 import { OnboardingService } from '@/server/services/onboarding';
+
+const log = debug('lobe-server:lark-profile');
 
 export interface LarkUserProfile {
   department?: string;
@@ -52,7 +55,7 @@ export const fetchLarkUserProfile = async (
         and(eq(account.userId, userId), eq(account.providerId, 'lark')),
     });
 
-    console.info('[fetchLarkUserProfile] larkAccount found:', !!larkAccount, 'hasToken:', !!larkAccount?.accessToken, 'hasAccountId:', !!larkAccount?.accountId);
+    log('larkAccount found:', !!larkAccount, 'hasToken:', !!larkAccount?.accessToken, 'hasAccountId:', !!larkAccount?.accountId);
 
     if (!larkAccount?.accessToken || !larkAccount?.accountId) return null;
 
@@ -123,28 +126,28 @@ export const fetchLarkUserProfile = async (
                       }
                     }
                   } else {
-                    console.warn('[fetchLarkUserProfile] dept API failed:', deptRes.status, await deptRes.text());
+                    log('dept API failed:', deptRes.status, await deptRes.text());
                   }
                   department ??= deptId;
                 }
               } else {
-                console.warn('[fetchLarkUserProfile] Contact API:', contactData.code, contactData.msg);
+                log('Contact API:', contactData.code, contactData.msg);
               }
             }
           }
         }
       } catch (e) {
-        console.error('[fetchLarkUserProfile] Contact API failed:', e);
+        log('Contact API failed:', e);
       }
     }
 
-    console.info('[fetchLarkUserProfile] name:', name, 'jobTitle:', jobTitle, 'department:', department, 'unit:', unit);
+    log('name:', name, 'jobTitle:', jobTitle, 'department:', department, 'unit:', unit);
 
     const profile: LarkUserProfile = { unit, department, email, jobTitle, name };
-    console.info('[fetchLarkUserProfile] fetched:', profile);
+    log('fetched:', profile);
     return profile;
   } catch (e) {
-    console.error('[fetchLarkUserProfile] Failed:', e);
+    log('Failed:', e);
     return null;
   }
 };
