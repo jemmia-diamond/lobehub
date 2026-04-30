@@ -1706,6 +1706,7 @@ table users {
   two_factor_enabled boolean [default: false]
   phone_number_verified boolean
   last_active_at "timestamp with time zone" [not null, default: `now()`]
+  enterprise_email text
   accessed_at "timestamp with time zone" [not null, default: `now()`]
   created_at "timestamp with time zone" [not null, default: `now()`]
   updated_at "timestamp with time zone" [not null, default: `now()`]

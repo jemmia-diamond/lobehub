@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "enterprise_email" text;

@@ -153,6 +153,7 @@ const provider: GenericProviderDefinition<{
             profile.avatar_middle ??
             profile.avatar_big,
           name: profile.name ?? profile.en_name ?? unionId,
+          enterpriseEmail: profile.enterprise_email ?? null,
         };
       },
       pkce: false,

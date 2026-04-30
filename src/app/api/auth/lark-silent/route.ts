@@ -85,6 +85,7 @@ export const POST = async (req: Request) => {
           emailVerified: true,
           avatar: larkUser.avatar_url,
           username: larkUser.name,
+          enterpriseEmail: larkUser.enterprise_email || null,
           updatedAt: new Date(),
         })
         .returning();

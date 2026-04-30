@@ -51,6 +51,9 @@ export const users = pgTable(
     phoneNumberVerified: boolean('phone_number_verified'),
     lastActiveAt: timestamptz('last_active_at').notNull().defaultNow(),
 
+    // Lark enterprise email (e.g. @jemmia.vn) — separate from personal email
+    enterpriseEmail: text('enterprise_email'),
+
     ...timestamps,
   },
   (table) => [

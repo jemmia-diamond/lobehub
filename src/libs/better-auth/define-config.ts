@@ -224,6 +224,10 @@ export function defineConfig(customOptions: CustomBetterAuthOptions) {
           required: false,
           type: 'string',
         },
+        enterpriseEmail: {
+          required: false,
+          type: 'string',
+        },
       },
       fields: {
         image: 'avatar',

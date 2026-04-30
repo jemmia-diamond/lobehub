@@ -242,22 +242,25 @@ export function defineConfig() {
       logBetterAuth('Request a free route but not login, allow visit without auth header');
     }
 
-    // 2. Beta Mode Restriction — check email directly against env vars, no DB role needed
+    // 2. Beta Mode Restriction — check both email and enterprise email against whitelist
     if (authEnv.APP_BETA_MODE && session?.user) {
       const userEmail = (session.user.email ?? '').toLowerCase();
+      const enterpriseEmail = ((session.user as any).enterpriseEmail ?? '').toLowerCase();
       const adminEmails = (authEnv.ADMIN_EMAILS ?? '').split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
       const betaEmails = (authEnv.BETA_WHITE_LIST_EMAILS ?? '').split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
-      const isAllowed = adminEmails.includes(userEmail) || betaEmails.includes(userEmail);
+      const allAllowed = [...adminEmails, ...betaEmails];
 
-      logBetterAuth('Beta mode enabled, checking email: %s, allowed: %s', userEmail, isAllowed);
+      const isAllowed =
+        (userEmail && allAllowed.includes(userEmail)) ||
+        (enterpriseEmail && allAllowed.includes(enterpriseEmail));
+
+      logBetterAuth('Beta mode enabled, email: %s, enterpriseEmail: %s, allowed: %s', userEmail, enterpriseEmail, isAllowed);
 
       if (!isAllowed) {
-        logBetterAuth('Email "%s" not in whitelist, redirecting to /beta-access', userEmail);
-
+        logBetterAuth('Not in whitelist, redirecting to /beta-access');
         const betaUrl = new URL('/beta-access', appEnv.APP_URL);
         const hl = req.nextUrl.searchParams.get('hl');
         if (hl) betaUrl.searchParams.set('hl', hl);
-
         return Response.redirect(betaUrl);
       }
     }

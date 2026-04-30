@@ -700,6 +700,13 @@
       "when": 1776234919716,
       "tag": "0099_add_document_history",
       "breakpoints": true
+    },
+    {
+      "idx": 100,
+      "version": "7",
+      "when": 1777542103402,
+      "tag": "0100_add_enterprise_email",
+      "breakpoints": true
     }
   ],
   "version": "6"
