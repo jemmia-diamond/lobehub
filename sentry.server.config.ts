@@ -19,6 +19,19 @@ Sentry.init({
     '【H5-JS-SDK】',
     'cannot find pc bridge',
     'hydration-mismatch',
-    'APIError: FOUND',
+    'Active sessions list not found in secondary storage',
   ],
+  beforeSend(event, hint) {
+    const error = hint.originalException as any;
+    // Better Auth uses APIError with status 'FOUND' and statusCode 302 for standard Next.js redirects
+    if (error?.name === 'APIError' && (error?.status === 'FOUND' || error?.statusCode === 302)) {
+      return null;
+    }
+
+    // Ignore harmless aborted HTTP requests (e.g. when a user closes the browser during Lark OAuth callback)
+    if (error?.message === 'aborted' && error?.code === 'ECONNRESET') {
+      return null;
+    }
+    return event;
+  },
 });
