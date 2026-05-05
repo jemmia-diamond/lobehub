@@ -7,21 +7,15 @@ Sentry.init({
   // Route browser Sentry requests through Next.js to avoid ad blockers
   tunnel: '/monitoring-tunnel',
 
-  // 10% of traces sampled in production and development — adjust up if you need more detail
   tracesSampleRate: 0.1,
-
-  // Send logs to Sentry
   enableLogs: true,
-
-  // Do NOT send PII — chat messages contain sensitive employee data
   sendDefaultPii: false,
 
-  // Only enable in production
-  enabled: process.env.NODE_ENV === 'production' && !!process.env.NEXT_PUBLIC_SENTRY_DSN,
+  // Enable whenever DSN is set — works in both dev and production
+  enabled: !!process.env.NEXT_PUBLIC_SENTRY_DSN,
 
   integrations: [
     // Persistent feedback widget — bottom-right corner
-    // Users can submit feedback anytime without needing an error
     Sentry.feedbackIntegration({
       colorScheme: 'light',
       triggerLabel: 'Phản hồi',

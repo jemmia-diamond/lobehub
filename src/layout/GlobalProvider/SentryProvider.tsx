@@ -3,31 +3,27 @@
 import { memo, type PropsWithChildren, useEffect } from 'react';
 
 /**
- * Initializes Sentry feedback widget in the SPA context.
- * instrumentation-client.ts only runs in App Router pages,
- * not in the SPA entry point — so we init the widget here.
+ * Ensures Sentry is initialized in the SPA context.
+ * instrumentation-client.ts runs for App Router pages automatically.
+ * For the SPA entry point, we need to trigger initialization here.
+ * The feedbackIntegration widget is configured in instrumentation-client.ts.
  */
 const SentryProvider = memo<PropsWithChildren>(({ children }) => {
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return;
 
-    // Dynamically import to avoid SSR issues
+    // instrumentation-client.ts should have already run and initialized Sentry.
+    // If not (e.g. pure SPA context), initialize it now.
     import('@sentry/nextjs').then((Sentry) => {
-      // Check if already initialized (instrumentation-client.ts may have run on App Router pages)
-      const client = Sentry.getClient();
-      if (client) return; // already initialized
+      if (Sentry.getClient()) return; // already initialized by instrumentation-client.ts
 
       Sentry.init({
         dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
         environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ?? process.env.NODE_ENV,
-        // 10% of traces sampled in production and development — adjust up if you need more detail
-        tracesSampleRate: 0.1,
-
-        // Route browser Sentry requests through Next.js to avoid ad blockers
         tunnel: '/monitoring-tunnel',
-
+        tracesSampleRate: 0.1,
         enableLogs: true,
-        enabled: process.env.NODE_ENV === 'production' && !!process.env.NEXT_PUBLIC_SENTRY_DSN,
+        enabled: !!process.env.NEXT_PUBLIC_SENTRY_DSN,
         integrations: [
           Sentry.feedbackIntegration({
             colorScheme: 'light',
