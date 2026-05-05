@@ -129,6 +129,21 @@ export class RagService {
           error?.message?.toLowerCase().includes('resource_exhausted') ||
           error?.message?.toLowerCase().includes('rate limit');
 
+        const isAuthError =
+          error?.statusCode === 403 ||
+          error?.statusCode === 401 ||
+          error?.message?.toLowerCase().includes('denied access') ||
+          error?.message?.toLowerCase().includes('permission_denied') ||
+          error?.message?.toLowerCase().includes('unauthorized');
+
+        if (isAuthError) {
+          console.error(
+            `[RagService] Terminal Auth Error (batch ${batchIndex}/${totalBatches}):`,
+            error?.message ?? error,
+          );
+          return null;
+        }
+
         if (!is429 || attempt === maxRetries) {
           console.error(
             `[RagService] Embedding failed (batch ${batchIndex}/${totalBatches}, attempt ${attempt}):`,

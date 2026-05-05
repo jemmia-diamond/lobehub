@@ -206,7 +206,7 @@
 | Apr 21 | `06ca8c09` | Bundle `plugin` namespace at startup; fix inline citation click; add defaultValue fallbacks |
 | Apr 21 | `9f691106` | Fix NAVIGATION & ESCALATION — salary advance → Finance, not IT |
 
-**Summary**: Completed Lark Approval deep-link integration (20+ approval forms across HR/Finance/Marketing/Supply). Added mobile unsupported screen. Fixed inline `[1]` citation click not opening Lark URL (`{...props}` spread order bug). Fixed `plugin` i18n namespace not available on first render (now bundled). Added `GOOGLE_API_KEY_BACKUP` fallback for embedding. Enforced `auto-run` approval mode for inbox agent. Fixed salary advance being incorrectly routed to IT.
+**Summary**: Completed Lark Approval deep-link integration (20+ approval forms across HR/Finance/Marketing/Supply). Added mobile unsupported screen. Fixed inline `[1]` citation click not opening Lark URL (`{...props}` spread order bug). Fixed `plugin` i18n namespace not available on first render (now bundled). Added `GOOGLE_EMBEDDING_API_KEYS` chain for embedding. Enforced `auto-run` approval mode for inbox agent. Fixed salary advance being incorrectly routed to IT.
 
 ---
 
@@ -225,7 +225,7 @@
 - New `src/server/utils/googleEmbeddingKeys.ts` — shared utility reading `GOOGLE_EMBEDDING_API_KEYS` (comma-separated), 3 retries per key before moving to next
 - `embedding.ts` — KB indexing and user query embedding now use shared utility; `maxRetries: 0` on AI SDK calls to prevent double-retry
 - `userMemories.ts` — memory search embedding now uses shared utility for Google/Jemmia provider; non-Google falls back to original `initModelRuntimeFromDB` path
-- Removed `GOOGLE_API_KEY_BACKUP` / `GOOGLE_API_KEY_BACKUP_BACKUP` — replaced by single `GOOGLE_EMBEDDING_API_KEYS`
+- Replaced multiple embedding keys with single `GOOGLE_EMBEDDING_API_KEYS` chain
 
 **Other fixes**:
 - KB search similarity threshold lowered 0.5 → 0.1 in `formatSearchResults.ts` (LLM instruction)

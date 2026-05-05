@@ -19,7 +19,7 @@ import {
   type McpTool,
   type StdioMCPParams,
 } from '@/libs/mcp';
-import { MCPClient } from '@/libs/mcp';
+import { MCPClient } from '@/libs/mcp/client';
 
 import { type ProcessContentBlocksFn } from './contentProcessor';
 import { contentBlocksToString } from './contentProcessor';

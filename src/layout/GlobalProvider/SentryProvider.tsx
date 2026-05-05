@@ -1,6 +1,7 @@
 'use client';
 
 import { memo, type PropsWithChildren, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Ensures Sentry is initialized in the SPA context.
@@ -9,10 +10,11 @@ import { memo, type PropsWithChildren, useEffect } from 'react';
  * The feedbackIntegration widget is configured in sentry.client.config.ts.
  */
 const SentryProvider = memo<PropsWithChildren>(({ children }) => {
+  const { t } = useTranslation('common');
+
   useEffect(() => {
     const serverConfig = (window as any).__SERVER_CONFIG__;
-    const sentryDsn =
-      serverConfig?.clientEnv?.sentryDsn || process.env.NEXT_PUBLIC_SENTRY_DSN;
+    const sentryDsn = serverConfig?.clientEnv?.sentryDsn || process.env.NEXT_PUBLIC_SENTRY_DSN;
     const sentryEnv =
       serverConfig?.clientEnv?.sentryEnvironment ||
       process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ||
@@ -26,39 +28,38 @@ const SentryProvider = memo<PropsWithChildren>(({ children }) => {
       const client = Sentry.getClient();
 
       // If already initialized with the correct DSN, skip.
-      // In SPA context, if it was initialized by sentry.client.config.ts with a build-time DSN
-      // that is different from our runtime DSN, we might want to re-initialize.
       if (client && client.getDsn()?.toString() === sentryDsn) return;
 
       Sentry.init({
+        debug: __DEV__,
         dsn: sentryDsn,
-        environment: sentryEnv,
-        tunnel: '/monitoring-tunnel',
-        tracesSampleRate: 0.1,
-        enableLogs: true,
+        enableLogs: __DEV__,
         enabled: true,
+        environment: sentryEnv,
         integrations: [
           Sentry.feedbackIntegration({
+            buttonLabel: t('feedback.widget.buttonLabel'),
+            cancelButtonLabel: t('feedback.widget.cancelButtonLabel'),
             colorScheme: 'light',
-            triggerLabel: 'Phản hồi',
-            formTitle: 'Gửi phản hồi',
-            submitButtonLabel: 'Gửi',
-            cancelButtonLabel: 'Hủy',
-            nameLabel: 'Tên',
-            namePlaceholder: 'Tên của bạn',
-            emailLabel: 'Email',
-            emailPlaceholder: 'email@jemmia.vn',
-            messageLabel: 'Mô tả',
-            messagePlaceholder: 'Bạn gặp vấn đề gì? Brainy trả lời sai điều gì?',
-            successMessageText: 'Cảm ơn bạn đã phản hồi!',
+            emailLabel: t('feedback.widget.emailLabel'),
+            emailPlaceholder: t('feedback.widget.emailPlaceholder'),
+            enableScreenshot: true,
+            formTitle: t('feedback.widget.formTitle'),
             isEmailRequired: false,
             isNameRequired: false,
-            enableScreenshot: true,
+            messageLabel: t('feedback.widget.messageLabel'),
+            messagePlaceholder: t('feedback.widget.messagePlaceholder'),
+            nameLabel: t('feedback.widget.nameLabel'),
+            namePlaceholder: t('feedback.widget.namePlaceholder'),
+            submitButtonLabel: t('feedback.widget.submitButtonLabel'),
+            successMessageText: t('feedback.widget.successMessage'),
           }),
         ],
+        tracesSampleRate: 0.1,
+        tunnel: '/monitoring-tunnel',
       });
     });
-  }, []);
+  }, [t]);
 
   return <>{children}</>;
 });

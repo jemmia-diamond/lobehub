@@ -127,7 +127,7 @@ URL format: `local://jemmia-diamond/filename.md` — used as stable key for dele
 
 The RAG pipeline uses `gemini-embedding-2-preview` at **3072 dimensions** (native). The pgvector column uses a `halfvec` HNSW index cast for performance (pgvector 0.8+ supports halfvec up to 4000 dims). User memory tables intentionally stay at 1024 dims (`_1024` suffix columns) — different model, do not change.
 
-**API key fallback chain** (SDK mode only, not proxy mode): `GOOGLE_EMBEDDING_API_KEYS` — comma-separated list of Google API keys tried in order on 429. Each key is retried up to 3 times (with backoff for per-minute limits) before moving to the next. Applies to both KB file embedding (`generateEmbeddings`) and user query embedding (`generateEmbedding`). Memory search embedding uses the same key list but without backoff waits. Add keys to `GOOGLE_EMBEDDING_API_KEYS` only — `GOOGLE_API_KEY_BACKUP` / `GOOGLE_API_KEY_BACKUP_BACKUP` are no longer used.
+**API key fallback chain** (SDK mode only, not proxy mode): `GOOGLE_EMBEDDING_API_KEYS` — comma-separated list of Google API keys tried in order on 429. Each key is retried up to 3 times (with backoff for per-minute limits) before moving to the next. Applies to both KB file embedding (`generateEmbeddings`) and user query embedding (`generateEmbedding`). Memory search embedding uses the same key list but without backoff waits. Add keys to `GOOGLE_EMBEDDING_API_KEYS` only.
 
 ### Stale Loading Fixes
 

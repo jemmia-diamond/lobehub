@@ -4,11 +4,14 @@
  */
 export const getGoogleEmbeddingKeys = (): string[] => {
   const combined = process.env.GOOGLE_EMBEDDING_API_KEYS;
-  if (!combined) return [];
-  return combined
-    .split(',')
-    .map((k) => k.trim())
-    .filter(Boolean);
+  if (combined) {
+    return combined
+      .split(',')
+      .map((k) => k.trim())
+      .filter(Boolean);
+  }
+
+  return [];
 };
 
 /**
@@ -37,17 +40,36 @@ export const withGoogleEmbeddingKeyFallback = async <T>(
           error?.errorType === 'QuotaLimitReached' ||
           String(cause).includes('429');
 
-        if (!is429) throw error;
+        const isAuthError =
+          cause?.statusCode === 403 ||
+          cause?.statusCode === 401 ||
+          error?.status === 403 ||
+          error?.status === 401 ||
+          String(error).toLowerCase().includes('denied access') ||
+          String(error).toLowerCase().includes('forbidden') ||
+          String(error).toLowerCase().includes('unauthorized') ||
+          error?.message?.toLowerCase().includes('permission_denied');
+
+        if (!is429 && !isAuthError) throw error;
 
         lastError = error;
+        const errorType = is429 ? 'rate limit (429)' : 'auth error (401/403)';
         if (attempt < maxRetriesPerKey) {
-          console.warn(`${logPrefix} Key ${index + 1}/${keys.length} attempt ${attempt}/${maxRetriesPerKey} hit 429, retrying...`);
+          console.error(
+            `${logPrefix} Key ${index + 1}/${keys.length} attempt ${attempt}/${maxRetriesPerKey} hit ${errorType}, retrying...`,
+          );
         } else {
-          console.warn(`${logPrefix} Key ${index + 1}/${keys.length} exhausted after ${maxRetriesPerKey} attempts, trying next key...`);
+          console.error(
+            `${logPrefix} Key ${index + 1}/${keys.length} exhausted after ${maxRetriesPerKey} attempts, trying next key...`,
+          );
         }
       }
     }
   }
 
-  throw lastError;
+  if (keys.length === 0) {
+    throw new Error(`${logPrefix} No Google API keys found in environment variables.`);
+  }
+
+  throw lastError || new Error(`${logPrefix} Embedding failed with unknown error.`);
 };
