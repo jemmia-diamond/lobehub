@@ -96,11 +96,11 @@ export const JEMMIA_KNOWLEDGE_FILES: Record<string, KnowledgeFileEntry> = {
     label: 'Sổ Tay Lark Suite',
     larkUrl: 'https://jemmiadiamond.sg.larksuite.com/wiki/SC0lw8LGji8wFOkJ9qClZEergAd',
   },
-  '062024_TB-JEMMIA_Thông báo Điều chỉnh chính sách Referral & Affiliate.md': {
+  '062024_TB-JEMMIA_Thông báo Điều chỉnh chính sách Referral & Affiliate.md': {
     label: 'Chính sách Referral & Affiliate',
     larkUrl: '',
   },
-  '2.3 [Jemmia] - Chính sách ưu đãi mua hàng dành cho nhân viên - 24.01.2024 (đang áp dụng).pdf.md': {
+  '2.3 [Jemmia] - Chính sách ưu đãi mua hàng dành cho nhân viên - 24.01.2024 (đang áp dụng).pdf.md': {
     label: 'Ưu đãi mua hàng cho nhân viên',
     larkUrl: '',
   },
@@ -108,75 +108,71 @@ export const JEMMIA_KNOWLEDGE_FILES: Record<string, KnowledgeFileEntry> = {
     label: 'Sử dụng Petty Cash',
     larkUrl: '',
   },
-  'Hướng Dẫn Sử Dụng Hệ Thống Chấm Công Dành Cho Phòng Nhân Sự.md': {
+  'Hướng Dẫn Sử Dụng Hệ Thống Chấm Công Dành Cho Phòng Nhân Sự.md': {
     label: 'Hệ thống chấm công cho Nhân sự',
     larkUrl: '',
   },
-  'Hướng Dẫn Sử Dụng Quy Trình Trên Lark.md': {
+  'Hướng Dẫn Sử Dụng Quy Trình Trên Lark.md': {
     label: 'Hướng dẫn quy trình Lark',
     larkUrl: '',
   },
-  'Hướng Dẫn Tạo Sự Kiện Chung Toàn Công Ty.md': {
+  'Hướng Dẫn Tạo Sự Kiện Chung Toàn Công Ty.md': {
     label: 'Hướng dẫn tạo sự kiện công ty',
     larkUrl: '',
   },
-  'Jemmia- TB Phụ cấp hỗ trợ chi phí trang điểm cho NVKD Offline T10.2024.md': {
+  'Jemmia- TB Phụ cấp hỗ trợ chi phí trang điểm cho NVKD Offline T10.2024.md': {
     label: 'Phụ cấp trang điểm NVKD',
     larkUrl: '',
   },
-  'Quy định số 012025.QĐN-JEMMIA Vv Quy định nguyên tắc và thứ tự ưu tiên áp dụng các chương trình khuyến mãi trong hoạt động kinh doanh ký ngày 28.7.2025.md': {
+  'Quy định số 012025.QĐN-JEMMIA Vv Quy định nguyên tắc và thứ tự ưu tiên áp dụng các chương trình khuyến mãi trong hoạt động kinh doanh ký ngày 28.7.2025.md': {
     label: 'Quy định ưu tiên khuyến mãi',
     larkUrl: '',
   },
-  'Quy trình trình duyệt & ban hành các văn bản nội bộ.md': {
+  'Quy trình trình duyệt & ban hành các văn bản nội bộ.md': {
     label: 'Quy trình ban hành văn bản',
     larkUrl: '',
   },
-  'Sử Dụng Hộp Thư Chung (Public Mailbox).md': {
+  'Sử Dụng Hộp Thư Chung (Public Mailbox).md': {
     label: 'Sử dụng Hộp thư chung',
     larkUrl: '',
   },
-  'TB số 112025.TB-JEMMIA vv Ban hành Chính sách sử dụng dịch vụ đặt xe qua ứng dụng công nghệ bằng tài khoản doanh nghiệp ký ngày 27.06.2025.md': {
+  'TB số 112025.TB-JEMMIA vv Ban hành Chính sách sử dụng dịch vụ đặt xe qua ứng dụng công nghệ bằng tài khoản doanh nghiệp ký ngày 27.06.2025.md': {
     label: 'Chính sách sử dụng xe công nghệ',
     larkUrl: '',
   },
-  'Thông báo số 012025_TB-JEMMIA-Thông báo chính sách tích-đổi điểm chương trình giới thiệu khách hàng mới.md': {
+  'Thông báo số 012025_TB-JEMMIA-Thông báo chính sách tích-đổi điểm chương trình giới thiệu khách hàng mới.md': {
     label: 'Chính sách tích đổi điểm giới thiệu',
     larkUrl: '',
   },
-  'Thông báo số 122025.TB-JEMMIA vv Chấm dứt chính sách nhận ký gửi sản phẩm ký ngày 01.7.2025 copy.md': {
-    label: 'Chấm dứt nhận ký gửi sản phẩm (bản sao)',
-    larkUrl: '',
-  },
-  'Thông báo số 122025.TB-JEMMIA vv Chấm dứt chính sách nhận ký gửi sản phẩm ký ngày 01.7.2025.md': {
+  'Thông báo số 122025.TB-JEMMIA vv Chấm dứt chính sách nhận ký gửi sản phẩm ký ngày 01.7.2025.md': {
     label: 'Chấm dứt nhận ký gửi sản phẩm',
     larkUrl: '',
   },
-  'Thông báo số 132025.TB-JEMMIA V.v Quy định hình thức thanh toán các khoản chi phí từ 5 triệu đồng ký ngày 03.7.2025.md': {
+  'Thông báo số 132025.TB-JEMMIA V.v Quy định hình thức thanh toán các khoản chi phí từ 5 triệu đồng ký ngày 03.7.2025.md': {
     label: 'Thanh toán chi phí từ 5 triệu',
     larkUrl: '',
   },
-  'Thông báo số 152025 TB-JEMMIA vv Thay đổi cách phân bổ giá trị khuyến mãi cho đơn hàng trên hệ thống bán hàng ngày 24.07.2025.md': {
+  'Thông báo số 152025 TB-JEMMIA vv Thay đổi cách phân bổ giá trị khuyến mãi cho đơn hàng trên hệ thống bán hàng ngày 24.07.2025.md': {
     label: 'Thay đổi phân bổ khuyến mãi',
     larkUrl: '',
   },
-  'Thông báo số 162025.TB-JEMMIA V.v Xuất hóa đơn bán hành đối với hoạt động mua, bán, chế tác vàng, bạc, đá quý ký ngày 05.8.2025 (2).md': {
+  'Thông báo số 162025.TB-JEMMIA V.v Xuất hóa đơn bán hàng đối với hoạt động mua, bán, chế tác vàng, bạc, đá quý ký ngày 05.8.2025.md': {
     label: 'Xuất hóa đơn bán hàng',
     larkUrl: '',
   },
-  'Thông báo số 202025.TB-JEMMIA vv Cập nhật chính sách thanh toán cho các đơn hàng (lưu hành nội bộ).md': {
+  'Thông báo số 202025.TB-JEMMIA vv Cập nhật chính sách thanh toán cho các đơn hàng (lưu hành nội bộ).md': {
     label: 'Cập nhật chính sách thanh toán',
     larkUrl: '',
   },
-  'Thông báo số 212025.TB-JEMMIA vv Sửa đổi, điều chỉnh chính sách thu mua - thu đổi ký ngày 11.11.2025.md': {
+  'Thông báo số 212025.TB-JEMMIA vv Sửa đổi, điều chỉnh chính sách thu mua - thu đổi ký ngày 11.11.2025.md': {
     label: 'Sửa đổi chính sách thu đổi',
     larkUrl: '',
   },
-  'Thông báo số 22102024.TB.JEMMIA_Thông báo vv Quyết định dừng kinh doanh các sản phẩm không phải là kim cương.md': {
+  'Thông báo số 22102024.TB.JEMMIA_Thông báo vv Quyết định dừng kinh doanh các sản phẩm không phải là kim cương.md': {
     label: 'Dừng kinh doanh sản phẩm không phải kim cương',
     larkUrl: '',
   },
-  'Thông báo số 31052024.TB-JEMMIA_Thông báo về điều chỉnh chính sách thu tiền khách hàng.md': {
+  'Thông báo số 31052024.TB-JEMMIA_Thông báo về điều chỉnh chính sách thu tiền khách hàng.md': {
     label: 'Điều chỉnh chính sách thu tiền khách hàng',
     larkUrl: '',
   },
@@ -184,12 +180,15 @@ export const JEMMIA_KNOWLEDGE_FILES: Record<string, KnowledgeFileEntry> = {
 
 /** Derived: filename → larkUrl (for backward-compat and getLarkUrlForR2) */
 export const R2_TO_LARK_MAP: Record<string, string> = Object.fromEntries(
-  Object.entries(JEMMIA_KNOWLEDGE_FILES).map(([filename, { larkUrl }]) => [filename, larkUrl]),
+  Object.entries(JEMMIA_KNOWLEDGE_FILES).map(([filename, { larkUrl }]) => [
+    filename.normalize('NFC'),
+    larkUrl,
+  ]),
 );
 
 /** Build the full R2 URL for a knowledge filename */
 export const getR2Url = (filename: string): string =>
-  `https://${R2_BUCKET_HOST}${R2_KNOWLEDGE_PATH}${encodeURIComponent(filename)}`;
+  `https://${R2_BUCKET_HOST}${R2_KNOWLEDGE_PATH}${encodeURIComponent(filename.normalize('NFC'))}`;
 
 /** Build the jemmia_diamond_knowledge_base bullet list for web browsing systemRole */
 export const buildKnowledgeBaseList = (): string =>
@@ -216,7 +215,7 @@ export const getLarkUrlForR2 = (url: string): string | null => {
     const encodedFilename = pathParts.at(-1);
     if (!encodedFilename) return null;
 
-    const filename = decodeURIComponent(encodedFilename);
+    const filename = decodeURIComponent(encodedFilename).normalize('NFC');
     const larkUrl = R2_TO_LARK_MAP[filename];
     return larkUrl || null;
   } catch {

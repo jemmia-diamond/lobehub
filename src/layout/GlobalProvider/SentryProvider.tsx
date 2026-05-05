@@ -10,20 +10,33 @@ import { memo, type PropsWithChildren, useEffect } from 'react';
  */
 const SentryProvider = memo<PropsWithChildren>(({ children }) => {
   useEffect(() => {
-    if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return;
+    const serverConfig = (window as any).__SERVER_CONFIG__;
+    const sentryDsn =
+      serverConfig?.clientEnv?.sentryDsn || process.env.NEXT_PUBLIC_SENTRY_DSN;
+    const sentryEnv =
+      serverConfig?.clientEnv?.sentryEnvironment ||
+      process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ||
+      process.env.NODE_ENV;
 
-    // sentry.client.config.ts should have already run and initialized Sentry.
-    // If not (e.g. pure SPA context), initialize it now.
+    if (!sentryDsn) return;
+
+    // sentry.client.config.ts should have already run and initialized Sentry for Next.js pages.
+    // For the SPA entry point, we need to ensure it's initialized with the runtime DSN.
     import('@sentry/nextjs').then((Sentry) => {
-      if (Sentry.getClient()) return; // already initialized by sentry.client.config.ts
+      const client = Sentry.getClient();
+
+      // If already initialized with the correct DSN, skip.
+      // In SPA context, if it was initialized by sentry.client.config.ts with a build-time DSN
+      // that is different from our runtime DSN, we might want to re-initialize.
+      if (client && client.getDsn()?.toString() === sentryDsn) return;
 
       Sentry.init({
-        dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-        environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ?? process.env.NODE_ENV,
+        dsn: sentryDsn,
+        environment: sentryEnv,
         tunnel: '/monitoring-tunnel',
         tracesSampleRate: 0.1,
         enableLogs: true,
-        enabled: !!process.env.NEXT_PUBLIC_SENTRY_DSN,
+        enabled: true,
         integrations: [
           Sentry.feedbackIntegration({
             colorScheme: 'light',

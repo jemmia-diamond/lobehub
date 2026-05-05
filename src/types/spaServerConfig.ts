@@ -17,6 +17,8 @@ export interface SPAClientEnv {
   pyodideIndexUrl?: string;
   pyodidePipIndexUrl?: string;
   s3FilePath?: string;
+  sentryDsn?: string;
+  sentryEnvironment?: string;
 }
 
 export interface SPAServerConfig {

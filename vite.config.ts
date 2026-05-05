@@ -1,4 +1,4 @@
-import { resolve } from 'node:path';
+import path from 'node:path';
 
 import type { PluginOption, ViteDevServer } from 'vite';
 import { defineConfig, loadEnv } from 'vite';
@@ -27,7 +27,7 @@ export default defineConfig({
     outDir: isMobile ? 'dist/mobile' : 'dist/desktop',
     reportCompressedSize: false,
     rollupOptions: {
-      input: resolve(__dirname, isMobile ? 'index.mobile.html' : 'index.html'),
+      input: path.resolve(__dirname, isMobile ? 'index.mobile.html' : 'index.html'),
       output: sharedRollupOutput,
     },
   },
@@ -159,6 +159,12 @@ export default defineConfig({
         './packages/desktop-bridge/src/**/*.ts',
         './packages/python-interpreter/src/**/*.ts',
         './packages/agent-manager-runtime/src/**/*.ts',
+
+        // Exclusions to prevent terminal warnings for externalized Node.js modules
+        '!**/*.test.{ts,tsx}',
+        '!**/__tests__/**',
+        '!./src/server/**',
+        '!./packages/**/server/**',
       ],
     },
   },
