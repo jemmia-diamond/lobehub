@@ -121,6 +121,7 @@ export const MessageMetadataSchema = ModelUsageSchema.merge(ModelPerformanceSche
   scope: z.string().optional(),
   subAgentId: z.string().optional(),
   toolExecutionTimeMs: z.number().optional(),
+  feedback: z.enum(['positive', 'negative']).optional(),
 });
 
 export interface ModelUsage extends ModelTokensUsage {
@@ -215,4 +216,5 @@ export interface MessageMetadata extends ModelUsage, ModelPerformance {
    */
   toolExecutionTimeMs?: number;
   usage?: ModelUsage;
+  feedback?: 'positive' | 'negative';
 }

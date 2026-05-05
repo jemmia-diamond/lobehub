@@ -238,30 +238,42 @@ export const AssistantActionsBar = memo<AssistantActionsBarProps>(
         {enableMessageFeedback && (
           <>
             <ActionIcon
+              active={data.metadata?.feedback === 'positive'}
               icon={ThumbsUp}
               size="small"
               title={t('messageAction.feedbackPositive' as any)}
               onClick={() => {
+                if (data.metadata?.feedback === 'positive') {
+                  store.getState().updateMessageMetadata(id, { feedback: undefined });
+                  return;
+                }
                 submitFeedback({
                   content: data.content,
                   messageId: id,
                   sentiment: 'positive',
                   topicId: topicId ?? undefined,
                 });
+                store.getState().updateMessageMetadata(id, { feedback: 'positive' });
                 message.success(t('messageAction.feedbackSuccess' as any));
               }}
             />
             <ActionIcon
+              active={data.metadata?.feedback === 'negative'}
               icon={ThumbsDown}
               size="small"
               title={t('messageAction.feedbackNegative' as any)}
               onClick={() => {
+                if (data.metadata?.feedback === 'negative') {
+                  store.getState().updateMessageMetadata(id, { feedback: undefined });
+                  return;
+                }
                 submitFeedback({
                   content: data.content,
                   messageId: id,
                   sentiment: 'negative',
                   topicId: topicId ?? undefined,
                 });
+                store.getState().updateMessageMetadata(id, { feedback: 'negative' });
                 message.success(t('messageAction.feedbackSuccess' as any));
               }}
             />
