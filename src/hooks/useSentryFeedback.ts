@@ -50,8 +50,6 @@ export const useSentryFeedback = () => {
 
           Sentry.captureFeedback({
             ...feedbackData,
-            // Associate with the last event if exists, or just send standalone
-            associatedEventId: Sentry.lastEventId(),
           });
         });
       }

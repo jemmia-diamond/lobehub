@@ -4,18 +4,18 @@ import { memo, type PropsWithChildren, useEffect } from 'react';
 
 /**
  * Ensures Sentry is initialized in the SPA context.
- * instrumentation-client.ts runs for App Router pages automatically.
+ * sentry.client.config.ts runs for App Router pages automatically.
  * For the SPA entry point, we need to trigger initialization here.
- * The feedbackIntegration widget is configured in instrumentation-client.ts.
+ * The feedbackIntegration widget is configured in sentry.client.config.ts.
  */
 const SentryProvider = memo<PropsWithChildren>(({ children }) => {
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return;
 
-    // instrumentation-client.ts should have already run and initialized Sentry.
+    // sentry.client.config.ts should have already run and initialized Sentry.
     // If not (e.g. pure SPA context), initialize it now.
     import('@sentry/nextjs').then((Sentry) => {
-      if (Sentry.getClient()) return; // already initialized by instrumentation-client.ts
+      if (Sentry.getClient()) return; // already initialized by sentry.client.config.ts
 
       Sentry.init({
         dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,

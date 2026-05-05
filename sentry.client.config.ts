@@ -25,7 +25,7 @@ Sentry.init({
       nameLabel: 'Tên',
       namePlaceholder: 'Tên của bạn',
       emailLabel: 'Email',
-      emailPlaceholder: 'tech@jemmia.vn',
+      emailPlaceholder: 'email@jemmia.vn',
       messageLabel: 'Mô tả',
       messagePlaceholder: 'Bạn gặp vấn đề gì? Brainy trả lời sai điều gì?',
       successMessageText: 'Cảm ơn bạn đã phản hồi!',
