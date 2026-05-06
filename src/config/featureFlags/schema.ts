@@ -40,7 +40,8 @@ export const FeatureFlagsSchema = z.object({
   enable_tools: FeatureFlagValue.optional(),
   enable_model: FeatureFlagValue.optional(),
   enable_file_upload: FeatureFlagValue.optional(),
-  enable_lark_tools: FeatureFlagValue.optional(),
+  enable_lark_doc: FeatureFlagValue.optional(),
+  enable_lark_message: FeatureFlagValue.optional(),
   enable_mention_employee: FeatureFlagValue.optional(),
   enable_mention_doc: FeatureFlagValue.optional(),
   show_lark_search_filter_sort: FeatureFlagValue.optional(),
@@ -122,6 +123,29 @@ export const evaluateFeatureFlag = (
   }
 };
 
+/**
+ * Evaluate an Alpha feature flag value.
+ * Alpha features are only enabled for users in the ALPHA_WHITE_LIST_EMAILS.
+ * @param flagValue - The feature flag value
+ * @param userEmail - The current user email
+ * @returns boolean indicating if the feature is enabled
+ */
+export const evaluateAlphaFeatureFlag = (
+  flagValue: boolean | string[] | undefined,
+  userEmail?: string | null,
+): boolean | undefined => {
+  if (!userEmail) return false;
+
+  const alphaEmails =
+    (typeof process !== 'undefined' ? process.env.ALPHA_WHITE_LIST_EMAILS : undefined)
+      ?.split(',')
+      .map((e) => e.trim().toLowerCase()) || [];
+
+  if (!alphaEmails.includes(userEmail.toLowerCase())) return false;
+
+  return evaluateFeatureFlag(flagValue);
+};
+
 export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   provider_settings: false,
   show_get_desktop_app: false,
@@ -152,16 +176,17 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   enable_tools: true,
   enable_model: true,
   enable_file_upload: true,
-  enable_lark_tools: false,
+  enable_lark_doc: true,
+  enable_lark_message: false,
   enable_mention_employee: false,
-  enable_mention_doc: false,
-  show_lark_search_filter_sort: true,
+  enable_mention_doc: true,
+  show_lark_search_filter_sort: false,
   show_lark_search_filter_owner: false,
   show_lark_search_filter_chat: false,
-  show_lark_search_filter_wiki: false,
+  show_lark_search_filter_wiki: true,
   show_lark_search_filter_format: false,
   show_upload_file: true,
-  show_upload_lark: false,
+  show_upload_lark: true,
   show_upload_image: false,
   show_upload_folder: false,
 
@@ -216,7 +241,11 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   enable_message_feedback: true,
 };
 
-export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string) => {
+export const mapFeatureFlagsEnvToState = (
+  config: IFeatureFlags,
+  userId?: string,
+  userEmail?: string | null,
+) => {
   return {
     isAgentEditable: evaluateFeatureFlag(config.edit_agent, userId),
     showProvider: evaluateFeatureFlag(config.provider_settings, userId),
@@ -246,16 +275,17 @@ export const mapFeatureFlagsEnvToState = (config: IFeatureFlags, userId?: string
     enableTools: evaluateFeatureFlag(config.enable_tools, userId),
     enableModel: evaluateFeatureFlag(config.enable_model, userId),
     enableFileUpload: evaluateFeatureFlag(config.enable_file_upload, userId),
-    enableLarkTools: evaluateFeatureFlag(config.enable_lark_tools, userId),
-    enableMentionEmployee: evaluateFeatureFlag(config.enable_mention_employee, userId),
-    enableMentionDoc: evaluateFeatureFlag(config.enable_mention_doc, userId),
-    showLarkSearchFilterSort: evaluateFeatureFlag(config.show_lark_search_filter_sort, userId),
-    showLarkSearchFilterOwner: evaluateFeatureFlag(config.show_lark_search_filter_owner, userId),
-    showLarkSearchFilterChat: evaluateFeatureFlag(config.show_lark_search_filter_chat, userId),
-    showLarkSearchFilterWiki: evaluateFeatureFlag(config.show_lark_search_filter_wiki, userId),
-    showLarkSearchFilterFormat: evaluateFeatureFlag(config.show_lark_search_filter_format, userId),
+    enableLarkDoc: evaluateAlphaFeatureFlag(config.enable_lark_doc, userEmail),
+    enableLarkMessage: evaluateAlphaFeatureFlag(config.enable_lark_message, userEmail),
+    enableMentionEmployee: evaluateAlphaFeatureFlag(config.enable_mention_employee, userEmail),
+    enableMentionDoc: evaluateAlphaFeatureFlag(config.enable_mention_doc, userEmail),
+    showLarkSearchFilterSort: evaluateAlphaFeatureFlag(config.show_lark_search_filter_sort, userEmail),
+    showLarkSearchFilterOwner: evaluateAlphaFeatureFlag(config.show_lark_search_filter_owner, userEmail),
+    showLarkSearchFilterChat: evaluateAlphaFeatureFlag(config.show_lark_search_filter_chat, userEmail),
+    showLarkSearchFilterWiki: evaluateAlphaFeatureFlag(config.show_lark_search_filter_wiki, userEmail),
+    showLarkSearchFilterFormat: evaluateAlphaFeatureFlag(config.show_lark_search_filter_format, userEmail),
     showUploadFile: evaluateFeatureFlag(config.show_upload_file, userId),
-    showUploadLark: evaluateFeatureFlag(config.show_upload_lark, userId),
+    showUploadLark: evaluateAlphaFeatureFlag(config.show_upload_lark, userEmail),
     showUploadImage: evaluateFeatureFlag(config.show_upload_image, userId),
     showUploadFolder: evaluateFeatureFlag(config.show_upload_folder, userId),
 

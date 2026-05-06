@@ -70,13 +70,10 @@ const provider: GenericProviderDefinition<{
         app_id: clientId,
         response_type: 'code',
         scope:
-          'contact:user.base:readonly contact:user.email:readonly contact:user.employee:readonly contact:user.department:readonly docx:document:readonly drive:drive:readonly im:chat:readonly im:chat im:chat:read offline_access',
+          'contact:user.base:readonly contact:user.email:readonly contact:user.employee:readonly contact:user.department:readonly docx:document:readonly drive:drive:readonly im:chat:readonly im:chat im:chat:read wiki:wiki:readonly wiki:space:retrieve offline_access',
       },
       clientId,
       clientSecret,
-      /**
-       * Exchange code directly with Lark (no proxy needed).
-       */
       getToken: async ({ code, redirectURI }) => {
         const tokenResponse = await fetch(LARK_TOKEN_URL, {
           body: JSON.stringify({
@@ -169,6 +166,8 @@ const provider: GenericProviderDefinition<{
         'im:chat:readonly',
         'im:chat',
         'im:chat:read',
+        'wiki:wiki:readonly',
+        'wiki:space:retrieve',
         'offline_access',
       ],
       tokenUrl: LARK_TOKEN_URL,

@@ -74,7 +74,6 @@ const InputEditor = memo<{ defaultRows?: number; placeholder?: ReactNode }>(({ d
   const enableMentionEmployee = useServerConfigStore(featureFlagsSelectors).enableMentionEmployee;
   const enableMentionDoc = useServerConfigStore(featureFlagsSelectors).enableMentionDoc;
 
-  // --- Category-based mention system ---
   const categories = useMentionCategories();
   const stateRef = useRef<MentionMenuState>({ isSearch: false, matchingString: '' });
   const categoriesRef = useRef(categories);
@@ -109,10 +108,9 @@ const InputEditor = memo<{ defaultRows?: number; placeholder?: ReactNode }>(({ d
                 })
               : Promise.resolve({ success: false }),
             enableMentionDoc
-              ? larkDocService.searchDocs({
+              ? larkDocService.searchWiki({
                   pageSize: 4,
                   query: search.matchingString,
-                  sortBy: 1,
                 })
               : Promise.resolve({ success: false }),
           ])) as any[];
@@ -138,7 +136,6 @@ const InputEditor = memo<{ defaultRows?: number; placeholder?: ReactNode }>(({ d
           if (remoteLarkItems.length > 0) {
             console.info('Remote Lark items returned:', remoteLarkItems.length);
 
-            // Deduplicate: remove remote items that are already in localResults by key
             const localKeys = new Set(localResults.map((r) => String(r.key)));
             const uniqueRemoteItems = remoteLarkItems.filter((r) => !localKeys.has(String(r.key)));
 
@@ -161,20 +158,17 @@ const InputEditor = memo<{ defaultRows?: number; placeholder?: ReactNode }>(({ d
 
   const enableMention = enableMentionEmployee || enableMentionDoc;
 
-  // Get agent's model info for vision support check and handle paste upload
   const agentId = useAgentId();
   const model = useAgentStore((s) => agentByIdSelectors.getAgentModelById(agentId)(s));
   const provider = useAgentStore((s) => agentByIdSelectors.getAgentModelProviderById(agentId)(s));
   const { handleUploadFiles } = useUploadFiles({ model, provider });
 
-  // Listen to editor's paste event for file uploads
   usePasteFile(editor, handleUploadFiles);
 
   useEffect(() => {
     const fn = (e: BeforeUnloadEvent) => {
       if (!state.isEmpty) {
         // set returnValue to trigger alert modal
-        // Note: No matter what value is set, the browser will display the standard text
         e.returnValue = 'You are typing something, are you sure you want to leave?';
       }
     };
@@ -199,7 +193,6 @@ const InputEditor = memo<{ defaultRows?: number; placeholder?: ReactNode }>(({ d
     [slashActionItems],
   );
 
-  // --- Auto-completion ---
   const inputCompletionConfig = useUserStore(systemAgentSelectors.inputCompletion);
   const isAutoCompleteEnabled = inputCompletionConfig.enabled;
 
@@ -222,7 +215,6 @@ const InputEditor = memo<{ defaultRows?: number; placeholder?: ReactNode }>(({ d
       input: string;
       selectionType: string;
     }): Promise<string | null> => {
-      // Skip autocomplete during IME composition (e.g. Chinese input method)
       if (isComposingRef.current) return null;
 
       if (!input.trim()) return null;
@@ -270,7 +262,6 @@ const InputEditor = memo<{ defaultRows?: number; placeholder?: ReactNode }>(({ d
     [isAutoCompleteEnabled, handleAutoComplete],
   );
 
-  // --- Stable mentionOption & slashOption to prevent infinite re-render on paste ---
   const mentionMarkdownWriter = useCallback((mention: any) => {
     if (mention.metadata?.type === 'topic') {
       return `<refer_topic name="${mention.metadata.topicTitle}" id="${mention.metadata.topicId}" />`;
@@ -292,22 +283,46 @@ const InputEditor = memo<{ defaultRows?: number; placeholder?: ReactNode }>(({ d
       };
       editor.dispatchCommand(INSERT_ACTION_TAG_COMMAND, payload);
     } else {
-      // If it is a Lark document, add it to the chat context and enable the tool
       if (option.metadata?.type === 'lark-doc') {
         const docId = option.metadata.id;
         const title = String(option.label);
+        const docType = option.metadata.docType || 'doc';
 
-        // 1. Add to chat context
-        useFileStore.getState().addChatContextSelection({
-          content: `Lark Document ID: ${docId}`,
-          format: 'text',
-          id: `lark-${docId}`,
-          preview: title,
-          title,
-          type: 'text',
-        });
+        try {
+          const res = (await larkDocService.getDocContent({ documentId: docId })) as any;
+          if (res?.success) {
+            useFileStore.getState().addChatContextSelection({
+              content: res.content || '',
+              fileType: docType,
+              format: 'text',
+              id: `lark-${docId}`,
+              preview: title,
+              title,
+              type: 'text',
+            });
+          } else {
+            useFileStore.getState().addChatContextSelection({
+              content: `Lark Document ID: ${docId}`,
+              fileType: docType,
+              format: 'text',
+              id: `lark-${docId}`,
+              preview: title,
+              title,
+              type: 'text',
+            });
+          }
+        } catch {
+          useFileStore.getState().addChatContextSelection({
+            content: `Lark Document ID: ${docId}`,
+            fileType: docType,
+            format: 'text',
+            id: `lark-${docId}`,
+            preview: title,
+            title,
+            type: 'text',
+          });
+        }
 
-        // 2. Enable Lark Doc tool if not enabled
         const agentStore = useAgentStore.getState();
         const currentPlugins = agentSelectors.currentAgentPlugins(agentStore);
         if (!currentPlugins.includes(LarkDocIdentifier)) {
@@ -420,7 +435,6 @@ const InputEditor = memo<{ defaultRows?: number; placeholder?: ReactNode }>(({ d
           }
           return;
         }
-        // when user like cmd + enter to send message
         if (useCmdEnterToSend) {
           if (commandKey) {
             send();

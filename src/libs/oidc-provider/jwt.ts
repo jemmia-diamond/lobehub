@@ -132,6 +132,7 @@ export const validateOIDCJWT = async (token: string) => {
       tokenData: {
         aud,
         client_id: clientId,
+        email: payload.email as string | undefined,
         exp: payload.exp,
         iat: payload.iat,
         jti: payload.jti,

@@ -40,7 +40,7 @@ const FileUpload = memo(() => {
   const upload = useFileStore((s) => s.uploadChatFiles);
   const {
     enableFileUpload,
-    enableLarkTools,
+    enableLarkDoc,
     showUploadFile,
     showUploadLark,
     showUploadImage,
@@ -128,7 +128,7 @@ const FileUpload = memo(() => {
           },
         ]
       : []),
-    ...(enableLarkTools && showUploadLark
+    ...(enableLarkDoc && showUploadLark
       ? [
           {
             closeOnClick: true,

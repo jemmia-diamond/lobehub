@@ -1,19 +1,16 @@
 import { LarkDocManifest } from '@lobechat/builtin-tool-lark-doc';
 import { LarkDocExecutionRuntime } from '@lobechat/builtin-tool-lark-doc/executor';
 
-import { authEnv } from '@/envs/auth';
+import { getLarkUserAccessToken } from '@/server/services/larkAuth';
 
 import { type ServerRuntimeRegistration } from './types';
 
-/**
- * LarkDoc Server Runtime
- * Pre-instantiated runtime to inject secure server-side environment variables
- */
 export const larkDocRuntime: ServerRuntimeRegistration = {
-  factory: () => {
+  factory: async (context) => {
+    const userAccessToken = await getLarkUserAccessToken(context);
+
     return new LarkDocExecutionRuntime({
-      appId: authEnv.AUTH_LARK_APP_ID,
-      appSecret: authEnv.AUTH_LARK_APP_SECRET,
+      userAccessToken,
     });
   },
   identifier: LarkDocManifest.identifier,

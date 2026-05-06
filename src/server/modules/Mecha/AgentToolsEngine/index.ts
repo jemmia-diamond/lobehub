@@ -154,7 +154,8 @@ export const createServerAgentToolsEngine = (
   );
 
   const flags = serverFeatureFlags();
-  const enableLarkTools = flags.enableLarkTools ?? true;
+  const enableLarkDoc = flags.enableLarkDoc ?? true;
+  const enableLarkMessage = flags.enableLarkMessage ?? false;
 
   return createServerToolsEngine(context, {
     // Pass additional manifests (e.g., LobeHub Skills)
@@ -172,8 +173,8 @@ export const createServerAgentToolsEngine = (
         // System-level rules (may override user selection for specific tools)
         [CloudSandboxManifest.identifier]: runtimeMode === 'cloud',
         [KnowledgeBaseManifest.identifier]: hasEnabledKnowledgeBases,
-        [LarkDocManifest.identifier]: enableLarkTools,
-        [LarkMessageManifest.identifier]: enableLarkTools,
+        [LarkDocManifest.identifier]: enableLarkDoc,
+        [LarkMessageManifest.identifier]: enableLarkMessage,
         // Local-system: user must have opted into local runtime on this
         // platform (`runtimeMode === 'local'`), AND one execution channel
         // must exist:

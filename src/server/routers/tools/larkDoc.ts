@@ -81,20 +81,45 @@ export const larkDocRouter = router({
         }),
       );
     }),
+
+  searchWiki: larkDocProcedure
+    .input(
+      z.object({
+        pageSize: z.number().optional(),
+        pageToken: z.string().optional(),
+        query: z.string(),
+        spaceId: z.string().optional(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      return await withLarkRuntime(ctx, (runtime) =>
+        runtime.searchWiki({
+          pageSize: input.pageSize,
+          pageToken: input.pageToken,
+          query: input.query,
+          spaceId: input.spaceId,
+        }),
+      );
+    }),
+  listWikiSpaces: larkDocProcedure.query(async ({ ctx }) => {
+    return await withLarkRuntime(ctx, (runtime) => runtime.listWikiSpaces());
+  }),
+
+  listWikiNodes: larkDocProcedure
+    .input(z.object({ spaceId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      return await withLarkRuntime(ctx, (runtime) => runtime.listWikiNodes(input.spaceId));
+    }),
 });
 
 async function getRuntime(userAccessToken?: string) {
-  const runtime = larkDocRuntime.factory({ toolManifestMap: {} });
-
   if (userAccessToken) {
     const { LarkDocExecutionRuntime } = await import('@lobechat/builtin-tool-lark-doc/executor');
-    const { authEnv } = await import('@/envs/auth');
 
     return new LarkDocExecutionRuntime({
-      appId: authEnv.AUTH_LARK_APP_ID,
-      appSecret: authEnv.AUTH_LARK_APP_SECRET,
       userAccessToken,
     });
   }
-  return runtime;
+  
+  return await larkDocRuntime.factory({ toolManifestMap: {} } as any);
 }

@@ -23,9 +23,9 @@ import { getPublicMemoryExtractionConfig } from './parseMemoryExtractionConfig';
  * Get Better-Auth SSO providers list
  * Parses AUTH_SSO_PROVIDERS and returns enabled providers
  */
-const getBetterAuthSSOProviders = (userId?: string) => {
+const getBetterAuthSSOProviders = (userId?: string, userEmail?: string | null) => {
   const providers = parseSSOProviders(authEnv.AUTH_SSO_PROVIDERS);
-  const flags = serverFeatureFlags(userId);
+  const flags = serverFeatureFlags(userId, userEmail);
 
   return providers.filter((provider) => {
     switch (provider) {
@@ -45,7 +45,7 @@ const getBetterAuthSSOProviders = (userId?: string) => {
   });
 };
 
-export const getServerGlobalConfig = async (userId?: string) => {
+export const getServerGlobalConfig = async (userId?: string, userEmail?: string | null) => {
   const { DEFAULT_AGENT_CONFIG } = getAppConfig();
 
   const config: GlobalServerConfig = {
@@ -97,7 +97,8 @@ export const getServerGlobalConfig = async (userId?: string) => {
       config: parseAgentConfig(DEFAULT_AGENT_CONFIG),
     },
     disableEmailPassword:
-      authEnv.AUTH_DISABLE_EMAIL_PASSWORD || !serverFeatureFlags(userId).enableAuthEmailPassword,
+      authEnv.AUTH_DISABLE_EMAIL_PASSWORD ||
+      !serverFeatureFlags(userId, userEmail).enableAuthEmailPassword,
     enableBusinessFeatures: ENABLE_BUSINESS_FEATURES,
     enableEmailVerification: authEnv.AUTH_EMAIL_VERIFICATION,
     enableKlavis: !!klavisEnv.KLAVIS_API_KEY,
@@ -119,7 +120,7 @@ export const getServerGlobalConfig = async (userId?: string) => {
     memory: {
       userMemory: cleanObject(getPublicMemoryExtractionConfig()),
     },
-    oAuthSSOProviders: getBetterAuthSSOProviders(userId),
+    oAuthSSOProviders: getBetterAuthSSOProviders(userId, userEmail),
     systemAgent: parseSystemAgent(appEnv.SYSTEM_AGENT),
     telemetry: {
       langfuse: langfuseEnv.ENABLE_LANGFUSE,

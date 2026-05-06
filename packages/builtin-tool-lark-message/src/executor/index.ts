@@ -30,20 +30,13 @@ interface GetMessagesParams {
 }
 
 export class LarkMessageExecutionRuntime {
-  private appId?: string;
-  private appSecret?: string;
   private userAccessToken?: string;
   private service?: any;
-  private tenantAccessToken?: string;
 
   constructor(options: {
-    appId?: string;
-    appSecret?: string;
     service?: any;
     userAccessToken?: string;
   }) {
-    this.appId = options.appId;
-    this.appSecret = options.appSecret;
     this.service = options.service;
     this.userAccessToken = options.userAccessToken;
   }
@@ -55,43 +48,11 @@ export class LarkMessageExecutionRuntime {
     return 'https://open.larksuite.com/open-apis';
   }
 
-  private async getTenantAccessToken(): Promise<string | null> {
-    if (this.tenantAccessToken) return this.tenantAccessToken;
-    if (!this.appId || !this.appSecret) {
-      console.error('[LarkExecutor] Missing appId or appSecret');
-      return null;
+  private async getLarkToken(): Promise<string> {
+    if (!this.userAccessToken) {
+      throw new Error('Missing Lark User Access Token. Please ensure you are authenticated with Lark SSO.');
     }
-
-    try {
-      const baseUrl = this.getBaseUrl();
-      const url = `${baseUrl}/auth/v3/tenant_access_token/internal`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json; charset=utf-8' },
-        body: JSON.stringify({
-          app_id: this.appId,
-          app_secret: this.appSecret,
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.text();
-        console.error('[LarkExecutor] Failed to fetch tenant token:', err);
-        return null;
-      }
-
-      const data = await res.json();
-      if (data.code !== 0) {
-        console.error('[LarkExecutor] Lark API error fetching tenant token:', data.msg);
-        return null;
-      }
-
-      this.tenantAccessToken = data.tenant_access_token;
-      return this.tenantAccessToken || null;
-    } catch (e) {
-      console.error('[LarkExecutor] getTenantAccessToken error:', e);
-      return null;
-    }
+    return this.userAccessToken;
   }
 
   private mapLarkUser(u: any) {
@@ -141,11 +102,9 @@ export class LarkMessageExecutionRuntime {
   async findUser(params: FindUserParams): Promise<BuiltinToolResult> {
     if (this.service) return this.service.findUser(params);
 
-    const token = this.userAccessToken || (await this.getTenantAccessToken());
-    if (!token) return { content: 'Authentication required', success: false };
-
     try {
       const baseUrl = this.getBaseUrl();
+      const token = await this.getLarkToken();
       const url = new URL(`${baseUrl}/search/v1/user`);
       url.searchParams.append('query', params.query);
       url.searchParams.append('user_id_type', 'open_id');
@@ -182,11 +141,9 @@ export class LarkMessageExecutionRuntime {
   }
 
   async searchEmployees(params: FindUserParams): Promise<BuiltinToolResult> {
-    const token = await this.getTenantAccessToken();
-    if (!token) return { content: 'Authentication required', success: false };
-
     try {
       const baseUrl = this.getBaseUrl();
+      const token = await this.getLarkToken();
       const url = `${baseUrl}/directory/v1/employees/search`;
       const res = await fetch(url, {
         body: JSON.stringify({
@@ -244,10 +201,9 @@ export class LarkMessageExecutionRuntime {
   async sendMessage(params: SendMessageParams): Promise<BuiltinToolResult> {
     if (this.service) return this.service.sendMessage(params);
 
-    if (!this.userAccessToken) return { content: 'Authentication required', success: false };
-
     try {
       const baseUrl = this.getBaseUrl();
+      const token = await this.getLarkToken();
       const receiveIdType = params.receiveIdType || 'chat_id';
       const url = `${baseUrl}/im/v1/messages?receive_id_type=${receiveIdType}`;
 
@@ -261,7 +217,7 @@ export class LarkMessageExecutionRuntime {
           receive_id: params.receiveId,
         }),
         headers: {
-          'Authorization': `Bearer ${this.userAccessToken}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json; charset=utf-8',
         },
         method: 'POST',
@@ -286,9 +242,8 @@ export class LarkMessageExecutionRuntime {
   async getChats(params: GetChatsParams): Promise<BuiltinToolResult> {
     if (this.service) return this.service.getChats(params);
 
-    if (!this.userAccessToken) return { content: 'Authentication required', success: false };
-
     try {
+      const token = await this.getLarkToken();
       const url = new URL(`${this.getBaseUrl()}/im/v1/chats`);
       url.searchParams.append('page_size', (params.pageSize || 50).toString());
       if (params.pageToken) url.searchParams.append('page_token', params.pageToken);
@@ -296,7 +251,7 @@ export class LarkMessageExecutionRuntime {
       if (params.userIdType) url.searchParams.append('user_id_type', params.userIdType);
 
       const res = await fetch(url.toString(), {
-        headers: { Authorization: `Bearer ${this.userAccessToken}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!res.ok) {
@@ -336,9 +291,8 @@ export class LarkMessageExecutionRuntime {
   async getMessages(params: GetMessagesParams): Promise<BuiltinToolResult> {
     if (this.service) return this.service.getMessages(params);
 
-    if (!this.userAccessToken) return { content: 'Authentication required', success: false };
-
     try {
+      const token = await this.getLarkToken();
       const url = new URL('https://open.larksuite.com/open-apis/im/v1/messages');
       url.searchParams.append('container_id_type', 'chat');
       url.searchParams.append('container_id', params.chatId);
@@ -349,7 +303,7 @@ export class LarkMessageExecutionRuntime {
       url.searchParams.append('page_size', '50');
 
       const res = await fetch(url.toString(), {
-        headers: { Authorization: `Bearer ${this.userAccessToken}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!res.ok) {
@@ -365,8 +319,9 @@ export class LarkMessageExecutionRuntime {
         let content = m.body.content;
         try {
           content = JSON.parse(m.body.content);
-        } catch {
+        } catch (e) {
           // ignore
+          console.warn('[LarkExecutor] Failed to parse message content:', e);
         }
         return {
           content,

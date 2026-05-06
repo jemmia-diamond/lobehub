@@ -1,37 +1,35 @@
 import { LarkDocIdentifier } from '@lobechat/builtin-tool-lark-doc';
 import { useDebounce } from 'ahooks';
+import type { MenuProps } from 'antd';
 import {
-  Avatar,
   Dropdown,
   Flex,
   Input,
-  type MenuProps,
   Modal,
-  Pagination,
   Space,
   Spin,
   Tag,
   Typography,
 } from 'antd';
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import useSWR from 'swr';
 
 import { LARK_BASE_URL } from '@/const/url';
 import { larkDocService } from '@/services/larkDoc';
-import { larkMessageService } from '@/services/larkMessage';
 import { agentSelectors } from '@/store/agent/selectors';
 import { useAgentStore } from '@/store/agent/store';
 import { useFileStore } from '@/store/file';
-import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
+import { useServerConfigStore } from '@/store/serverConfig';
+import { featureFlagsSelectors } from '@/store/serverConfig/selectors';
 
 interface SearchDocsModalProps {
   onClose?: () => void;
-  open: boolean;
+  open?: boolean;
 }
 
 interface FormattedDoc {
   description: string;
+  extra?: string;
   icon: string;
   iconBg: string;
   iconColor: string;
@@ -40,277 +38,255 @@ interface FormattedDoc {
   url: string;
 }
 
+const PAGE_SIZE = 15;
+
 const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
   const { t } = useTranslation('chat');
+  const { showLarkSearchFilterWiki } = useServerConfigStore(featureFlagsSelectors);
+
   const [query, setQuery] = useState('');
-  const debouncedQuery = useDebounce(query, { wait: 350 });
-  const [page, setPage] = useState(1);
-  const [sortBy, setSortBy] = useState<number | undefined>(1);
-  const [activeSortLabel, setActiveSortLabel] = useState<string>(() => t('lark.filter.sort'));
+  const debouncedQuery = useDebounce(query, { wait: 500 });
 
-  const {
-    showLarkSearchFilterSort,
-    showLarkSearchFilterOwner,
-    showLarkSearchFilterChat,
-    showLarkSearchFilterWiki,
-    showLarkSearchFilterFormat,
-  } = useServerConfigStore(featureFlagsSelectors);
-  const [ownerIds, setOwnerIds] = useState<string[]>([]);
-  const [ownerSearchQuery, setOwnerSearchQuery] = useState('');
-  const debouncedOwnerQuery = useDebounce(ownerSearchQuery, { wait: 350 });
-  const [activeOwnerLabel, setActiveOwnerLabel] = useState<string>(() => t('lark.filter.from'));
+  const [spaceId, setSpaceId] = useState<string>('all');
+  const [activeSpaceLabel, setActiveSpaceLabel] = useState<string>(() => t('lark.filter.allSpaces'));
 
-  const [chatIds, setChatIds] = useState<string[]>([]);
-  const [chatSearchQuery, setChatSearchQuery] = useState('');
-  const debouncedChatQuery = useDebounce(chatSearchQuery, { wait: 350 });
-  const [activeChatLabel, setActiveChatLabel] = useState<string>(() => t('lark.filter.sharedIn'));
+  const [isAttaching, setIsAttaching] = useState(false);
+
+
+  const [allItems, setAllItems] = useState<any[]>([]);
+  const [pageToken, setPageToken] = useState<string | undefined>();
+  const [hasMore, setHasMore] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isLoadingInitial, setIsLoadingInitial] = useState(false);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   const addChatContextSelection = useFileStore((s) => s.addChatContextSelection);
   const toggleAgentPlugin = useAgentStore((s) => s.toggleAgentPlugin);
 
-  const { data: groupsData, isLoading: isGroupsLoading } = useSWR(
-    open ? ['lark-groups-search', debouncedChatQuery] : null,
-    async ([, q]) => {
-      const res = (await larkMessageService.getChats({
-        pageSize: 4,
-        sortType: 'ByActiveTimeDesc',
-        userIdType: 'open_id',
-      })) as any;
-      if (!res?.success) return [];
-      try {
-        const data = JSON.parse(res.content);
-        const allGroups = data.items || [];
-        if (!q) return allGroups.slice(0, 4);
-        return allGroups.filter((g: any) =>
-          g.name?.toLowerCase().includes((q as string).toLowerCase()),
-        );
-      } catch {
-        return [];
-      }
-    },
-  );
-
-  const { data: employeesData, isLoading: isEmployeesLoading } = useSWR(
-    open ? ['lark-employees-search', debouncedOwnerQuery] : null,
-    async ([, q]) => {
-      let queryToUse = q as string;
-      if (!queryToUse) {
-        const VIETNAMESE_INITIALS = [
-          'a',
-          'b',
-          'c',
-          'd',
-          'đ',
-          'h',
-          'l',
-          'm',
-          'n',
-          'p',
-          's',
-          't',
-          'v',
-        ];
-        queryToUse = VIETNAMESE_INITIALS[Math.floor(Math.random() * VIETNAMESE_INITIALS.length)];
-      }
-
-      const res = (await larkMessageService.searchEmployees({
-        pageSize: 4,
-        query: queryToUse,
-      })) as any;
-      if (!res?.success) return [];
-      try {
-        const data = JSON.parse(res.content);
-        return data.items || [];
-      } catch {
-        return [];
-      }
-    },
-  );
-
+  const [spacesRes, setSpacesRes] = useState<any[]>([]);
   useEffect(() => {
-    setPage(1);
-  }, [debouncedQuery, sortBy, ownerIds, chatIds]);
+    if (!open) return;
+    (async () => {
+      try {
+        const res = (await larkDocService.listWikiSpaces()) as any;
+        if (!res?.success) return;
+        setSpacesRes(JSON.parse(res.content));
+      } catch (e) {
+        console.error('Failed to list Wiki Spaces:', e);
+      }
+    })();
+  }, [open]);
 
-  const { data: dataObj, isLoading } = useSWR(
-    open ? ['lark-search', debouncedQuery, page, sortBy, ownerIds, chatIds] : null,
-    async ([, q, p, s, o, c]) => {
-      const res = (await larkDocService.searchDocs({
-        chatIds: c as string[],
-        ownerIds: o as string[],
-        page: p as number,
-        pageSize: 15,
-        query: q as string,
-        sortBy: s as number,
+  const spaceItems: MenuProps['items'] = useMemo(() => {
+    const spaces = spacesRes || [];
+    const items = spaces.map((s: any) => ({
+      key: s.space_id,
+      label: s.name,
+    }));
+    return [{ key: 'all', label: t('lark.filter.allSpaces') }, ...items];
+  }, [spacesRes, t]);
+
+  const fetchItems = useCallback(
+    async (token?: string) => {
+      const queryStr = String(debouncedQuery || '').trim();
+
+      if (!queryStr) {
+        const spaceKey = spaceId;
+        if (spaceKey && spaceKey !== 'all') {
+          const res = (await larkDocService.listWikiNodes({ spaceId: spaceKey })) as any;
+          if (!res?.success) return { items: [], has_more: false };
+          try {
+            return JSON.parse(res.content);
+          } catch {
+            return { items: [], has_more: false };
+          }
+        }
+        const res = (await larkDocService.listDocs({})) as any;
+        if (!res?.success) return { items: [], has_more: false };
+        try {
+          const items = JSON.parse(res.content);
+          return { items, has_more: false };
+        } catch {
+          return { items: [], has_more: false };
+        }
+      }
+
+      const res = (await larkDocService.searchWiki({
+        pageSize: PAGE_SIZE,
+        pageToken: token,
+        query: queryStr,
+        spaceId: spaceId === 'all' ? undefined : spaceId,
       })) as any;
-      if (!res?.success) return { items: [] };
+      if (!res?.success) return { items: [], has_more: false };
       try {
         return JSON.parse(res.content);
       } catch {
-        return { items: [] };
+        return { items: [], has_more: false };
       }
     },
-    {
-      dedupingInterval: 0,
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
-      revalidateOnMount: true,
-    },
+    [debouncedQuery, spaceId],
   );
 
-  const getLarkName = (name: any): string => {
-    if (!name) return '';
-    if (typeof name === 'string') return name;
-    return name.default_value || name.i18n_value || '';
-  };
+  useEffect(() => {
+    if (!open) return;
+
+    let cancelled = false;
+    setIsLoadingInitial(true);
+    setAllItems([]);
+    setPageToken(undefined);
+    setHasMore(false);
+
+    (async () => {
+      const result = await fetchItems();
+      if (cancelled) return;
+      setAllItems(result.items || []);
+      setPageToken(result.page_token);
+      setHasMore(result.has_more || false);
+      setIsLoadingInitial(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, fetchItems]);
+
+  const loadMore = useCallback(async () => {
+    if (isLoadingMore || !hasMore || !pageToken) return;
+
+    setIsLoadingMore(true);
+    try {
+      const result = await fetchItems(pageToken);
+      setAllItems((prev) => [...prev, ...(result.items || [])]);
+      setPageToken(result.page_token);
+      setHasMore(result.has_more || false);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [isLoadingMore, hasMore, pageToken, fetchItems]);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasMore && !isLoadingMore) {
+          loadMore();
+        }
+      },
+      { root: scrollRef.current, threshold: 0.1 },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, isLoadingMore, loadMore]);
 
   const formattedData: FormattedDoc[] = useMemo(() => {
-    const items = dataObj?.items || [];
-    if (!Array.isArray(items)) return [];
-    return items.map((doc: any) => {
-      const rawType = doc.docs_type || doc.type || 'doc';
-      const type = t(`lark.docType.${rawType}` as any);
+    if (!Array.isArray(allItems)) return [];
+
+    return allItems.map((doc: any) => {
+      const rawType = doc.obj_type || doc.type || 'doc';
+      const token = doc.obj_token || doc.docs_token || doc.node_token || doc.token || '';
+      const url = doc.url || doc.link || `${LARK_BASE_URL}/${rawType}/${token}`;
+
       let icon = 'description';
-      let iconColor = '#3b82f6';
-      let iconBg = '#eff6ff';
+      let iconColor = '#1e293b';
+      let iconBg = '#f1f5f9';
 
-      if (rawType === 'sheet') {
-        icon = 'table_chart';
-        iconColor = '#22c55e';
-        iconBg = '#dcfce7';
-      } else if (rawType === 'slide') {
-        icon = 'slideshow';
-        iconColor = '#f59e0b';
-        iconBg = '#fef3c7';
-      } else if (rawType === 'bitable') {
-        icon = 'view_list';
-        iconColor = '#a855f7';
-        iconBg = '#f3e8ff';
-      } else if (rawType === 'mindnote') {
-        icon = 'account_tree';
-        iconColor = '#ec4899';
-        iconBg = '#fce7f3';
-      } else if (rawType === 'file') {
-        icon = 'draft';
-        iconColor = '#64748b';
-        iconBg = '#f1f5f9';
-      } else if (rawType === 'folder') {
-        icon = 'folder';
-        iconColor = '#eab308';
-        iconBg = '#fefce8';
-      }
-
-      const token = doc.token || doc.docs_token || doc.file_token || '';
-      let url = doc.url || doc.link || doc.external_url || '';
-
-      const rawTitle = getLarkName(doc.title || doc.name);
-      const owner = getLarkName(doc.owner_id || doc.owner || doc.owner_name);
-
-      if (!url && token) {
-        const path =
-          rawType === 'docx'
-            ? 'docx'
-            : rawType === 'sheet'
-              ? 'sheets'
-              : rawType === 'bitable'
-                ? 'base'
-                : rawType === 'mindnote'
-                  ? 'mindnotes'
-                  : rawType === 'wiki'
-                    ? 'wiki'
-                    : 'docs';
-        url = `${LARK_BASE_URL}/${path}/${token}`;
+      switch (rawType) {
+        case 'sheet': {
+          icon = 'grid_on';
+          iconColor = '#16a34a';
+          iconBg = '#f0fdf4';
+          break;
+        }
+        case 'bitable': {
+          icon = 'view_list';
+          iconColor = '#a855f7';
+          iconBg = '#f3e8ff';
+          break;
+        }
+        case 'slide': {
+          icon = 'present_to_all';
+          iconColor = '#ea580c';
+          iconBg = '#fff7ed';
+          break;
+        }
+        case 'mindnote': {
+          icon = 'schema';
+          iconColor = '#2563eb';
+          iconBg = '#eff6ff';
+          break;
+        }
+        case 'folder': {
+          icon = 'folder';
+          iconColor = '#ca8a04';
+          iconBg = '#fefce8';
+          break;
+        }
       }
 
       return {
-        description: t('lark.docDetail', {
-          owner: owner || t('lark.docType.unknown'),
-          type,
+        description: doc.description || '',
+        extra: JSON.stringify({
+          obj_token: token,
+          obj_type: rawType,
         }),
         icon,
         iconBg,
         iconColor,
         key: token || Math.random().toString(),
-        title: rawTitle?.replaceAll(/<[^>]*>?/g, '') || t('lark.untitledDoc'), // Remove any tags like <em> inside title
+        title: (doc.title || doc.name || '').replaceAll(/<[^>]*>?/g, '') || t('lark.untitledDoc'),
         url,
       };
     });
-  }, [dataObj, t]);
+  }, [allItems, t]);
 
   const handleSelect = async (item: FormattedDoc) => {
-    // 1. Add to chat context
-    addChatContextSelection({
-      content: `Lark Document ID: ${item.key}`,
-      fileType:
-        item.icon === 'table_chart'
-          ? 'sheet'
-          : item.icon === 'slideshow'
-            ? 'slide'
-            : item.icon === 'view_list'
-              ? 'bitable'
-              : item.icon === 'account_tree'
-                ? 'mindnote'
-                : item.icon === 'folder'
-                  ? 'folder'
-                  : 'doc',
-      format: 'text',
-      id: `lark-${item.key}`,
-      preview: item.title,
-      title: item.title,
-      type: 'text',
-      url: item.url,
-    });
+    setIsAttaching(true);
+    try {
+      const res = (await larkDocService.getDocContent({ documentId: item.key })) as any;
 
-    // 2. Enable Lark Doc tool if not enabled
-    const agentStore = useAgentStore.getState();
-    const currentPlugins = agentSelectors.currentAgentPlugins(agentStore);
-    if (!currentPlugins.includes(LarkDocIdentifier)) {
-      await toggleAgentPlugin(LarkDocIdentifier, true);
+      if (res?.success) {
+        const { obj_type } = JSON.parse(item.extra || '{}');
+        addChatContextSelection({
+          content: res.content || '',
+          fileType: obj_type || 'doc',
+          format: 'text',
+          id: `lark-${item.key}`,
+          preview: item.title,
+          title: item.title,
+          type: 'text',
+          url: item.url,
+        });
+      }
+
+      const agentStore = useAgentStore.getState();
+      const currentPlugins = agentSelectors.currentAgentPlugins(agentStore);
+      if (!currentPlugins.includes(LarkDocIdentifier)) {
+        await toggleAgentPlugin(LarkDocIdentifier, true);
+      }
+
+      onClose?.();
+    } catch (error) {
+      console.error('Failed to attach Lark document content:', error);
+      onClose?.();
+    } finally {
+      setIsAttaching(false);
     }
-
-    // 3. Close modal
-    onClose?.();
   };
 
   const handleClose = () => {
     onClose?.();
   };
 
-  const sortItems: MenuProps['items'] = [
-    { key: '3', label: t('lark.filter.viewed') },
-    { key: '2', label: t('lark.filter.updated') },
-    { key: '1', label: t('lark.filter.created') },
-  ];
-
-  const handleSortChange: MenuProps['onClick'] = ({ key, domEvent }) => {
+  const handleSpaceChange: MenuProps['onClick'] = ({ key, domEvent }) => {
     domEvent.stopPropagation();
-    const numericKey = Number(key);
-    setSortBy(numericKey);
-    const item = sortItems.find((i) => i?.key === key) as any;
-    if (item) setActiveSortLabel(item.label);
-  };
-
-  const handleOwnerSelect = (employee: any) => {
-    const id = employee.employee_id || employee.id;
-    const name = getLarkName(employee.name);
-    setOwnerIds([id]);
-    setActiveOwnerLabel(name);
-  };
-
-  const handleClearOwner = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setOwnerIds([]);
-    setActiveOwnerLabel(t('lark.filter.from'));
-  };
-
-  const handleChatSelect = (group: any) => {
-    setChatIds([group.chat_id]);
-    setActiveChatLabel(group.name);
-  };
-
-  const handleClearChat = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setChatIds([]);
-    setActiveChatLabel(t('lark.filter.sharedIn'));
+    setSpaceId(key);
+    const item = spaceItems.find((i) => i?.key === key) as any;
+    if (item) setActiveSpaceLabel(item.label);
   };
 
   return (
@@ -342,52 +318,10 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
             <Input
               placeholder={t('lark.searchDocs')}
               size="large"
-              style={{ paddingLeft: 150, paddingRight: 40 }}
+              style={{ paddingLeft: 12, paddingRight: 40 }}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
-            <span
-              className="material-symbols-outlined"
-              style={{
-                color: '#9ca3af',
-                fontSize: 20,
-                left: 16,
-                position: 'absolute',
-                top: '50%',
-                transform: 'translateY(-50%)',
-              }}
-            >
-              search
-            </span>
-            <div
-              style={{
-                alignItems: 'center',
-                display: 'flex',
-                left: 40,
-                position: 'absolute',
-                top: '50%',
-                transform: 'translateY(-50%)',
-              }}
-            >
-              <Tag
-                color="#dbeafe"
-                style={{
-                  alignItems: 'center',
-                  color: '#171717',
-                  display: 'inline-flex',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  gap: 4,
-                  marginRight: 8,
-                  padding: '2px 8px',
-                }}
-              >
-                {t('lark.docs')}
-                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                  close
-                </span>
-              </Tag>
-            </div>
             {query && (
               <button
                 className="material-symbols-outlined"
@@ -409,22 +343,25 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
               </button>
             )}
           </div>
-          <Space
-            size={8}
-            style={{
-              overflowX: 'auto',
-              paddingBottom: 4,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {showLarkSearchFilterSort && (
-              <Dropdown menu={{ items: sortItems, onClick: handleSortChange }} trigger={['click']}>
+          {showLarkSearchFilterWiki && (
+            <Space
+              size={8}
+              style={{
+                overflowX: 'auto',
+                paddingBottom: 4,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <Dropdown
+                menu={{ items: spaceItems, onClick: handleSpaceChange }}
+                trigger={['click']}
+              >
                 <Tag
-                  color={sortBy !== 1 ? '#dbeafe' : undefined}
+                  color={spaceId !== 'all' ? '#dbeafe' : undefined}
                   style={{
                     alignItems: 'center',
                     borderRadius: 8,
-                    color: sortBy !== 1 ? '#171717' : undefined,
+                    color: spaceId !== 'all' ? '#171717' : undefined,
                     cursor: 'pointer',
                     display: 'inline-flex',
                     fontSize: 12,
@@ -432,214 +369,18 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
                     padding: '4px 12px',
                   }}
                 >
-                  {activeSortLabel}
+                  {activeSpaceLabel}
                   <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
                     expand_more
                   </span>
                 </Tag>
               </Dropdown>
-            )}
-            {showLarkSearchFilterOwner && (
-              <Dropdown
-                trigger={['click']}
-                dropdownRender={() => (
-                  <div
-                    style={{
-                      background: '#fff',
-                      borderRadius: 12,
-                      boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
-                      width: 280,
-                    }}
-                  >
-                    <div style={{ padding: 12 }}>
-                      <Input
-                        placeholder={t('lark.searchDocsByOwner')}
-                        size="small"
-                        style={{ borderRadius: 8 }}
-                        value={ownerSearchQuery}
-                        variant="filled"
-                        onChange={(e) => setOwnerSearchQuery(e.target.value)}
-                      />
-                    </div>
-                    <Spin spinning={isEmployeesLoading}>
-                      <div style={{ maxHeight: 300, overflowY: 'auto', paddingBottom: 8 }}>
-                        {(employeesData || []).map((emp: any) => (
-                          <div
-                            className="owner-item"
-                            key={emp.employee_id || emp.id}
-                            style={{
-                              alignItems: 'center',
-                              borderRadius: 8,
-                              cursor: 'pointer',
-                              display: 'flex',
-                              gap: 12,
-                              padding: '8px 16px',
-                              transition: 'background 0.2s',
-                            }}
-                            onClick={() => handleOwnerSelect(emp)}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = '#f1f5f9')}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                          >
-                            <Avatar size={32} src={emp.avatar} />
-                            <Typography.Text style={{ fontSize: 13, fontWeight: 500 }}>
-                              {getLarkName(emp.name)}
-                            </Typography.Text>
-                          </div>
-                        ))}
-                      </div>
-                    </Spin>
-                  </div>
-                )}
-              >
-                <Tag
-                  color={ownerIds.length > 0 ? '#dbeafe' : undefined}
-                  style={{
-                    alignItems: 'center',
-                    borderRadius: 8,
-                    color: ownerIds.length > 0 ? '#171717' : undefined,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    fontSize: 12,
-                    gap: 4,
-                    padding: '4px 12px',
-                  }}
-                >
-                  {activeOwnerLabel}
-                  {ownerIds.length > 0 ? (
-                    <span
-                      className="material-symbols-outlined"
-                      style={{ fontSize: 14 }}
-                      onClick={handleClearOwner}
-                    >
-                      close
-                    </span>
-                  ) : (
-                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                      expand_more
-                    </span>
-                  )}
-                </Tag>
-              </Dropdown>
-            )}
-            {showLarkSearchFilterChat && (
-              <Dropdown
-                trigger={['click']}
-                dropdownRender={() => (
-                  <div
-                    style={{
-                      background: '#fff',
-                      borderRadius: 12,
-                      boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
-                      width: 280,
-                    }}
-                  >
-                    <div style={{ padding: 12 }}>
-                      <Input
-                        placeholder={t('lark.searchGroups')}
-                        size="small"
-                        style={{ borderRadius: 8 }}
-                        value={chatSearchQuery}
-                        variant="filled"
-                        onChange={(e) => setChatSearchQuery(e.target.value)}
-                      />
-                    </div>
-                    <Spin spinning={isGroupsLoading}>
-                      <div style={{ maxHeight: 300, overflowY: 'auto', paddingBottom: 8 }}>
-                        {(groupsData || []).map((group: any) => (
-                          <div
-                            className="owner-item"
-                            key={group.chat_id}
-                            style={{
-                              alignItems: 'center',
-                              borderRadius: 8,
-                              cursor: 'pointer',
-                              display: 'flex',
-                              gap: 12,
-                              padding: '8px 16px',
-                              transition: 'background 0.2s',
-                            }}
-                            onClick={() => handleChatSelect(group)}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = '#f1f5f9')}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                          >
-                            <Avatar size={32} src={group.avatar}>
-                              {!group.avatar && (
-                                <span
-                                  className="material-symbols-outlined"
-                                  style={{ fontSize: 18 }}
-                                >
-                                  groups
-                                </span>
-                              )}
-                            </Avatar>
-                            <Typography.Text style={{ fontSize: 13, fontWeight: 500 }}>
-                              {group.name}
-                            </Typography.Text>
-                          </div>
-                        ))}
-                      </div>
-                    </Spin>
-                  </div>
-                )}
-              >
-                <Tag
-                  color={chatIds.length > 0 ? '#dbeafe' : undefined}
-                  style={{
-                    alignItems: 'center',
-                    borderRadius: 8,
-                    color: chatIds.length > 0 ? '#171717' : undefined,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    fontSize: 12,
-                    gap: 4,
-                    padding: '4px 12px',
-                  }}
-                >
-                  {activeChatLabel}
-                  {chatIds.length > 0 ? (
-                    <span
-                      className="material-symbols-outlined"
-                      style={{ fontSize: 14 }}
-                      onClick={handleClearChat}
-                    >
-                      close
-                    </span>
-                  ) : (
-                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                      expand_more
-                    </span>
-                  )}
-                </Tag>
-              </Dropdown>
-            )}
-            {showLarkSearchFilterWiki && (
-              <Tag
-                style={{
-                  borderRadius: 8,
-                  cursor: 'pointer',
-                  fontSize: 12,
-                  padding: '4px 12px',
-                }}
-              >
-                {t('lark.filter.inWiki')}
-              </Tag>
-            )}
-            {showLarkSearchFilterFormat && (
-              <Tag
-                style={{
-                  borderRadius: 8,
-                  cursor: 'pointer',
-                  fontSize: 12,
-                  padding: '4px 12px',
-                }}
-              >
-                {t('lark.filter.format')}
-              </Tag>
-            )}
-          </Space>
+            </Space>
+          )}
         </Flex>
       </div>
       <div
+        ref={scrollRef}
         style={{
           background: 'rgba(248,250,252,0.8)',
           flex: 1,
@@ -647,7 +388,7 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
           padding: '8px 24px 16px',
         }}
       >
-        <Spin spinning={isLoading}>
+        <Spin spinning={isLoadingInitial || isAttaching} tip={isAttaching ? t('lark.attaching', { ns: 'chat' }) : undefined}>
           <Flex vertical gap={4} style={{ marginBottom: 16 }}>
             {formattedData.length > 0 ? (
               formattedData.map((item) => (
@@ -712,16 +453,12 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
               </div>
             )}
           </Flex>
-          {formattedData.length > 0 && (
-            <Flex justify="flex-end" style={{ padding: '8px 0' }}>
-              <Pagination
-                simple
-                current={page}
-                pageSize={15}
-                showSizeChanger={false}
-                total={dataObj?.total || (dataObj?.has_more ? (page + 1) * 15 : page * 15)}
-                onChange={(p) => setPage(p)}
-              />
+
+          <div ref={sentinelRef} style={{ height: 1 }} />
+
+          {isLoadingMore && (
+            <Flex justify="center" style={{ padding: '12px 0' }}>
+              <Spin size="small" />
             </Flex>
           )}
         </Spin>

@@ -74,18 +74,14 @@ export const larkMessageRouter = router({
 });
 
 async function getRuntime(userAccessToken?: string) {
-  const runtime = larkMessageRuntime.factory({ toolManifestMap: {} });
-
   if (userAccessToken) {
-    const { authEnv } = await import('@/envs/auth');
     const { LarkMessageExecutionRuntime } =
       await import('@lobechat/builtin-tool-lark-message/executor');
 
     return new LarkMessageExecutionRuntime({
-      appId: authEnv.AUTH_LARK_APP_ID || authEnv.AUTH_FEISHU_APP_ID,
-      appSecret: authEnv.AUTH_LARK_APP_SECRET || authEnv.AUTH_FEISHU_APP_SECRET,
       userAccessToken,
     });
   }
-  return runtime;
+  
+  return await larkMessageRuntime.factory({ toolManifestMap: {} } as any);
 }

@@ -65,7 +65,7 @@ const getDocIcon = (type: string) => {
 };
 
 export const mapLarkDocToMentionItem = (d: any) => {
-  const rawType = (d.type || d.docs_type || 'doc').toLowerCase();
+  const rawType = (d.obj_type || d.type || d.docs_type || 'doc').toLowerCase();
   const sizeStr = d.size
     ? `${(Number(d.size) / 1024 / 1024).toFixed(1)} MB`
     : rawType.toUpperCase();
@@ -86,11 +86,12 @@ export const mapLarkDocToMentionItem = (d: any) => {
         {getDocIcon(rawType)}
       </div>
     ),
-    key: `lark-doc-${d.token || d.id || d.docs_token}`,
+    key: `lark-doc-${d.obj_token || d.token || d.id || d.docs_token || d.node_token}`,
     label: getLarkName(d.title || d.name),
     metadata: {
       description: sizeStr,
-      id: d.token || d.id || d.docs_token,
+      id: d.obj_token || d.token || d.id || d.docs_token || d.node_token,
+      docType: rawType,
       timestamp: d.update_time ? Number(d.update_time) * 1000 : 0,
       type: 'lark-doc' as const,
     },

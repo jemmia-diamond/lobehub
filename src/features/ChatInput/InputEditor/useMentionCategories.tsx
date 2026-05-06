@@ -25,7 +25,6 @@ const MAX_AGENT_ITEMS = 20;
 const MAX_TOPIC_LABEL = 50;
 type MenuOptionWithMetadata = { key: string; metadata?: Record<string, unknown> };
 
-/** Render a skill/tool avatar as a ReactNode icon. */
 const shouldRenderIconAsImage = (str: string) =>
   str.startsWith('http://') ||
   str.startsWith('https://') ||
@@ -126,10 +125,9 @@ export const useMentionCategories = (): MentionCategory[] => {
       const randomQuery =
         VIETNAMESE_INITIALS[Math.floor(Math.random() * VIETNAMESE_INITIALS.length)];
       try {
-        const res = (await larkDocService.searchDocs({
+        const res = (await larkDocService.searchWiki({
           pageSize: 4,
           query: randomQuery,
-          sortBy: 1,
         })) as any;
         if (res.success) {
           const data = JSON.parse(res.content);
@@ -148,7 +146,7 @@ export const useMentionCategories = (): MentionCategory[] => {
 
   return useMemo(() => {
     const categories: MentionCategory[] = [];
-
+    
     // --- Agents (non-group only) ---
     if (!isGroupChat) {
       const items = allAgents
@@ -200,7 +198,6 @@ export const useMentionCategories = (): MentionCategory[] => {
       }
     }
 
-    // --- Lark Documents ---
     if (enableMentionDoc) {
       const docItems = (defaultLarkDocs || [])
         .slice(0, 4)
@@ -216,7 +213,6 @@ export const useMentionCategories = (): MentionCategory[] => {
       }
     }
 
-    // --- Lark Users ---
     if (enableMentionEmployee) {
       const userItems = (defaultLarkUsers || [])
         .slice(0, 4)

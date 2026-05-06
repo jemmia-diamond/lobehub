@@ -66,14 +66,57 @@ export const LarkDocManifest: BuiltinToolManifest = {
         type: 'object',
       },
     },
+    {
+      description: 'Search for pages in Lark/Feishu Wiki spaces by keyword. This gives more results and a broader range compared to drive search.',
+      name: LarkDocApiName.searchWiki,
+      parameters: {
+        additionalProperties: false,
+        properties: {
+          query: {
+            description: 'The keyword to search for.',
+            type: 'string',
+          },
+          spaceId: {
+            description: 'Optional space ID to filter the search.',
+            type: 'string',
+          },
+        },
+        required: ['query'],
+        type: 'object',
+      },
+    },
+    {
+      description: 'List all available Wiki spaces that the user has access to.',
+      name: LarkDocApiName.listWikiSpaces,
+      parameters: {
+        additionalProperties: false,
+        properties: {},
+        type: 'object',
+      },
+    },
+    {
+      description: 'List root nodes (pages/folders) within a specific Wiki space.',
+      name: LarkDocApiName.listWikiNodes,
+      parameters: {
+        additionalProperties: false,
+        properties: {
+          spaceId: {
+            description: 'The unique ID of the Wiki space to browse.',
+            type: 'string',
+          },
+        },
+        required: ['spaceId'],
+        type: 'object',
+      },
+    },
   ],
   identifier: LarkDocIdentifier,
   meta: {
     avatar: '📝',
-    description: 'Read, search, and manage Lark/Feishu Docs',
+    description: 'Read, search, and manage Lark/Feishu Docs and Wikis',
     title: 'Lark Doc Reader',
   },
   systemRole:
-    'You are a helpful assistant that can interact with Lark/Feishu documents. You can read content, get metadata, search for docs, and list files. Whenever a user provides a Lark Doc URL, automatically extract the ID and use the appropriate tool.',
+    'You are a helpful assistant that can interact with Lark/Feishu documents and wikis. You can read content, get metadata, search for docs, search wiki spaces, and list files. Whenever a user provides a Lark Doc URL, automatically extract the ID and use the appropriate tool.',
   type: 'builtin',
 };

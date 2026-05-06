@@ -23,6 +23,23 @@ class LarkDocService {
   }) {
     return toolsClient.larkDoc.searchDocs.query(params);
   }
+
+  async searchWiki(params: {
+    pageSize?: number;
+    pageToken?: string;
+    query: string;
+    spaceId?: string;
+  }) {
+    return toolsClient.larkDoc.searchWiki.query(params);
+  }
+
+  async listWikiSpaces() {
+    return toolsClient.larkDoc.listWikiSpaces.query();
+  }
+
+  async listWikiNodes(params: { spaceId: string }) {
+    return toolsClient.larkDoc.listWikiNodes.query(params);
+  }
 }
 
 export const larkDocService = new LarkDocService();

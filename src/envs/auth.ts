@@ -9,6 +9,10 @@ declare global {
        * Comma-separated list of admin emails.
        */
       ADMIN_EMAILS?: string;
+      /**
+       * Comma-separated list of emails allowed to test the app during alpha phase (preview features).
+       */
+      ALPHA_WHITE_LIST_EMAILS?: string;
       // ===== Beta Phase Control ===== //
       /**
        * Enable Beta Mode restriction.
@@ -220,6 +224,7 @@ export const getAuthConfig = () => {
       // Beta Phase Control
       APP_BETA_MODE: z.boolean().default(false),
       BETA_WHITE_LIST_EMAILS: z.string().optional(),
+      ALPHA_WHITE_LIST_EMAILS: z.string().optional(),
       ADMIN_EMAILS: z.string().optional(),
     },
 
@@ -321,6 +326,7 @@ export const getAuthConfig = () => {
       // Beta Phase Control
       APP_BETA_MODE: process.env.APP_BETA_MODE === '1' || process.env.APP_BETA_MODE === 'true',
       BETA_WHITE_LIST_EMAILS: process.env.BETA_WHITE_LIST_EMAILS,
+      ALPHA_WHITE_LIST_EMAILS: process.env.ALPHA_WHITE_LIST_EMAILS,
       ADMIN_EMAILS: process.env.ADMIN_EMAILS,
     },
   });

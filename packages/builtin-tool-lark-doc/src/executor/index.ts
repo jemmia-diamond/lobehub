@@ -20,21 +20,21 @@ interface SearchDocsParams {
   sortBy?: number;
 }
 
+interface SearchWikiParams {
+  pageSize?: number;
+  pageToken?: string;
+  query: string;
+  spaceId?: string;
+}
+
 export class LarkDocExecutionRuntime {
-  private appId: string | undefined;
-  private appSecret: string | undefined;
   private userAccessToken?: string;
   private service?: any;
-  private tenantAccessToken?: string;
 
   constructor(options: {
-    appId?: string;
-    appSecret?: string;
     service?: any;
     userAccessToken?: string;
   }) {
-    this.appId = options.appId;
-    this.appSecret = options.appSecret;
     this.service = options.service;
     this.userAccessToken = options.userAccessToken;
   }
@@ -47,23 +47,10 @@ export class LarkDocExecutionRuntime {
   }
 
   private async getLarkToken(): Promise<string> {
-    if (this.userAccessToken) return this.userAccessToken;
-    if (this.tenantAccessToken) return this.tenantAccessToken;
-
-    if (!this.appId || !this.appSecret) throw new Error('Missing Lark App ID/Secret');
-
-    const baseUrl = this.getBaseUrl();
-    const tokenRes = await fetch(`${baseUrl}/auth/v3/tenant_access_token/internal`, {
-      body: JSON.stringify({ app_id: this.appId, app_secret: this.appSecret }),
-      headers: { 'Content-Type': 'application/json' },
-      method: 'POST',
-    });
-
-    if (!tokenRes.ok) throw new Error(`Lark auth failed: ${tokenRes.status}`);
-    const tokenData = await tokenRes.json();
-    if (tokenData.code !== 0) throw new Error(`Lark auth error: ${tokenData.msg}`);
-    this.tenantAccessToken = tokenData.tenant_access_token;
-    return tokenData.tenant_access_token;
+    if (!this.userAccessToken) {
+      throw new Error('Missing Lark User Access Token. Please ensure you are authenticated with Lark SSO.');
+    }
+    return this.userAccessToken;
   }
 
   async getDocContent(params: GetDocContentParams): Promise<BuiltinToolResult> {
@@ -232,6 +219,134 @@ export class LarkDocExecutionRuntime {
       return { content: `Error: ${(error as Error).message}`, success: false };
     }
   }
+
+  async searchWikiRaw(
+    params: SearchWikiParams,
+  ): Promise<{ items: any[]; has_more?: boolean; page_token?: string }> {
+    const { query, spaceId, pageSize = 15, pageToken } = params;
+
+    const baseUrl = this.getBaseUrl();
+    const token = await this.getLarkToken();
+
+    const payload: Record<string, any> = {
+      page_size: pageSize,
+      query: query || '',
+    };
+    if (spaceId && spaceId !== 'undefined' && spaceId !== 'null') {
+      payload.space_id = spaceId;
+    }
+    if (pageToken) {
+      payload.page_token = pageToken;
+    }
+
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json; charset=utf-8',
+    };
+
+    const searchRes = await fetch(`${baseUrl}/wiki/v2/nodes/search`, {
+      body: JSON.stringify(payload),
+      headers,
+      method: 'POST',
+    });
+
+    if (!searchRes.ok) {
+      const errorBody = await searchRes.text();
+      console.error('[LarkDoc] Search Wiki Failed:', {
+        body: errorBody,
+        status: searchRes.status,
+      });
+      throw new Error(`Lark wiki search failed: ${searchRes.status}. Details: ${errorBody}`);
+    }
+
+    const searchData = await searchRes.json();
+    if (searchData.code !== 0) throw new Error(`Lark wiki search error: ${searchData.msg}`);
+
+    const items = searchData.data?.nodes || searchData.data?.items || [];
+    return {
+      has_more: searchData.data?.has_more || false,
+      items,
+      page_token: searchData.data?.page_token,
+    };
+  }
+
+  async searchWiki(params: SearchWikiParams): Promise<BuiltinToolResult> {
+    if (this.service && typeof this.service.searchWiki === 'function') {
+      return this.service.searchWiki(params);
+    }
+    try {
+      const res = await this.searchWikiRaw(params);
+      return { content: JSON.stringify(res), success: true };
+    } catch (error) {
+      return { content: `Error: ${(error as Error).message}`, success: false };
+    }
+  }
+
+  async listWikiSpacesRaw(): Promise<any[]> {
+    const baseUrl = this.getBaseUrl();
+    const token = await this.getLarkToken();
+
+    const res = await fetch(`${baseUrl}/wiki/v2/spaces`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      method: 'GET',
+    });
+
+    if (!res.ok) {
+      const errorBody = await res.text();
+      console.error('[LarkDoc] List Wiki Spaces Failed:', {
+        body: errorBody,
+        status: res.status,
+      });
+      throw new Error(`Lark list wiki spaces failed: ${res.status}. Details: ${errorBody}`);
+    }
+
+    const data = await res.json();
+    if (data.code !== 0) throw new Error(`Lark list wiki spaces error: ${data.msg}`);
+
+    return data.data?.items || [];
+  }
+
+  async listWikiSpaces(): Promise<BuiltinToolResult> {
+    try {
+      const spaces = await this.listWikiSpacesRaw();
+      return { content: JSON.stringify(spaces), success: true };
+    } catch (error) {
+      return { content: `Error: ${(error as Error).message}`, success: false };
+    }
+  }
+
+  async listWikiNodesRaw(spaceId: string): Promise<any[]> {
+    const baseUrl = this.getBaseUrl();
+    const token = await this.getLarkToken();
+
+    const res = await fetch(`${baseUrl}/wiki/v2/spaces/${spaceId}/nodes?page_size=50`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      method: 'GET',
+    });
+
+    if (!res.ok) {
+      const errorBody = await res.text();
+      throw new Error(`Lark list wiki nodes failed: ${res.status}. Details: ${errorBody}`);
+    }
+
+    const data = await res.json();
+    if (data.code !== 0) throw new Error(`Lark list wiki nodes error: ${data.msg}`);
+
+    return data.data?.items || [];
+  }
+
+  async listWikiNodes(spaceId: string): Promise<BuiltinToolResult> {
+    try {
+      const items = await this.listWikiNodesRaw(spaceId);
+      return { content: JSON.stringify({ items }), success: true };
+    } catch (error) {
+      return { content: `Error: ${(error as Error).message}`, success: false };
+    }
+  }
 }
 
 export class LarkDocExecutor extends BaseExecutor<typeof LarkDocApiName> {
@@ -249,4 +364,7 @@ export class LarkDocExecutor extends BaseExecutor<typeof LarkDocApiName> {
   getDocMeta = async (params: GetDocContentParams) => this.runtime.getDocMeta(params);
   listDocs = async (params: ListDocsParams) => this.runtime.listDocs(params);
   searchDocs = async (params: SearchDocsParams) => this.runtime.searchDocs(params);
+  searchWiki = async (params: SearchWikiParams) => this.runtime.searchWiki(params);
+  listWikiSpaces = async () => this.runtime.listWikiSpaces();
+  listWikiNodes = async (params: { spaceId: string }) => this.runtime.listWikiNodes(params.spaceId);
 }

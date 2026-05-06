@@ -17,8 +17,8 @@ export const configRouter = router({
     log('[GlobalConfig] Starting global config retrieval for user:', ctx.userId || 'anonymous');
 
     const [serverConfig, serverFeatureFlags] = await Promise.all([
-      getServerGlobalConfig(ctx.userId || undefined),
-      getServerFeatureFlagsStateFromEdgeConfig(ctx.userId || undefined),
+      getServerGlobalConfig(ctx.userId || undefined, ctx.userEmail || undefined),
+      getServerFeatureFlagsStateFromEdgeConfig(ctx.userId || undefined, ctx.userEmail || undefined),
     ]);
 
     log('[GlobalConfig] Server config retrieved');

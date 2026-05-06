@@ -37,11 +37,11 @@ const getPreviewText = (content?: string, fallback?: string) => {
 };
 
 const SelectionItem = memo<ChatContextContent & { fileType?: string }>(
-  ({ preview, id, fileType, url }) => {
+  ({ preview, id, fileType, url, title }) => {
     const [removeSelection] = useFileStore((s) => [s.removeChatContextSelection]);
     const [openLarkPreview] = useChatStore((s) => [s.openLarkPreview]);
 
-    const displayText = useMemo(() => getPreviewText(preview), [preview]);
+    const displayText = useMemo(() => title || getPreviewText(preview), [title, preview]);
 
     const icon = useMemo(() => {
       if (id.startsWith('lark-')) {

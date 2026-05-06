@@ -64,19 +64,22 @@ export const getServerFeatureFlagsFromEdgeConfig = async (userId?: string) => {
   return envFlags;
 };
 
-export const serverFeatureFlags = (userId?: string) => {
+export const serverFeatureFlags = (userId?: string, userEmail?: string | null) => {
   const serverConfig = getServerFeatureFlagsValue();
 
-  return mapFeatureFlagsEnvToState(serverConfig, userId);
+  return mapFeatureFlagsEnvToState(serverConfig, userId, userEmail);
 };
 
 /**
  * Get server feature flags from EdgeConfig and map them to state with user ID
  * @param userId - Optional user ID for user-specific feature flag evaluation
  */
-export const getServerFeatureFlagsStateFromEdgeConfig = async (userId?: string) => {
+export const getServerFeatureFlagsStateFromEdgeConfig = async (
+  userId?: string,
+  userEmail?: string | null,
+) => {
   const flags = await getServerFeatureFlagsFromEdgeConfig(userId);
-  return mapFeatureFlagsEnvToState(flags, userId);
+  return mapFeatureFlagsEnvToState(flags, userId, userEmail);
 };
 
 export * from './schema';

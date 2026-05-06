@@ -72,6 +72,7 @@ export interface AuthContext {
   resHeaders?: Headers;
   traceContext?: OtContext;
   userAgent?: string;
+  userEmail?: string | null;
   userId?: string | null;
 }
 
@@ -86,6 +87,7 @@ export const createContextInner = async (params?: {
   traceContext?: OtContext;
   userAgent?: string;
   userId?: string | null;
+  userEmail?: string | null;
 }): Promise<AuthContext> => {
   log('createContextInner called with params: %O', params);
   const responseHeaders = new Headers();
@@ -98,6 +100,7 @@ export const createContextInner = async (params?: {
     traceContext: params?.traceContext,
     userAgent: params?.userAgent,
     userId: params?.userId,
+    userEmail: params?.userEmail,
   };
 };
 
@@ -115,6 +118,7 @@ export const createLambdaContext = async (request: NextRequest): Promise<LambdaC
 
   if (process.env.NODE_ENV === 'development' && (isDebugApi || isMockUser)) {
     return createContextInner({
+      userEmail: process.env.MOCK_DEV_USER_EMAIL,
       userId: process.env.MOCK_DEV_USER_ID,
     });
   }
@@ -184,7 +188,8 @@ export const createLambdaContext = async (request: NextRequest): Promise<LambdaC
           sub: tokenInfo.userId, // Use tokenData as payload
         };
         userId = tokenInfo.userId;
-        log('OIDC authentication successful, userId: %s', userId);
+        const userEmail = tokenInfo.tokenData?.email;
+        log('OIDC authentication successful, userId: %s, email: %s', userId, userEmail);
 
         // If OIDC authentication is successful, return context immediately
         log('OIDC authentication successful, creating context and returning');
@@ -192,6 +197,7 @@ export const createLambdaContext = async (request: NextRequest): Promise<LambdaC
           oidcAuth,
           ...commonContext,
           traceContext,
+          userEmail,
           userId,
         });
       }
@@ -213,16 +219,18 @@ export const createLambdaContext = async (request: NextRequest): Promise<LambdaC
 
     if (session && session?.user?.id) {
       userId = session.user.id;
-      log('Better Auth authentication successful, userId: %s', userId);
+      const userEmail = session.user.email;
+      log('Better Auth authentication successful, userId: %s, email: %s', userId, userEmail);
+
+      return createContextInner({
+        ...commonContext,
+        traceContext,
+        userEmail,
+        userId,
+      });
     } else {
       log('Better Auth authentication failed, no valid session');
     }
-
-    return createContextInner({
-      ...commonContext,
-      traceContext,
-      userId,
-    });
   } catch (e) {
     log('Better Auth authentication error: %O', e);
     console.error('better auth err', e);

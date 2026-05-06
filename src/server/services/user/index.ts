@@ -31,10 +31,14 @@ export class UserService {
       const adminEmails = authEnv.ADMIN_EMAILS?.split(',').map((e) => e.trim().toLowerCase()) || [];
       const betaEmails =
         authEnv.BETA_WHITE_LIST_EMAILS?.split(',').map((e) => e.trim().toLowerCase()) || [];
+      const alphaEmails =
+        authEnv.ALPHA_WHITE_LIST_EMAILS?.split(',').map((e) => e.trim().toLowerCase()) || [];
 
       let role = 'user';
       if (adminEmails.includes(user.email.toLowerCase())) {
         role = 'admin';
+      } else if (alphaEmails.includes(user.email.toLowerCase())) {
+        role = 'alpha';
       } else if (betaEmails.includes(user.email.toLowerCase())) {
         role = 'beta';
       }
