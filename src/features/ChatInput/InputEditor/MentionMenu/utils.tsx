@@ -65,7 +65,8 @@ const getDocIcon = (type: string) => {
 };
 
 export const mapLarkDocToMentionItem = (d: any) => {
-  const rawType = (d.obj_type || d.type || d.docs_type || 'doc').toLowerCase();
+  const typeValue = d.obj_type || d.type || d.docs_type || 'doc';
+  const rawType = (typeof typeValue === 'string' ? typeValue : String(typeValue)).toLowerCase();
   const sizeStr = d.size
     ? `${(Number(d.size) / 1024 / 1024).toFixed(1)} MB`
     : rawType.toUpperCase();

@@ -70,7 +70,7 @@ const provider: GenericProviderDefinition<{
         app_id: clientId,
         response_type: 'code',
         scope:
-          'contact:user.base:readonly contact:user.email:readonly contact:user.employee:readonly contact:user.department:readonly docx:document:readonly drive:drive:readonly im:chat:readonly im:chat im:chat:read wiki:wiki:readonly wiki:space:retrieve offline_access',
+          'contact:user.base:readonly contact:user.email:readonly contact:user.employee:readonly contact:user.department:readonly docx:document:readonly drive:drive:readonly im:chat:readonly im:chat im:chat:read wiki:wiki:readonly wiki:wiki wiki:space:retrieve search:docs:read offline_access',
       },
       clientId,
       clientSecret,
@@ -167,7 +167,9 @@ const provider: GenericProviderDefinition<{
         'im:chat',
         'im:chat:read',
         'wiki:wiki:readonly',
+        'wiki:wiki',
         'wiki:space:retrieve',
+        'search:docs:read',
         'offline_access',
       ],
       tokenUrl: LARK_TOKEN_URL,
