@@ -82,12 +82,10 @@ const FileUpload = memo(() => {
             closeOnClick: false,
             key: 'upload-file',
             icon: (
-              <span
-                className="material-symbols-outlined"
-                style={{ color: '#3b82f6', fontSize: 18 }}
-              >
-                upload_file
-              </span>
+              <img
+                src="/icons/upload.svg"
+                style={{ height: 18, width: 18 }}
+              />
             ),
             label: (
               <Upload
@@ -134,12 +132,10 @@ const FileUpload = memo(() => {
             closeOnClick: true,
             key: 'upload-lark',
             icon: (
-              <span
-                className="material-symbols-outlined"
-                style={{ color: '#22c55e', fontSize: 18 }}
-              >
-                description
-              </span>
+              <img
+                src="/icons/lark.svg"
+                style={{ height: 18, width: 18 }}
+              />
             ),
             label: (
               <div

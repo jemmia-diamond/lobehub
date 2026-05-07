@@ -332,6 +332,8 @@ export default {
   'feedback.widget.cancelButtonLabel': 'Cancel',
   'feedback.widget.emailLabel': 'Email',
   'feedback.widget.emailPlaceholder': 'Enter your email address',
+  'feedback.widget.addScreenshotButtonLabel': 'Add a screenshot',
+  'feedback.widget.removeScreenshotButtonLabel': 'Remove screenshot',
   'feedback.widget.formTitle': 'Send Feedback',
   'feedback.widget.messageLabel': 'Message',
   'feedback.widget.messagePlaceholder': 'What issues are you experiencing? What can we improve?',

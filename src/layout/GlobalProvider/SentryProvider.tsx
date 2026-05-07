@@ -52,6 +52,8 @@ const SentryProvider = memo<PropsWithChildren>(({ children }) => {
             messagePlaceholder: t('feedback.widget.messagePlaceholder'),
             nameLabel: t('feedback.widget.nameLabel'),
             namePlaceholder: t('feedback.widget.namePlaceholder'),
+            addScreenshotButtonLabel: t('feedback.widget.addScreenshotButtonLabel'),
+            removeScreenshotButtonLabel: t('feedback.widget.removeScreenshotButtonLabel'),
             submitButtonLabel: t('feedback.widget.submitButtonLabel'),
             successMessageText: t('feedback.widget.successMessage'),
           }),

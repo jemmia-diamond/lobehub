@@ -250,6 +250,8 @@
   "feedback.submit": "Gửi phản hồi",
   "feedback.success": "Cảm ơn bạn! Phản hồi của bạn đã được gửi.",
   "feedback.title": "Chúng tôi có thể giúp gì cho bạn?",
+  "feedback.widget.addScreenshotButtonLabel": "Thêm ảnh chụp màn hình",
+  "feedback.widget.removeScreenshotButtonLabel": "Gỡ bỏ ảnh chụp màn hình",
   "feedback.widget.buttonLabel": "Góp ý",
   "feedback.widget.cancelButtonLabel": "Hủy",
   "feedback.widget.emailLabel": "Email",
