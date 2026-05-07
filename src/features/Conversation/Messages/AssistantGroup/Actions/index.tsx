@@ -9,6 +9,7 @@ import { message } from '@/components/AntdStaticMethods';
 import { useSentryFeedback } from '@/hooks/useSentryFeedback';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
+import { FilledThumbsDown, FilledThumbsUp } from '../../../components/FilledThumbsIcons';
 import { ReactionPicker } from '../../../components/Reaction';
 import ShareMessageModal, { type ShareModalProps } from '../../../components/ShareMessageModal';
 import {
@@ -218,7 +219,7 @@ const WithContentId = memo<GroupActionsProps>(({ actionsConfig, id, data, conten
         <>
           <ActionIcon
             active={data.metadata?.feedback === 'positive'}
-            icon={ThumbsUp}
+            icon={data.metadata?.feedback === 'positive' ? FilledThumbsUp : ThumbsUp}
             size="small"
             title={t('messageAction.feedback' as any)}
             onClick={() => {
@@ -227,7 +228,7 @@ const WithContentId = memo<GroupActionsProps>(({ actionsConfig, id, data, conten
                 return;
               }
               submitFeedback({
-                content: data.content,
+                content: contentBlock?.content || data.content,
                 messageId: id,
                 sentiment: 'positive',
                 topicId: topicId ?? undefined,
@@ -238,7 +239,7 @@ const WithContentId = memo<GroupActionsProps>(({ actionsConfig, id, data, conten
           />
           <ActionIcon
             active={data.metadata?.feedback === 'negative'}
-            icon={ThumbsDown}
+            icon={data.metadata?.feedback === 'negative' ? FilledThumbsDown : ThumbsDown}
             size="small"
             title={t('messageAction.feedback')}
             onClick={() => {
@@ -247,7 +248,7 @@ const WithContentId = memo<GroupActionsProps>(({ actionsConfig, id, data, conten
                 return;
               }
               submitFeedback({
-                content: data.content,
+                content: contentBlock?.content || data.content,
                 messageId: id,
                 sentiment: 'negative',
                 topicId: topicId ?? undefined,

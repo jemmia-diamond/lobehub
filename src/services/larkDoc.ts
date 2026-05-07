@@ -13,8 +13,6 @@ class LarkDocService {
     return toolsClient.larkDoc.searchDocs.query(params);
   }
 
-
-
   async searchWiki(params: {
     pageSize?: number;
     pageToken?: string;

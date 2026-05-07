@@ -183,7 +183,7 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   show_lark_search_filter_sort: false,
   show_lark_search_filter_owner: false,
   show_lark_search_filter_chat: false,
-  show_lark_search_filter_wiki: true,
+  show_lark_search_filter_wiki: false,
   show_lark_search_filter_format: false,
   show_upload_file: true,
   show_upload_lark: true,

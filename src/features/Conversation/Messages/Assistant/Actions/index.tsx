@@ -9,6 +9,7 @@ import { message } from '@/components/AntdStaticMethods';
 import { useSentryFeedback } from '@/hooks/useSentryFeedback';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
+import { FilledThumbsDown, FilledThumbsUp } from '../../../components/FilledThumbsIcons';
 import { ReactionPicker } from '../../../components/Reaction';
 import ShareMessageModal, { type ShareModalProps } from '../../../components/ShareMessageModal';
 import {
@@ -239,7 +240,7 @@ export const AssistantActionsBar = memo<AssistantActionsBarProps>(
           <>
             <ActionIcon
               active={data.metadata?.feedback === 'positive'}
-              icon={ThumbsUp}
+              icon={data.metadata?.feedback === 'positive' ? FilledThumbsUp : ThumbsUp}
               size="small"
               title={t('messageAction.feedbackPositive' as any)}
               onClick={() => {
@@ -259,7 +260,7 @@ export const AssistantActionsBar = memo<AssistantActionsBarProps>(
             />
             <ActionIcon
               active={data.metadata?.feedback === 'negative'}
-              icon={ThumbsDown}
+              icon={data.metadata?.feedback === 'negative' ? FilledThumbsDown : ThumbsDown}
               size="small"
               title={t('messageAction.feedbackNegative' as any)}
               onClick={() => {

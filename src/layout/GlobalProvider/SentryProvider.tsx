@@ -39,6 +39,7 @@ const SentryProvider = memo<PropsWithChildren>(({ children }) => {
         integrations: [
           Sentry.feedbackIntegration({
             buttonLabel: t('feedback.widget.buttonLabel'),
+            triggerLabel: t('feedback.widget.buttonLabel'),
             cancelButtonLabel: t('feedback.widget.cancelButtonLabel'),
             colorScheme: 'light',
             emailLabel: t('feedback.widget.emailLabel'),
