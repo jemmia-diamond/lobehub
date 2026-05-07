@@ -18,6 +18,14 @@ import { withRateLimitRetry } from '@/utils/retryPolicy';
  */
 const VECTOR_DIMENSIONS = 3072;
 
+export interface EmbeddingOptions {
+  dimensions?: number;
+  logPrefix?: string;
+  model?: string;
+  provider?: string;
+  trigger?: RequestTrigger;
+}
+
 export class ServerEmbeddingService {
   /**
    * Determine whether to use direct AI SDK or fallback to initModelRuntime (aiproxy).
@@ -33,13 +41,9 @@ export class ServerEmbeddingService {
     maxRetries: number = 3,
   ) {
     return withGoogleEmbeddingKeyFallback(
-      (apiKey) =>
-        withRateLimitRetry(
-          () => operation(createGoogleGenerativeAI({ apiKey })),
-          maxRetries,
-          logPrefix,
-        ),
+      (apiKey) => operation(createGoogleGenerativeAI({ apiKey })),
       logPrefix,
+      maxRetries,
     );
   }
 
@@ -47,10 +51,13 @@ export class ServerEmbeddingService {
     text: string,
     db: LobeChatDatabase,
     userId: string,
-    logPrefix = '[SemanticSearch]',
+    options?: EmbeddingOptions,
   ): Promise<number[]> {
-    const { model, provider } =
-      getServerDefaultFilesConfig().embeddingModel || DEFAULT_FILE_EMBEDDING_MODEL_ITEM;
+    const config = getServerDefaultFilesConfig().embeddingModel || DEFAULT_FILE_EMBEDDING_MODEL_ITEM;
+    const model = options?.model || config.model;
+    const provider = options?.provider || config.provider;
+    const dimensions = options?.dimensions || VECTOR_DIMENSIONS;
+    const logPrefix = options?.logPrefix || '[SemanticSearch]';
 
     if (this.getMode() === 'sdk') {
       const result = await this.embedWithSdkFallback(
@@ -59,7 +66,7 @@ export class ServerEmbeddingService {
             maxRetries: 0, // disable SDK retries — withRateLimitRetry handles per-minute 429s
             model: provider.embedding(model),
             providerOptions: {
-              google: { outputDimensionality: VECTOR_DIMENSIONS },
+              google: { outputDimensionality: dimensions },
             },
             value: text,
           }),
@@ -74,11 +81,11 @@ export class ServerEmbeddingService {
       () =>
         agentRuntime.embeddings(
           {
-            dimensions: VECTOR_DIMENSIONS,
+            dimensions,
             input: text,
             model,
           },
-          { metadata: { trigger: RequestTrigger.SemanticSearch }, user: userId },
+          { metadata: { trigger: options?.trigger || RequestTrigger.SemanticSearch }, user: userId },
         ),
       3,
       logPrefix,
@@ -95,10 +102,13 @@ export class ServerEmbeddingService {
     texts: string[],
     db: LobeChatDatabase,
     userId: string,
-    logPrefix = '[KnowledgeBootstrap]',
+    options?: EmbeddingOptions,
   ): Promise<number[][]> {
-    const { model, provider } =
-      getServerDefaultFilesConfig().embeddingModel || DEFAULT_FILE_EMBEDDING_MODEL_ITEM;
+    const config = getServerDefaultFilesConfig().embeddingModel || DEFAULT_FILE_EMBEDDING_MODEL_ITEM;
+    const model = options?.model || config.model;
+    const provider = options?.provider || config.provider;
+    const dimensions = options?.dimensions || VECTOR_DIMENSIONS;
+    const logPrefix = options?.logPrefix || '[KnowledgeBootstrap]';
 
     if (this.getMode() === 'sdk') {
       const result = await this.embedWithSdkFallback(
@@ -107,7 +117,7 @@ export class ServerEmbeddingService {
             maxRetries: 0, // disable SDK retries — withRateLimitRetry handles per-minute 429s
             model: provider.embedding(model),
             providerOptions: {
-              google: { outputDimensionality: VECTOR_DIMENSIONS },
+              google: { outputDimensionality: dimensions },
             },
             values: texts,
           }),
@@ -122,11 +132,11 @@ export class ServerEmbeddingService {
       () =>
         agentRuntime.embeddings(
           {
-            dimensions: VECTOR_DIMENSIONS,
+            dimensions,
             input: texts,
             model,
           },
-          { metadata: { trigger: RequestTrigger.FileEmbedding }, user: userId },
+          { metadata: { trigger: options?.trigger || RequestTrigger.FileEmbedding }, user: userId },
         ),
       5,
       logPrefix,

@@ -4,19 +4,23 @@
  */
 export const getGoogleEmbeddingKeys = (): string[] => {
   const combined = process.env.GOOGLE_EMBEDDING_API_KEYS;
-  if (combined) {
-    return combined
-      .split(',')
-      .map((k) => k.trim())
-      .filter(Boolean);
-  }
-
-  return [];
+  if (!combined) return [];
+  return combined
+    .split(',')
+    .map((k) => k.trim())
+    .filter(Boolean);
 };
 
 /**
- * Runs an embedding operation with sequential key fallback on 429.
- * Each key is retried up to maxRetriesPerKey times before moving to the next key.
+ * Runs an embedding operation with sequential key fallback.
+ *
+ * Retry behavior:
+ * - 403/401 (auth error): skip to next key immediately, no retries on same key
+ * - 429 (rate limit): retry up to maxRetriesPerKey times on same key, then move to next
+ * - Other errors: throw immediately
+ *
+ * Sentry/console.error: only on final failure after all keys exhausted.
+ * Intermediate retries use console.warn only.
  */
 export const withGoogleEmbeddingKeyFallback = async <T>(
   operation: (apiKey: string) => Promise<T>,
@@ -24,15 +28,27 @@ export const withGoogleEmbeddingKeyFallback = async <T>(
   maxRetriesPerKey = 3,
 ): Promise<T> => {
   const keys = getGoogleEmbeddingKeys();
-  let lastError: any;
+
+  if (keys.length === 0) {
+    throw new Error(`${logPrefix} No Google API keys found in GOOGLE_EMBEDDING_API_KEYS.`);
+  }
+
+  let lastError: unknown;
 
   for (const [index, apiKey] of keys.entries()) {
-    for (let attempt = 1; attempt <= maxRetriesPerKey; attempt++) {
+    const isLastKey = index === keys.length - 1;
+    let attempts = 0;
+
+    while (attempts < maxRetriesPerKey) {
+      attempts++;
       try {
         return await operation(apiKey);
       } catch (error: any) {
-        // Unwrap AI SDK RetryError to get the actual cause
+        lastError = error;
+
+        // Unwrap AI SDK RetryError
         const cause = error?.cause ?? error?.lastError ?? error;
+
         const is429 =
           cause?.statusCode === 429 ||
           error?.status === 429 ||
@@ -40,7 +56,7 @@ export const withGoogleEmbeddingKeyFallback = async <T>(
           error?.errorType === 'QuotaLimitReached' ||
           String(cause).includes('429');
 
-        const isAuthError =
+        const is403 =
           cause?.statusCode === 403 ||
           cause?.statusCode === 401 ||
           error?.status === 403 ||
@@ -50,26 +66,63 @@ export const withGoogleEmbeddingKeyFallback = async <T>(
           String(error).toLowerCase().includes('unauthorized') ||
           error?.message?.toLowerCase().includes('permission_denied');
 
-        if (!is429 && !isAuthError) throw error;
+        // Non-retryable error — throw immediately
+        if (!is429 && !is403) throw error;
 
-        lastError = error;
-        const errorType = is429 ? 'rate limit (429)' : 'auth error (401/403)';
-        if (attempt < maxRetriesPerKey) {
+        const errorLabel = is403 ? '403/auth' : '429/rate-limit';
+        const isFinalFailure = isLastKey && (is403 || attempts >= maxRetriesPerKey);
+
+        if (is403) {
+          // Auth errors: skip to next key immediately, no retries
+          if (isFinalFailure) {
+            // All keys exhausted — log as error (will be picked up by Sentry)
+            console.error(`${logPrefix} Key ${index + 1}/${keys.length} hit ${errorLabel}. All keys exhausted.`);
+          } else {
+            console.warn(`${logPrefix} Key ${index + 1}/${keys.length} hit ${errorLabel}. Trying next key...`);
+          }
+          break; // exit inner while, move to next key
+        }
+
+        // 429: retry on same key with smart backoff
+        if (attempts < maxRetriesPerKey) {
+          let waitSeconds = 5;
+          try {
+            if (error?.error?.message && typeof error.error.message === 'string') {
+              const parsed = JSON.parse(error.error.message);
+              const retryInfo = parsed?.error?.details?.find(
+                (d: any) => d['@type'] === 'type.googleapis.com/google.rpc.RetryInfo',
+              );
+              if (retryInfo?.retryDelay) {
+                waitSeconds = parseInt(retryInfo.retryDelay.replace('s', ''), 10) + 1;
+              } else {
+                const match = parsed?.error?.message?.match(/retry in ([\d.]+)s/);
+                if (match && match[1]) {
+                  waitSeconds = Math.ceil(parseFloat(match[1])) + 1;
+                }
+              }
+            }
+          } catch {
+            // Ignore parse error, use default 5s
+          }
+
+          console.warn(
+            `${logPrefix} Key ${index + 1}/${keys.length} attempt ${attempts}/${maxRetriesPerKey} hit ${errorLabel}. Waiting ${waitSeconds}s before retrying...`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, waitSeconds * 1000));
+        } else if (isFinalFailure) {
+          // Last attempt on last key — log as error (Sentry)
           console.error(
-            `${logPrefix} Key ${index + 1}/${keys.length} attempt ${attempt}/${maxRetriesPerKey} hit ${errorType}, retrying...`,
+            `${logPrefix} Key ${index + 1}/${keys.length} exhausted after ${maxRetriesPerKey} attempts. All keys exhausted.`,
           );
         } else {
-          console.error(
-            `${logPrefix} Key ${index + 1}/${keys.length} exhausted after ${maxRetriesPerKey} attempts, trying next key...`,
+          // Last attempt on this key, but more keys remain
+          console.warn(
+            `${logPrefix} Key ${index + 1}/${keys.length} exhausted after ${maxRetriesPerKey} attempts. Trying next key...`,
           );
         }
       }
     }
   }
 
-  if (keys.length === 0) {
-    throw new Error(`${logPrefix} No Google API keys found in environment variables.`);
-  }
-
-  throw lastError || new Error(`${logPrefix} Embedding failed with unknown error.`);
+  throw lastError ?? new Error(`${logPrefix} Embedding failed with unknown error.`);
 };

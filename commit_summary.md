@@ -1,7 +1,7 @@
 # Commit Summary — lamtungphan8@gmail.com
 
-**Period**: Mar 11 – Apr 22, 2026 (43 days)
-**Total commits**: 250+
+**Period**: Mar 11 – May 6, 2026 (57 days)
+**Total commits**: 260+
 **Branch**: `canary` → `main`
 
 ---
@@ -17,6 +17,7 @@
 | Week 5 | Apr 7–13 | RAG refinement, Lark citations, stale loading fixes, full branding |
 | Week 6 | Apr 14–21 | Lark user profile, approval links, mobile guard, i18n fixes |
 | Week 7 | Apr 22 | Bug fixes: topic list refresh, embedding key fallback, KB threshold |
+| Week 8 | Apr 30–May 6 | Sentry monitoring, beta access, message feedback, Lark docs |
 
 ---
 
@@ -242,7 +243,33 @@
 
 ---
 
-## Cumulative Achievements
+## Phase 8 — Sentry, Beta Access, Feedback & Lark Docs (Apr 30 – May 6)
+
+**Goal**: Production monitoring, beta access control, message feedback UI, Lark document integration.
+
+| Date | Hash | Description |
+|:-----|:-----|:------------|
+| Apr 30 | `e03530e0` | Validate beta testing with enterprise email — add `enterprise_email` column to users, check both email and enterprise_email in middleware |
+| May 4 | `3e22f7c9` | Update new knowledge files |
+| May 4 | `a8992c51` | Fix: filter out Better Auth redirects and aborted requests in Sentry server/edge configs |
+| May 5 | `381bf612` | Fix: always show user feedback widget |
+| May 5 | `065f6b68` | Add feedback metadata support and UI toggle states for assistant messages (👍/👎 highlight) |
+| May 5 | `3a48d74c` | Refactor: remove associated event ID from feedback; update Sentry init docs |
+| May 5 | `34c229cf` | Update R2→Lark mapping configuration schema |
+| May 5 | `d1623b6a` | Support runtime Sentry configuration in SPA; update Vite build exclusions |
+| May 5 | `6bfdb42e` | Refactor: modularize MCP client; auth error handling for Google embedding keys; i18n for Sentry feedback widget |
+| May 6 | `f2693ce1` | WIP: introduce Lark doc features + alpha test |
+| May 6 | `529dea71` | Update Lark SSO scopes; improve mention item type mapping |
+
+**Summary**:
+
+**Beta access**: Added `enterprise_email` column to `users` table (migration `0100_add_enterprise_email.sql`). Lark silent login now saves enterprise email separately. Middleware checks both `email` and `enterpriseEmail` against `BETA_WHITE_LIST_EMAILS` — handles users with personal vs corporate Lark emails correctly.
+
+**Sentry monitoring**: Fixed feedback widget not showing in production (was `enabled: false` in dev, `feedbackIntegration` in wrong place). Moved widget to `instrumentation-client.ts` with `enabled: !!DSN`. Added 👍/👎 feedback buttons on assistant messages with highlight state persisted in message metadata. Filtered noisy Better Auth 302 redirects from Sentry noise.
+
+**Lark docs**: WIP integration for Lark document features. Updated SSO scopes to include document permissions.
+
+---
 
 ### 🏗️ Infrastructure
 - Full CI/CD pipeline: GHCR build → Dokploy webhook deploy → upstream auto-sync

@@ -243,7 +243,7 @@ export const chunkRouter = router({
             query,
             ctx.serverDB,
             ctx.userId,
-            '[SemanticSearchForChat]',
+            { logPrefix: '[SemanticSearchForChat]' },
           );
         } catch (embeddingError) {
           console.warn(

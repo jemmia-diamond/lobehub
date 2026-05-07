@@ -1,4 +1,3 @@
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { BRANDING_PROVIDER, ENABLE_BUSINESS_FEATURES } from '@lobechat/business-const';
 import {
   DEFAULT_SEARCH_USER_MEMORY_TOP_K,
@@ -23,7 +22,6 @@ import {
   RequestTrigger,
   searchMemorySchema,
 } from '@lobechat/types';
-import { embedMany } from 'ai';
 import { and, asc, eq, gte, lte, type SQL } from 'drizzle-orm';
 import pMap from 'p-map';
 import { z } from 'zod';
@@ -52,8 +50,8 @@ import { authedProcedure, router } from '@/libs/trpc/lambda';
 import { serverDatabase } from '@/libs/trpc/lambda/middleware';
 import { getServerDefaultFilesConfig } from '@/server/globalConfig';
 import { initModelRuntimeFromDB } from '@/server/modules/ModelRuntime';
+import { ServerEmbeddingService } from '@/server/services/embedding';
 import { normalizeSearchMemoryParams } from '@/server/services/memory/userMemory/searchParams';
-import { withGoogleEmbeddingKeyFallback } from '@/server/utils/googleEmbeddingKeys';
 
 const EMPTY_SEARCH_RESULT: SearchMemoryResult = {
   activities: [],
@@ -133,19 +131,20 @@ const embedMemoryQueriesWithFallback = async (
   model: string,
   dimensions: number,
 ): Promise<number[][]> => {
-  // Google provider: use direct SDK calls with key fallback
+  // Google provider: use unified ServerEmbeddingService with robust fallback/retry
   if (provider === 'google' || provider === 'jemmia') {
-    const { embeddings } = await withGoogleEmbeddingKeyFallback(
-      (apiKey) =>
-        embedMany({
-          maxRetries: 0, // disable SDK retries — withGoogleEmbeddingKeyFallback handles key rotation
-          model: createGoogleGenerativeAI({ apiKey }).embedding(model),
-          providerOptions: { google: { outputDimensionality: dimensions } },
-          values: queries,
-        }),
-      '[MemoryEmbedding]',
+    return ServerEmbeddingService.generateEmbeddings(
+      queries,
+      ctx.serverDB,
+      ctx.userId,
+      {
+        dimensions,
+        model,
+        provider,
+        logPrefix: '[MemoryEmbedding]',
+        trigger: RequestTrigger.Memory,
+      }
     );
-    return embeddings;
   }
 
   // Non-Google provider: use initModelRuntimeFromDB (original path)
