@@ -11,21 +11,16 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      rustfs:
-        condition: service_healthy
-      rustfs-init:
-        condition: service_completed_successfully
     environment:
       - 'KEY_VAULTS_SECRET=${KEY_VAULTS_SECRET}'
       - 'AUTH_SECRET=${AUTH_SECRET}'
       - 'DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgresql:5432/${LOBE_DB_NAME}'
       - 'INTERNAL_APP_URL=http://localhost:3210'
       - 'S3_ENDPOINT=${S3_ENDPOINT}'
-      - 'S3_BUCKET=${RUSTFS_LOBE_BUCKET}'
-      - 'S3_ENABLE_PATH_STYLE=1'
-      - 'S3_ACCESS_KEY=${RUSTFS_ACCESS_KEY}'
-      - 'S3_ACCESS_KEY_ID=${RUSTFS_ACCESS_KEY}'
-      - 'S3_SECRET_ACCESS_KEY=${RUSTFS_SECRET_KEY}'
+      - 'S3_BUCKET=${S3_BUCKET}'
+      - 'S3_ENABLE_PATH_STYLE=${S3_ENABLE_PATH_STYLE:-1}'
+      - 'S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}'
+      - 'S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}'
       - 'LLM_VISION_IMAGE_USE_BASE64=1'
       - 'S3_SET_ACL=0'
       - 'SEARXNG_URL=http://searxng:8080'
@@ -41,9 +36,6 @@ services:
   postgresql:
     image: paradedb/paradedb:latest-pg17
     container_name: lobe-postgres
-    # Optional: Remove or change these ports if:
-    # - You don't need external database access
-    # - The ports conflict with other services on your host
     ports:
       - '5432:5432'
     volumes:
@@ -63,9 +55,6 @@ services:
   redis:
     image: redis:7-alpine
     container_name: lobe-redis
-    # Optional: Remove or change these ports if:
-    # - You don't need external access
-    # - The ports conflict with other services on your host
     ports:
       - '6379:6379'
     command: redis-server --save 60 1000 --appendonly yes
@@ -84,13 +73,8 @@ services:
     image: rustfs/rustfs:latest
     container_name: lobe-rustfs
     ports:
-      - '${RUSTFS_PORT}:9000'
-      - '${RUSTFS_ADMIN_PORT}:9001'
-    # Optional: Remove or change RUSTFS_ADMIN_PORT if:
-    # - You don't need external access to rustfs control panel
-    # - The ports conflict with other services on your host
-    # - RUSTFS_PORT is necessary only if you need to upload images to conversations. (avatar uploads are not affected)
-    # - Uploading images to conversations requires a browser-accessible S3_ENDPOINT.
+      - '${RUSTFS_PORT:-9000}:9000'
+      - '${RUSTFS_ADMIN_PORT:-9001}:9001'
     environment:
       - RUSTFS_CONSOLE_ENABLE=true
       - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY}
@@ -98,12 +82,11 @@ services:
     volumes:
       - 'rustfs-data:/data'
     healthcheck:
-      test: ['CMD-SHELL', 'wget -qO- http://localhost:9000/health >/dev/null 2>&1 || exit 1']
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9000/health >/dev/null 2>&1 || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 30
-    command:
-      ['--access-key', '${RUSTFS_ACCESS_KEY}', '--secret-key', '${RUSTFS_SECRET_KEY}', '/data']
+    command: ["--access-key", "${RUSTFS_ACCESS_KEY}", "--secret-key", "${RUSTFS_SECRET_KEY}", "/data"]
     networks:
       - lobe-network
 
@@ -113,10 +96,20 @@ services:
     depends_on:
       rustfs:
         condition: service_healthy
-    volumes:
-      - ./bucket.config.json:/bucket.config.json:ro
+    environment:
+      - 'RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY}'
+      - 'RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY}'
+      - 'RUSTFS_LOBE_BUCKET=${RUSTFS_LOBE_BUCKET:-lobe}'
     entrypoint: /bin/sh
-    command: -c ' set -eux; echo "S3_ACCESS_KEY=${RUSTFS_ACCESS_KEY}, S3_SECRET_KEY=${RUSTFS_SECRET_KEY}"; mc --version; mc alias set rustfs "http://rustfs:9000" "${RUSTFS_ACCESS_KEY}" "${RUSTFS_SECRET_KEY}"; mc ls rustfs || true; mc mb "rustfs/lobe" --ignore-existing; mc admin info rustfs || true; mc anonymous set-json "/bucket.config.json" "rustfs/lobe"; '
+    command: >
+      -c '
+      set -eux;
+      mc alias set rustfs "http://rustfs:9000" "$${RUSTFS_ACCESS_KEY}" "$${RUSTFS_SECRET_KEY}";
+      mc mb "rustfs/$${RUSTFS_LOBE_BUCKET}" --ignore-existing;
+      echo "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":[\"*\"]},\"Action\":[\"s3:GetBucketLocation\",\"s3:ListBucket\"],\"Resource\":[\"arn:aws:s3:::node\"]},{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":[\"*\"]},\"Action\":[\"s3:GetObject\"],\"Resource\":[\"arn:aws:s3:::node/*\"]}]}" > /tmp/policy.json;
+      sed -i "s/node/$${RUSTFS_LOBE_BUCKET}/g" /tmp/policy.json;
+      mc anonymous set-json /tmp/policy.json "rustfs/$${RUSTFS_LOBE_BUCKET}";
+      '
     restart: 'no'
     networks:
       - lobe-network

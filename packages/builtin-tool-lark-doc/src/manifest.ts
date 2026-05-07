@@ -36,6 +36,29 @@ export const LarkDocManifest: BuiltinToolManifest = {
         type: 'object',
       },
     },
+    {
+      description: 'Search for documents across all of Lark Drive by keyword. Returns docs, sheets, slides, bitables, mindnotes.',
+      name: LarkDocApiName.searchDocs,
+      parameters: {
+        additionalProperties: false,
+        properties: {
+          searchKey: {
+            description: 'The keyword to search for.',
+            type: 'string',
+          },
+          count: {
+            description: 'Number of results to return (max 50). Default is 15.',
+            type: 'number',
+          },
+          offset: {
+            description: 'Offset for pagination. Default is 0.',
+            type: 'number',
+          },
+        },
+        required: ['searchKey'],
+        type: 'object',
+      },
+    },
 
     {
       description: 'Search for pages in Lark/Feishu Wiki spaces by keyword. This gives more results and a broader range compared to drive search.',

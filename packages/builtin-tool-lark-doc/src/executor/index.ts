@@ -7,6 +7,13 @@ interface GetDocContentParams {
   documentId: string;
 }
 
+interface SearchDocsParams {
+  count?: number;
+  docsTypes?: string[];
+  offset?: number;
+  searchKey: string;
+}
+
 interface SearchWikiParams {
   pageSize?: number;
   pageToken?: string;
@@ -114,6 +121,73 @@ export class LarkDocExecutionRuntime {
     }
   }
 
+  async searchDocsRaw(params: SearchDocsParams): Promise<{
+    docs_entities: any[];
+    has_more: boolean;
+    total: number;
+  }> {
+    const { searchKey, count = 15, offset = 0, docsTypes } = params;
+
+    const baseUrl = this.getBaseUrl();
+    const token = await this.getLarkToken();
+
+    const body: Record<string, any> = {
+      count: Number(count),
+      offset: Number(offset),
+      search_key: searchKey,
+    };
+
+    if (docsTypes && docsTypes.length > 0) {
+      body.docs_types = docsTypes;
+    }
+
+    const res = await fetch(`${baseUrl}/suite/docs-api/search/object`, {
+      body: JSON.stringify(body),
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+      method: 'POST',
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(`Lark doc search failed: ${res.status}. Details: ${JSON.stringify(data)}`);
+    }
+    if (data.code !== 0) throw new Error(`Lark doc search error: ${data.msg}`);
+
+    return {
+      docs_entities: data.data?.docs_entities || [],
+      has_more: data.data?.has_more || false,
+      total: data.data?.total || 0,
+    };
+  }
+
+  async searchDocs(params: SearchDocsParams): Promise<BuiltinToolResult> {
+    try {
+      const result = await this.searchDocsRaw(params);
+      // Normalize to same shape as other list methods for the modal
+      const items = result.docs_entities.map((d: any) => ({
+        obj_token: d.docs_token,
+        obj_type: d.docs_type,
+        title: d.title,
+        owner_id: d.owner_id,
+      }));
+      return {
+        content: JSON.stringify({
+          has_more: result.has_more,
+          items,
+          page_token: result.has_more ? (params.offset || 0) + items.length : undefined,
+          total: result.total,
+        }),
+        success: true,
+      };
+    } catch (error) {
+      return { content: `Error: ${(error as Error).message}`, success: false };
+    }
+  }
+
   async searchWikiRaw(
     params: SearchWikiParams,
   ): Promise<{ items: any[]; has_more?: boolean; page_token?: string }> {
@@ -123,7 +197,7 @@ export class LarkDocExecutionRuntime {
     const token = await this.getLarkToken();
 
     const payload: Record<string, any> = {
-      page_size: pageSize,
+      page_size: Number(pageSize),
       query: query || '',
     };
     if (spaceId && spaceId !== 'undefined' && spaceId !== 'null') {
@@ -220,7 +294,7 @@ export class LarkDocExecutionRuntime {
     const baseUrl = this.getBaseUrl();
     const token = await this.getLarkToken();
 
-    let url = `${baseUrl}/wiki/v2/spaces/${spaceId}/nodes?page_size=${pageSize}`;
+    let url = `${baseUrl}/wiki/v2/spaces/${spaceId}/nodes?page_size=${Number(pageSize)}`;
     if (pageToken) {
       url += `&page_token=${pageToken}`;
     }
@@ -274,6 +348,7 @@ export class LarkDocExecutor extends BaseExecutor<typeof LarkDocApiName> {
 
   getDocContent = async (params: GetDocContentParams) => this.runtime.getDocContent(params);
   getDocMeta = async (params: GetDocContentParams) => this.runtime.getDocMeta(params);
+  searchDocs = async (params: SearchDocsParams) => this.runtime.searchDocs(params);
   searchWiki = async (params: SearchWikiParams) => this.runtime.searchWiki(params);
   listWikiSpaces = async () => this.runtime.listWikiSpaces();
   listWikiNodes = async (params: { spaceId: string; pageToken?: string; pageSize?: number }) =>

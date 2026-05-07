@@ -9,7 +9,9 @@ class LarkDocService {
     return toolsClient.larkDoc.getDocMeta.query(params);
   }
 
-
+  async searchDocs(params: { searchKey: string; count?: number; offset?: number; docsTypes?: string[] }) {
+    return toolsClient.larkDoc.searchDocs.query(params);
+  }
 
 
 

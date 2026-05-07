@@ -46,9 +46,25 @@ export const larkDocRouter = router({
       );
     }),
 
-
-
-
+  searchDocs: larkDocProcedure
+    .input(
+      z.object({
+        searchKey: z.string(),
+        count: z.number().optional().default(15),
+        offset: z.number().optional().default(0),
+        docsTypes: z.array(z.string()).optional(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      return await withLarkRuntime(ctx, (runtime) =>
+        runtime.searchDocs({
+          searchKey: input.searchKey,
+          count: input.count,
+          offset: input.offset,
+          docsTypes: input.docsTypes,
+        }),
+      );
+    }),
 
   searchWiki: larkDocProcedure
     .input(

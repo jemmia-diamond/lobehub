@@ -5,6 +5,7 @@ export enum LarkDocApiName {
   getDocMeta = 'getDocMeta',
   listWikiNodes = 'listWikiNodes',
   listWikiSpaces = 'listWikiSpaces',
+  searchDocs = 'searchDocs',
   searchWiki = 'searchWiki',
 }
 
