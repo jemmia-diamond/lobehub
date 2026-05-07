@@ -85,7 +85,6 @@
     "lint:circular:main": "dpdm src/**/*.ts  --no-warning --no-tree --exit-code circular:1 --no-progress -T true --skip-dynamic-imports circular",
     "lint:circular:packages": "dpdm packages/**/src/**/*.ts  --no-warning --no-tree --exit-code circular:1 --no-progress -T true --skip-dynamic-imports circular",
     "lint:console": "tsx scripts/checkConsoleLog.mts",
-    "lint:md": "remark . --silent --output",
     "lint:mdx": "npm run workflow:mdx && remark \"docs/**/*.mdx\" -r ./.remarkrc.mdx.mjs --silent --output && eslint \"docs/**/*.mdx\" --quiet --fix",
     "lint:style": "stylelint \"{src,tests}/**/*.{js,jsx,ts,tsx}\" --fix --max-warnings=0",
     "lint:ts": "eslint src/ tests/ --concurrency=auto --quiet",
@@ -127,7 +126,6 @@
   },
   "lint-staged": {
     "*.md": [
-      "remark --silent --output --",
       "prettier --write --no-error-on-unmatched-pattern"
     ],
     "*.mdx": [

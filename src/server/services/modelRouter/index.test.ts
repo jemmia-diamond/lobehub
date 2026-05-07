@@ -54,10 +54,10 @@ describe('ModelRouterService', () => {
     expect(result.model).toBe('gemini-2.5-flash');
   });
 
-  it('should route to THINKING model when lobe-lark-doc tool is enabled', () => {
+  it('should route to THINKING model when lark-doc-reader tool is enabled', () => {
     const result = ModelRouterService.resolve({
       messages: [{ content: 'Search something', role: 'user' }],
-      tools: [{ identifier: 'lobe-lark-doc' } as any],
+      tools: [{ identifier: 'lark-doc-reader' } as any],
     });
     expect(result.model).toBe('gemini-2.5-flash');
   });

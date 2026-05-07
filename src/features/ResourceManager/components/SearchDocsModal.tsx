@@ -95,7 +95,11 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
       if (!queryStr) {
         const spaceKey = spaceId;
         if (spaceKey && spaceKey !== 'all') {
-          const res = (await larkDocService.listWikiNodes({ spaceId: spaceKey })) as any;
+          const res = (await larkDocService.listWikiNodes({
+            pageToken: token,
+            pageSize: PAGE_SIZE,
+            spaceId: spaceKey,
+          })) as any;
           if (!res?.success) return { items: [], has_more: false };
           try {
             return JSON.parse(res.content);
@@ -103,14 +107,7 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
             return { items: [], has_more: false };
           }
         }
-        const res = (await larkDocService.listDocs({})) as any;
-        if (!res?.success) return { items: [], has_more: false };
-        try {
-          const items = JSON.parse(res.content);
-          return { items, has_more: false };
-        } catch {
-          return { items: [], has_more: false };
-        }
+        return { items: [], has_more: false };
       }
 
       const res = (await larkDocService.searchWiki({

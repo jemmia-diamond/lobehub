@@ -41,6 +41,8 @@ export default eslint(
       '.claude',
       '.serena',
       '.i18nrc.js',
+      // markdown files
+      '**/*.md',
     ],
     next: true,
     react: 'next',

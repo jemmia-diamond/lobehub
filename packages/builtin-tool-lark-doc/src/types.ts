@@ -3,10 +3,8 @@ export const LarkDocIdentifier = 'lark-doc-reader';
 export enum LarkDocApiName {
   getDocContent = 'getDocContent',
   getDocMeta = 'getDocMeta',
-  listDocs = 'listDocs',
   listWikiNodes = 'listWikiNodes',
   listWikiSpaces = 'listWikiSpaces',
-  searchDocs = 'searchDocs',
   searchWiki = 'searchWiki',
 }
 

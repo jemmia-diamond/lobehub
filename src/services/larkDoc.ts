@@ -9,20 +9,9 @@ class LarkDocService {
     return toolsClient.larkDoc.getDocMeta.query(params);
   }
 
-  async listDocs(params: { folderToken?: string }) {
-    return toolsClient.larkDoc.listDocs.query(params);
-  }
 
-  async searchDocs(params: {
-    chatIds?: string[];
-    ownerIds?: string[];
-    page?: number;
-    pageSize?: number;
-    query: string;
-    sortBy?: number;
-  }) {
-    return toolsClient.larkDoc.searchDocs.query(params);
-  }
+
+
 
   async searchWiki(params: {
     pageSize?: number;
@@ -37,7 +26,7 @@ class LarkDocService {
     return toolsClient.larkDoc.listWikiSpaces.query();
   }
 
-  async listWikiNodes(params: { spaceId: string }) {
+  async listWikiNodes(params: { spaceId: string; pageToken?: string; pageSize?: number }) {
     return toolsClient.larkDoc.listWikiNodes.query(params);
   }
 }

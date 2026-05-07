@@ -36,36 +36,7 @@ export const LarkDocManifest: BuiltinToolManifest = {
         type: 'object',
       },
     },
-    {
-      description: 'List recent documents from Lark Drive folder.',
-      name: LarkDocApiName.listDocs,
-      parameters: {
-        additionalProperties: false,
-        properties: {
-          folderToken: {
-            description:
-              'The folder token to list files from. If not provided, list from root folder.',
-            type: 'string',
-          },
-        },
-        type: 'object',
-      },
-    },
-    {
-      description: 'Search for documents in Lark Drive by keyword.',
-      name: LarkDocApiName.searchDocs,
-      parameters: {
-        additionalProperties: false,
-        properties: {
-          query: {
-            description: 'The keyword to search for.',
-            type: 'string',
-          },
-        },
-        required: ['query'],
-        type: 'object',
-      },
-    },
+
     {
       description: 'Search for pages in Lark/Feishu Wiki spaces by keyword. This gives more results and a broader range compared to drive search.',
       name: LarkDocApiName.searchWiki,
@@ -117,6 +88,6 @@ export const LarkDocManifest: BuiltinToolManifest = {
     title: 'Lark Doc Reader',
   },
   systemRole:
-    'You are a helpful assistant that can interact with Lark/Feishu documents and wikis. You can read content, get metadata, search for docs, search wiki spaces, and list files. Whenever a user provides a Lark Doc URL, automatically extract the ID and use the appropriate tool.',
+    'You are a helpful assistant that can interact with Lark/Feishu documents and wikis. You can read content, get metadata, search wiki spaces, and browse wiki nodes. Whenever a user provides a Lark Doc URL, automatically extract the ID and use the appropriate tool.',
   type: 'builtin',
 };

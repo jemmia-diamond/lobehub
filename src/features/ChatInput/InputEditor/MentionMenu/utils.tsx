@@ -37,8 +37,19 @@ export const mapLarkUserToMentionItem = (u: any, t: any) => ({
   },
 });
 
+const LARK_TYPE_MAP: Record<string, string> = {
+  '11': 'file',
+  '15': 'slides',
+  '2': 'doc',
+  '3': 'sheet',
+  '5': 'bitable',
+  '6': 'mindnote',
+  '8': 'docx',
+};
+
 const getDocIcon = (type: string) => {
-  switch (type) {
+  const normalizedType = LARK_TYPE_MAP[type] || type;
+  switch (normalizedType) {
     case 'pdf': {
       return <Icon color={'#ef4444'} icon={FileText} size={18} />;
     }
@@ -67,9 +78,11 @@ const getDocIcon = (type: string) => {
 export const mapLarkDocToMentionItem = (d: any) => {
   const typeValue = d.obj_type || d.type || d.docs_type || 'doc';
   const rawType = (typeof typeValue === 'string' ? typeValue : String(typeValue)).toLowerCase();
+  const normalizedType = LARK_TYPE_MAP[rawType] || rawType;
+
   const sizeStr = d.size
     ? `${(Number(d.size) / 1024 / 1024).toFixed(1)} MB`
-    : rawType.toUpperCase();
+    : normalizedType.toUpperCase();
 
   return {
     icon: (
@@ -91,8 +104,8 @@ export const mapLarkDocToMentionItem = (d: any) => {
     label: getLarkName(d.title || d.name),
     metadata: {
       description: sizeStr,
+      docType: normalizedType,
       id: d.obj_token || d.token || d.id || d.docs_token || d.node_token,
-      docType: rawType,
       timestamp: d.update_time ? Number(d.update_time) * 1000 : 0,
       type: 'lark-doc' as const,
     },

@@ -46,41 +46,9 @@ export const larkDocRouter = router({
       );
     }),
 
-  listDocs: larkDocProcedure
-    .input(
-      z.object({
-        folderToken: z.string().optional(),
-      }),
-    )
-    .query(async ({ input, ctx }) => {
-      return await withLarkRuntime(ctx, (runtime) =>
-        runtime.listDocs({ folderToken: input.folderToken }),
-      );
-    }),
 
-  searchDocs: larkDocProcedure
-    .input(
-      z.object({
-        pageSize: z.number().optional(),
-        query: z.string(),
-        chatIds: z.array(z.string()).optional(),
-        ownerIds: z.array(z.string()).optional(),
-        page: z.number().optional().default(1),
-        sortBy: z.number().optional(),
-      }),
-    )
-    .query(async ({ input, ctx }) => {
-      return await withLarkRuntime(ctx, (runtime) =>
-        runtime.searchDocs({
-          chatIds: input.chatIds,
-          ownerIds: input.ownerIds,
-          page: input.page,
-          pageSize: input.pageSize,
-          query: input.query,
-          sortBy: input.sortBy,
-        }),
-      );
-    }),
+
+
 
   searchWiki: larkDocProcedure
     .input(
@@ -106,9 +74,29 @@ export const larkDocRouter = router({
   }),
 
   listWikiNodes: larkDocProcedure
-    .input(z.object({ spaceId: z.string() }))
+    .input(
+      z.object({
+        pageToken: z.string().optional(),
+        pageSize: z.number().optional().default(15),
+        spaceId: z.string(),
+      }),
+    )
     .query(async ({ input, ctx }) => {
-      return await withLarkRuntime(ctx, (runtime) => runtime.listWikiNodes(input.spaceId));
+      return await withLarkUserAccessToken(
+        ctx,
+        async (userAccessToken) => {
+          const runtime = await getRuntime(userAccessToken);
+          return runtime.listWikiNodes({
+            pageToken: input.pageToken,
+            pageSize: input.pageSize,
+            spaceId: input.spaceId,
+          });
+        },
+        (error) => {
+          const message = String(error?.message || error || '');
+          return message.includes('failed: 401');
+        },
+      );
     }),
 });
 

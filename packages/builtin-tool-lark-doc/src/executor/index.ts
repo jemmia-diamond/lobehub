@@ -7,19 +7,6 @@ interface GetDocContentParams {
   documentId: string;
 }
 
-interface ListDocsParams {
-  folderToken?: string;
-}
-
-interface SearchDocsParams {
-  chatIds?: string[];
-  ownerIds?: string[];
-  page?: number;
-  pageSize?: number;
-  query: string;
-  sortBy?: number;
-}
-
 interface SearchWikiParams {
   pageSize?: number;
   pageToken?: string;
@@ -127,99 +114,6 @@ export class LarkDocExecutionRuntime {
     }
   }
 
-  async listDocsRaw(params: ListDocsParams): Promise<any[]> {
-    const baseUrl = this.getBaseUrl();
-    const token = await this.getLarkToken();
-
-    let url = `${baseUrl}/drive/v1/files`;
-    if (params.folderToken) {
-      url += `?folder_token=${params.folderToken}`;
-    }
-
-    const res = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      method: 'GET',
-    });
-
-    if (!res.ok) {
-      const errorBody = await res.text();
-      throw new Error(`Lark list failed: ${res.status}. Details: ${errorBody}`);
-    }
-
-    const data = await res.json();
-    if (data.code !== 0) throw new Error(`Lark list error: ${data.msg}`);
-
-    return data.data?.files || [];
-  }
-
-  async listDocs(params: ListDocsParams): Promise<BuiltinToolResult> {
-    if (this.service) return this.service.listDocs(params);
-    try {
-      const docs = await this.listDocsRaw(params);
-      return { content: JSON.stringify(docs), success: true };
-    } catch (error) {
-      return { content: `Error: ${(error as Error).message}`, success: false };
-    }
-  }
-
-  async searchDocsRaw(
-    params: SearchDocsParams,
-  ): Promise<{ items: any[]; total?: number; has_more?: boolean }> {
-    const { query, page = 1, pageSize = 15 } = params;
-
-    const baseUrl = this.getBaseUrl();
-    const token = await this.getLarkToken();
-
-    const searchRes = await fetch(`${baseUrl}/drive/v1/files/search`, {
-      body: JSON.stringify({
-        chat_ids: params.chatIds,
-        count: pageSize,
-        offset: (page - 1) * pageSize,
-        owner_ids: params.ownerIds,
-        search_key: query || '',
-        sort_by: params.sortBy,
-      }),
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      method: 'POST',
-    });
-
-    if (!searchRes.ok) {
-      const errorBody = await searchRes.text();
-      throw new Error(`Lark doc search failed: ${searchRes.status}. Details: ${errorBody}`);
-    }
-
-    const searchData = await searchRes.json();
-    if (searchData.code !== 0) throw new Error(`Lark search error: ${searchData.msg}`);
-
-    const items =
-      searchData.data?.docs_entities ||
-      searchData.data?.items ||
-      searchData.data?.docs ||
-      searchData.data?.files ||
-      [];
-    return {
-      has_more: searchData.data?.has_more || false,
-      items,
-      total: searchData.data?.total || 0,
-    };
-  }
-
-  async searchDocs(params: SearchDocsParams): Promise<BuiltinToolResult> {
-    if (this.service) return this.service.searchDocs(params);
-    try {
-      const res = await this.searchDocsRaw(params);
-      return { content: JSON.stringify(res), success: true };
-    } catch (error) {
-      return { content: `Error: ${(error as Error).message}`, success: false };
-    }
-  }
-
   async searchWikiRaw(
     params: SearchWikiParams,
   ): Promise<{ items: any[]; has_more?: boolean; page_token?: string }> {
@@ -317,11 +211,21 @@ export class LarkDocExecutionRuntime {
     }
   }
 
-  async listWikiNodesRaw(spaceId: string): Promise<any[]> {
+  async listWikiNodesRaw(params: {
+    pageSize?: number;
+    pageToken?: string;
+    spaceId: string;
+  }): Promise<{ has_more: boolean; items: any[]; page_token: string }> {
+    const { spaceId, pageToken, pageSize = 15 } = params;
     const baseUrl = this.getBaseUrl();
     const token = await this.getLarkToken();
 
-    const res = await fetch(`${baseUrl}/wiki/v2/spaces/${spaceId}/nodes?page_size=50`, {
+    let url = `${baseUrl}/wiki/v2/spaces/${spaceId}/nodes?page_size=${pageSize}`;
+    if (pageToken) {
+      url += `&page_token=${pageToken}`;
+    }
+
+    const res = await fetch(url, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
@@ -336,13 +240,21 @@ export class LarkDocExecutionRuntime {
     const data = await res.json();
     if (data.code !== 0) throw new Error(`Lark list wiki nodes error: ${data.msg}`);
 
-    return data.data?.items || [];
+    return {
+      has_more: data.data?.has_more || false,
+      items: data.data?.items || [],
+      page_token: data.data?.page_token || '',
+    };
   }
 
-  async listWikiNodes(spaceId: string): Promise<BuiltinToolResult> {
+  async listWikiNodes(params: {
+    pageSize?: number;
+    pageToken?: string;
+    spaceId: string;
+  }): Promise<BuiltinToolResult> {
     try {
-      const items = await this.listWikiNodesRaw(spaceId);
-      return { content: JSON.stringify({ items }), success: true };
+      const result = await this.listWikiNodesRaw(params);
+      return { content: JSON.stringify(result), success: true };
     } catch (error) {
       return { content: `Error: ${(error as Error).message}`, success: false };
     }
@@ -362,9 +274,8 @@ export class LarkDocExecutor extends BaseExecutor<typeof LarkDocApiName> {
 
   getDocContent = async (params: GetDocContentParams) => this.runtime.getDocContent(params);
   getDocMeta = async (params: GetDocContentParams) => this.runtime.getDocMeta(params);
-  listDocs = async (params: ListDocsParams) => this.runtime.listDocs(params);
-  searchDocs = async (params: SearchDocsParams) => this.runtime.searchDocs(params);
   searchWiki = async (params: SearchWikiParams) => this.runtime.searchWiki(params);
   listWikiSpaces = async () => this.runtime.listWikiSpaces();
-  listWikiNodes = async (params: { spaceId: string }) => this.runtime.listWikiNodes(params.spaceId);
+  listWikiNodes = async (params: { spaceId: string; pageToken?: string; pageSize?: number }) =>
+    this.runtime.listWikiNodes(params);
 }
