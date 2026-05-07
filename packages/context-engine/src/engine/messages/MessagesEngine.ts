@@ -343,7 +343,7 @@ export class MessagesEngine {
       // Selected tools (ephemeral user-selected @tool for this request)
       new SelectedToolInjector({ enabled: hasSelectedTools, selectedTools }),
       // Page selections (inject user-selected text into each user message)
-      new PageSelectionsInjector({ enabled: true }),
+      new PageSelectionsInjector({ enabled: isPageEditorEnabled }),
       // Page Editor context (inject current page content to last user message)
       new PageEditorContextInjector({
         enabled: isPageEditorEnabled,
