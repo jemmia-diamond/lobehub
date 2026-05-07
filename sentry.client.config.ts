@@ -11,8 +11,8 @@ Sentry.init({
   enableLogs: true,
   sendDefaultPii: false,
 
-  // Enable whenever DSN is set — works in both dev and production
-  enabled: !!process.env.NEXT_PUBLIC_SENTRY_DSN,
+  // Only enable in production (eliminates network overhead in local dev)
+  enabled: process.env.NODE_ENV === 'production' && !!process.env.NEXT_PUBLIC_SENTRY_DSN,
 
   integrations: [
     // Persistent feedback widget — bottom-right corner
@@ -39,7 +39,7 @@ Sentry.init({
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
 
 // Intercept client-side console.error to auto-capture to Sentry
-if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
   const originalConsoleError = console.error.bind(console);
   console.error = (...args: unknown[]) => {
     const message = args
