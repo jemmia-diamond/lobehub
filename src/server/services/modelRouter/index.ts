@@ -158,7 +158,7 @@ export class ModelRouterService {
     const hasLarkIntegration =
       messages.some(
         (m) => typeof m.content === 'string' && m.content.includes('Lark Document ID'),
-      ) || tools.some((t) => t.identifier === 'lobe-lark-doc');
+      ) || tools.some((t) => t.identifier === 'lark-doc-reader');
 
     const toolNames =
       tools?.map((t: any) => t.function?.name || t.identifier || t.type).join(', ') || 'none';
