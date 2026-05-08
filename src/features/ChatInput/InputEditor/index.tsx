@@ -107,7 +107,7 @@ const InputEditor = memo<{ defaultRows?: number; placeholder?: ReactNode }>(({ d
           const [employeeRes, docRes] = (await Promise.all([
             enableMentionEmployee
               ? larkMessageService.searchEmployees({
-                  pageSize: 4,
+                  pageSize: 5,
                   query: search.matchingString,
                 })
               : Promise.resolve({ success: false }),
@@ -124,7 +124,7 @@ const InputEditor = memo<{ defaultRows?: number; placeholder?: ReactNode }>(({ d
           if (docRes.success) {
             const data = JSON.parse(docRes.content);
             const items = data.items || data;
-            const docItems = (items || []).slice(0, 4).map((d: any) => mapLarkDocToMentionItem(d));
+            const docItems = (items || []).slice(0, 5).map((d: any) => mapLarkDocToMentionItem(d));
             remoteLarkItems = [...remoteLarkItems, ...docItems];
           }
 
@@ -132,7 +132,7 @@ const InputEditor = memo<{ defaultRows?: number; placeholder?: ReactNode }>(({ d
             const data = JSON.parse(employeeRes.content);
             const items = data.items || data;
             const userItems = (items || [])
-              .slice(0, 4)
+              .slice(0, 5)
               .map((u: any) => mapLarkUserToMentionItem(u, t));
             remoteLarkItems = [...remoteLarkItems, ...userItems];
           }

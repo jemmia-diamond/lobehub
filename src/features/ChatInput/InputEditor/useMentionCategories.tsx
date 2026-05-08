@@ -101,7 +101,7 @@ export const useMentionCategories = (): MentionCategory[] => {
       });
       try {
         const res = (await larkMessageService.searchEmployees({
-          pageSize: 4,
+          pageSize: 5,
           query: randomQuery,
         })) as any;
         console.info('[MentionCategories] Fetch result:', res.success, res.content);
@@ -126,7 +126,7 @@ export const useMentionCategories = (): MentionCategory[] => {
         VIETNAMESE_INITIALS[Math.floor(Math.random() * VIETNAMESE_INITIALS.length)];
       try {
         const res = (await larkDocService.searchWiki({
-          pageSize: 4,
+          pageSize: 5,
           query: randomQuery,
         })) as any;
         if (res.success) {
@@ -200,7 +200,7 @@ export const useMentionCategories = (): MentionCategory[] => {
 
     if (enableMentionDoc) {
       const docItems = (defaultLarkDocs || [])
-        .slice(0, 4)
+        .slice(0, 5)
         .map((d: any) => mapLarkDocToMentionItem(d));
 
       if (docItems.length > 0) {
@@ -215,7 +215,7 @@ export const useMentionCategories = (): MentionCategory[] => {
 
     if (enableMentionEmployee) {
       const userItems = (defaultLarkUsers || [])
-        .slice(0, 4)
+        .slice(0, 5)
         .map((u: any) => mapLarkUserToMentionItem(u, t));
 
       if (userItems.length > 0) {
