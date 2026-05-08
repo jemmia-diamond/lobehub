@@ -4,6 +4,8 @@ import type { FC, RefObject } from 'react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
+
 import CategoryView from './CategoryView';
 import HomeView from './HomeView';
 import SearchView from './SearchView';
@@ -82,6 +84,16 @@ export const createMentionMenu = (
       const isSearch = stateRef.current.isSearch;
       const categories = categoriesRef.current;
 
+      const {
+        showMentionShortcutDoc,
+        showMentionShortcutSkill,
+        enableMentionDoc,
+        enableMentionEmployee,
+        enableMentionSkill,
+        enableMentionTool,
+        enableMentionTopic,
+        enableMentionAgent,
+      } = useServerConfigStore(featureFlagsSelectors);
       const position = useMenuPosition(menuRef, !!open);
 
       // Reset on open
@@ -99,30 +111,80 @@ export const createMentionMenu = (
       );
 
       // Category entries as pseudo-items for keyboard navigation
-      const categoryEntries = useMemo(() => buildCategoryEntries(categories), [categories]);
+      const categoryEntries = useMemo(
+        () =>
+          buildCategoryEntries(categories).filter((item) => {
+            const id = (item.metadata as any)?.categoryId;
+            if (id === 'lark-doc') return showMentionShortcutDoc;
+            if (id === 'skill') return showMentionShortcutSkill;
+            return true;
+          }),
+        [categories, showMentionShortcutDoc, showMentionShortcutSkill],
+      );
 
       // Derive visible items for current view
       const visibleItems = useMemo((): ISlashMenuOption[] => {
-        if (isSearch) return sortItems(limitItemsPerCategory(menuOptions, 4));
+        if (isSearch) return sortItems(limitItemsPerCategory(menuOptions, 5));
 
         if (viewMode === 'category' && selectedCategoryId) {
           const cat = categories.find((c) => c.id === selectedCategoryId);
           return cat?.items || [];
         }
 
-        // Home: 4 docs + 4 users (most recent) + category entries
-        const docs = getMostRecentItems(
-          menuOptions.filter((o) => o.metadata?.type === 'lark-doc'),
-          4,
-        );
-        const users = getMostRecentItems(
-          menuOptions.filter((o) => o.metadata?.type === 'lark-user'),
-          4,
-        );
+        // Home view: a mix of enabled categories
+        const docs = enableMentionDoc
+          ? getMostRecentItems(
+              menuOptions.filter((o) => o.metadata?.type === 'lark-doc'),
+              5,
+            )
+          : [];
+        const users = enableMentionEmployee
+          ? getMostRecentItems(
+              menuOptions.filter((o) => o.metadata?.type === 'lark-user'),
+              5,
+            )
+          : [];
+        const agents = enableMentionAgent
+          ? getMostRecentItems(
+              menuOptions.filter((o) => o.metadata?.type === 'agent'),
+              5,
+            )
+          : [];
+        const topics = enableMentionTopic
+          ? getMostRecentItems(
+              menuOptions.filter((o) => o.metadata?.type === 'topic'),
+              5,
+            )
+          : [];
+        const skills = enableMentionSkill
+          ? getMostRecentItems(
+              menuOptions.filter((o) => o.metadata?.type === 'skill'),
+              5,
+            )
+          : [];
+        const tools = enableMentionTool
+          ? getMostRecentItems(
+              menuOptions.filter((o) => o.metadata?.type === 'tool'),
+              5,
+            )
+          : [];
 
-        const recent = sortItems([...docs, ...users]);
+        const recent = sortItems([...docs, ...users, ...agents, ...topics, ...skills, ...tools]);
         return [...recent, ...categoryEntries];
-      }, [menuOptions, isSearch, viewMode, selectedCategoryId, categories, categoryEntries]);
+      }, [
+        menuOptions,
+        isSearch,
+        viewMode,
+        selectedCategoryId,
+        categories,
+        categoryEntries,
+        enableMentionDoc,
+        enableMentionEmployee,
+        enableMentionAgent,
+        enableMentionTopic,
+        enableMentionSkill,
+        enableMentionTool,
+      ]);
 
       // Sync activeKey on view/options change
       useEffect(() => {

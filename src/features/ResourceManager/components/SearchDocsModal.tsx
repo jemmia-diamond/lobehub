@@ -1,4 +1,5 @@
 import { LarkDocIdentifier } from '@lobechat/builtin-tool-lark-doc';
+import { INSERT_MENTION_COMMAND } from '@lobehub/editor';
 import { useDebounce } from 'ahooks';
 import type { MenuProps } from 'antd';
 import {
@@ -17,10 +18,13 @@ import { useTranslation } from 'react-i18next';
 import { LARK_BASE_URL } from '@/const/url';
 import { larkDocService } from '@/services/larkDoc';
 import { agentSelectors } from '@/store/agent/selectors';
-import { useAgentStore } from '@/store/agent/store';
 import { useFileStore } from '@/store/file';
+import { useAgentStore } from '@/store/agent/store';
 import { useServerConfigStore } from '@/store/serverConfig';
 import { featureFlagsSelectors } from '@/store/serverConfig/selectors';
+
+import { mapLarkDocToMentionItem } from '../../ChatInput/InputEditor/MentionMenu/utils';
+import { useChatInputStore } from '../../ChatInput/store';
 
 interface SearchDocsModalProps {
   onClose?: () => void;
@@ -64,6 +68,7 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
 
   const addChatContextSelection = useFileStore((s) => s.addChatContextSelection);
   const toggleAgentPlugin = useAgentStore((s) => s.toggleAgentPlugin);
+  const editor = useChatInputStore((s) => s.editor);
 
   const [spacesRes, setSpacesRes] = useState<any[]>([]);
   useEffect(() => {
@@ -257,31 +262,68 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
   const handleSelect = async (item: FormattedDoc) => {
     setIsAttaching(true);
     try {
-      const res = (await larkDocService.getDocContent({ documentId: item.key })) as any;
+      const rawDoc = allItems.find((d) => {
+        const token = d.obj_token || d.docs_token || d.node_token || d.token || '';
+        return token === item.key;
+      });
 
-      if (res?.success) {
-        const { obj_type } = JSON.parse(item.extra || '{}');
-        addChatContextSelection({
-          content: res.content || '',
-          fileType: obj_type || 'doc',
-          format: 'text',
-          id: `lark-${item.key}`,
-          preview: item.title,
-          title: item.title,
-          type: 'text',
-          url: item.url,
-        });
-      }
+      if (rawDoc && editor) {
+        const mentionItem = mapLarkDocToMentionItem(rawDoc);
+        const docId = mentionItem.metadata.id;
+        const title = mentionItem.label;
+        const docType = mentionItem.metadata.docType || 'doc';
 
-      const agentStore = useAgentStore.getState();
-      const currentPlugins = agentSelectors.currentAgentPlugins(agentStore);
-      if (!currentPlugins.includes(LarkDocIdentifier)) {
-        await toggleAgentPlugin(LarkDocIdentifier, true);
+        try {
+          const res = (await larkDocService.getDocContent({ documentId: docId })) as any;
+          if (res?.success) {
+            addChatContextSelection({
+              content: res.content || '',
+              fileType: docType,
+              format: 'text',
+              id: `lark-${docId}`,
+              preview: title,
+              title,
+              type: 'text',
+              url: item.url,
+            });
+          } else {
+            addChatContextSelection({
+              content: `Lark Document ID: ${docId}`,
+              fileType: docType,
+              format: 'text',
+              id: `lark-${docId}`,
+              preview: title,
+              title,
+              type: 'text',
+              url: item.url,
+            });
+          }
+        } catch {
+          addChatContextSelection({
+            content: `Lark Document ID: ${docId}`,
+            fileType: docType,
+            format: 'text',
+            id: `lark-${docId}`,
+            preview: title,
+            title,
+            type: 'text',
+            url: item.url,
+          });
+        }
+
+        const agentStore = useAgentStore.getState();
+        const currentPlugins = agentSelectors.currentAgentPlugins(agentStore);
+        if (!currentPlugins.includes(LarkDocIdentifier)) {
+          await toggleAgentPlugin(LarkDocIdentifier, true);
+        }
+
+        editor.dispatchCommand(INSERT_MENTION_COMMAND, mentionItem);
+        editor.focus();
       }
 
       onClose?.();
     } catch (error) {
-      console.error('Failed to attach Lark document content:', error);
+      console.error('Failed to attach Lark document mention:', error);
       onClose?.();
     } finally {
       setIsAttaching(false);

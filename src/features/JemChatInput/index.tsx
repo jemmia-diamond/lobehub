@@ -282,12 +282,14 @@ const JemChatInput = memo<JemChatInputProps>(({ agentId, showStarters, threadId,
                   </Flexbox>
                 }
               />
+              <SearchDocsModal
+                open={searchDocsModalOpen}
+                onClose={() => setSearchDocsModalOpen(false)}
+              />
             </div>
           </ChatInputProvider>
         </DragUploadZone>
       </Flexbox>
-
-      <SearchDocsModal open={searchDocsModalOpen} onClose={() => setSearchDocsModalOpen(false)} />
 
       {showStarters && (
         <div style={{ display: hideStarterList ? 'none' : undefined }}>

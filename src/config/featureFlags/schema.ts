@@ -102,6 +102,12 @@ export const FeatureFlagsSchema = z.object({
   enable_command_palette: FeatureFlagValue.optional(),
   enable_topic_context_menu: FeatureFlagValue.optional(),
   enable_message_feedback: FeatureFlagValue.optional(),
+  show_mention_shortcut_doc: FeatureFlagValue.optional(),
+  show_mention_shortcut_skill: FeatureFlagValue.optional(),
+  enable_mention_skill: FeatureFlagValue.optional(),
+  enable_mention_tool: FeatureFlagValue.optional(),
+  enable_mention_topic: FeatureFlagValue.optional(),
+  enable_mention_agent: FeatureFlagValue.optional(),
 });
 
 export type IFeatureFlags = z.infer<typeof FeatureFlagsSchema>;
@@ -250,6 +256,12 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   enable_command_palette: false,
   enable_topic_context_menu: false,
   enable_message_feedback: true,
+  show_mention_shortcut_doc: false,
+  show_mention_shortcut_skill: false,
+  enable_mention_skill: false,
+  enable_mention_tool: false,
+  enable_mention_topic: false,
+  enable_mention_agent: false,
 };
 
 export const mapFeatureFlagsEnvToState = (
@@ -381,6 +393,12 @@ export const mapFeatureFlagsEnvToState = (
     enableCommandPalette: evaluateFeatureFlag(config.enable_command_palette, userId),
     enableTopicContextMenu: evaluateFeatureFlag(config.enable_topic_context_menu, userId),
     enableMessageFeedback: evaluateFeatureFlag(config.enable_message_feedback, userId),
+    showMentionShortcutDoc: evaluateFeatureFlag(config.show_mention_shortcut_doc, userId),
+    showMentionShortcutSkill: evaluateFeatureFlag(config.show_mention_shortcut_skill, userId),
+    enableMentionSkill: evaluateFeatureFlag(config.enable_mention_skill, userId),
+    enableMentionTool: evaluateFeatureFlag(config.enable_mention_tool, userId),
+    enableMentionTopic: evaluateFeatureFlag(config.enable_mention_topic, userId),
+    enableMentionAgent: evaluateFeatureFlag(config.enable_mention_agent, userId),
   };
 };
 

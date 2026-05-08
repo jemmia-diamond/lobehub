@@ -62,8 +62,14 @@ export const useMentionCategories = (): MentionCategory[] => {
   const externalMentionItems = useChatInputStore((s) => s.mentionItems);
   const isGroupChat = !!externalMentionItems;
 
-  const enableMentionEmployee = useServerConfigStore(featureFlagsSelectors).enableMentionEmployee;
-  const enableMentionDoc = useServerConfigStore(featureFlagsSelectors).enableMentionDoc;
+  const {
+    enableMentionDoc,
+    enableMentionEmployee,
+    enableMentionSkill,
+    enableMentionTool,
+    enableMentionTopic,
+    enableMentionAgent,
+  } = useServerConfigStore(featureFlagsSelectors);
 
   const { data: defaultLarkUsers } = useSWR(
     enableMentionEmployee ? 'default-lark-users' : null,
@@ -148,7 +154,7 @@ export const useMentionCategories = (): MentionCategory[] => {
     const categories: MentionCategory[] = [];
     
     // --- Agents (non-group only) ---
-    if (!isGroupChat) {
+    if (!isGroupChat && enableMentionAgent) {
       const items = allAgents
         .filter((a) => a.type === 'agent' && a.id !== currentAgentId)
         .slice(0, MAX_AGENT_ITEMS)
@@ -229,7 +235,7 @@ export const useMentionCategories = (): MentionCategory[] => {
     }
 
     // --- Topics ---
-    if (topics && topics.length > 0) {
+    if (enableMentionTopic && topics && topics.length > 0) {
       const items = topics
         .filter((t) => t.id !== activeTopicId)
         .map((topic) => {
@@ -260,7 +266,7 @@ export const useMentionCategories = (): MentionCategory[] => {
     }
 
     // --- Skills ---
-    const skillItems = enabledSkills.filter((s) => s.category === 'skill');
+    const skillItems = enableMentionSkill ? enabledSkills.filter((s) => s.category === 'skill') : [];
     if (skillItems.length > 0) {
       categories.push({
         id: 'skill',
@@ -281,7 +287,7 @@ export const useMentionCategories = (): MentionCategory[] => {
     }
 
     // --- Tools ---
-    const toolItems = enabledSkills.filter((s) => s.category === 'tool');
+    const toolItems = enableMentionTool ? enabledSkills.filter((s) => s.category === 'tool') : [];
     if (toolItems.length > 0) {
       categories.push({
         id: 'tool',
@@ -302,5 +308,22 @@ export const useMentionCategories = (): MentionCategory[] => {
     }
 
     return categories;
-  }, [isGroupChat, externalMentionItems, enableMentionDoc, enableMentionEmployee, topics, enabledSkills, allAgents, currentAgentId, t, defaultLarkDocs, defaultLarkUsers, activeTopicId]);
+  }, [
+    isGroupChat,
+    externalMentionItems,
+    enableMentionDoc,
+    enableMentionEmployee,
+    enableMentionSkill,
+    enableMentionTool,
+    enableMentionTopic,
+    enableMentionAgent,
+    topics,
+    enabledSkills,
+    allAgents,
+    currentAgentId,
+    t,
+    defaultLarkDocs,
+    defaultLarkUsers,
+    activeTopicId,
+  ]);
 };

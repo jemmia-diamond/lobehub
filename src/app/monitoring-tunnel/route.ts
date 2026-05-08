@@ -30,17 +30,17 @@ export async function POST(req: Request) {
       return new NextResponse('Invalid Sentry DSN', { status: 500 });
     }
 
-    const envelope = await req.text();
+    const envelope = await req.arrayBuffer();
     const sentryIngestUrl = `https://${host}/api/${project}/envelope/`;
 
-    console.info(`[SentryTunnel] Proxying envelope to: ${sentryIngestUrl}`);
+    console.info(`[SentryTunnel] Proxying envelope to: ${sentryIngestUrl} (${envelope.byteLength} bytes)`);
 
     const response = await fetch(sentryIngestUrl, {
-      method: 'POST',
       body: envelope,
       headers: {
         'Content-Type': 'application/x-sentry-envelope',
       },
+      method: 'POST',
     });
 
     const responseText = await response.text();
