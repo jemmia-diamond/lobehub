@@ -206,10 +206,11 @@ export function defineConfig(customOptions: CustomBetterAuthOptions) {
           after: async (user) => {
             const userService = new UserService(serverDB);
             await userService.initUser({
+              createdAt: user.createdAt,
               email: user.email,
+              enterpriseEmail: (user as any).enterpriseEmail,
               id: user.id,
               username: user.username as string | null,
-              createdAt: user.createdAt,
             });
           },
         },

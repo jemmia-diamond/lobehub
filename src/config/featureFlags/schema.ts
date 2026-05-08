@@ -133,17 +133,28 @@ export const evaluateFeatureFlag = (
 export const evaluateAlphaFeatureFlag = (
   flagValue: boolean | string[] | undefined,
   userEmail?: string | null,
+  userEnterpriseEmail?: string | null,
 ): boolean | undefined => {
-  if (!userEmail) return false;
+  if (!userEmail && !userEnterpriseEmail) return false;
+
+  const email = userEmail || undefined;
+  const enterpriseEmail = userEnterpriseEmail || undefined;
 
   const alphaEmails =
-    (typeof process !== 'undefined' ? process.env.ALPHA_WHITE_LIST_EMAILS : undefined)
-      ?.split(',')
-      .map((e) => e.trim().toLowerCase()) || [];
+    (typeof process !== 'undefined' ? process.env.ALPHA_WHITE_LIST_EMAILS : undefined)?.split(
+      ',',
+    ) || [];
 
-  if (!alphaEmails.includes(userEmail.toLowerCase())) return false;
+  const adminEmails =
+    (typeof process !== 'undefined' ? process.env.ADMIN_EMAILS : undefined)?.split(',') || [];
 
-  return evaluateFeatureFlag(flagValue);
+  const isWhitelisted = (e: string) => alphaEmails.includes(e) || adminEmails.includes(e);
+
+  if ((email && isWhitelisted(email)) || (enterpriseEmail && isWhitelisted(enterpriseEmail))) {
+    return evaluateFeatureFlag(flagValue);
+  }
+
+  return false;
 };
 
 export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
@@ -245,6 +256,7 @@ export const mapFeatureFlagsEnvToState = (
   config: IFeatureFlags,
   userId?: string,
   userEmail?: string | null,
+  userEnterpriseEmail?: string | null,
 ) => {
   return {
     isAgentEditable: evaluateFeatureFlag(config.edit_agent, userId),
@@ -275,17 +287,49 @@ export const mapFeatureFlagsEnvToState = (
     enableTools: evaluateFeatureFlag(config.enable_tools, userId),
     enableModel: evaluateFeatureFlag(config.enable_model, userId),
     enableFileUpload: evaluateFeatureFlag(config.enable_file_upload, userId),
-    enableLarkDoc: evaluateAlphaFeatureFlag(config.enable_lark_doc, userEmail),
-    enableLarkMessage: evaluateAlphaFeatureFlag(config.enable_lark_message, userEmail),
-    enableMentionEmployee: evaluateAlphaFeatureFlag(config.enable_mention_employee, userEmail),
-    enableMentionDoc: evaluateAlphaFeatureFlag(config.enable_mention_doc, userEmail),
-    showLarkSearchFilterSort: evaluateAlphaFeatureFlag(config.show_lark_search_filter_sort, userEmail),
-    showLarkSearchFilterOwner: evaluateAlphaFeatureFlag(config.show_lark_search_filter_owner, userEmail),
-    showLarkSearchFilterChat: evaluateAlphaFeatureFlag(config.show_lark_search_filter_chat, userEmail),
-    showLarkSearchFilterWiki: evaluateAlphaFeatureFlag(config.show_lark_search_filter_wiki, userEmail),
-    showLarkSearchFilterFormat: evaluateAlphaFeatureFlag(config.show_lark_search_filter_format, userEmail),
+    enableLarkDoc: evaluateAlphaFeatureFlag(config.enable_lark_doc, userEmail, userEnterpriseEmail),
+    enableLarkMessage: evaluateAlphaFeatureFlag(
+      config.enable_lark_message,
+      userEmail,
+      userEnterpriseEmail,
+    ),
+    enableMentionEmployee: evaluateAlphaFeatureFlag(
+      config.enable_mention_employee,
+      userEmail,
+      userEnterpriseEmail,
+    ),
+    enableMentionDoc: evaluateAlphaFeatureFlag(
+      config.enable_mention_doc,
+      userEmail,
+      userEnterpriseEmail,
+    ),
+    showLarkSearchFilterSort: evaluateAlphaFeatureFlag(
+      config.show_lark_search_filter_sort,
+      userEmail,
+      userEnterpriseEmail,
+    ),
+    showLarkSearchFilterOwner: evaluateAlphaFeatureFlag(
+      config.show_lark_search_filter_owner,
+      userEmail,
+      userEnterpriseEmail,
+    ),
+    showLarkSearchFilterChat: evaluateAlphaFeatureFlag(
+      config.show_lark_search_filter_chat,
+      userEmail,
+      userEnterpriseEmail,
+    ),
+    showLarkSearchFilterWiki: evaluateAlphaFeatureFlag(
+      config.show_lark_search_filter_wiki,
+      userEmail,
+      userEnterpriseEmail,
+    ),
+    showLarkSearchFilterFormat: evaluateAlphaFeatureFlag(
+      config.show_lark_search_filter_format,
+      userEmail,
+      userEnterpriseEmail,
+    ),
     showUploadFile: evaluateFeatureFlag(config.show_upload_file, userId),
-    showUploadLark: evaluateAlphaFeatureFlag(config.show_upload_lark, userEmail),
+    showUploadLark: evaluateAlphaFeatureFlag(config.show_upload_lark, userEmail, userEnterpriseEmail),
     showUploadImage: evaluateFeatureFlag(config.show_upload_image, userId),
     showUploadFolder: evaluateFeatureFlag(config.show_upload_folder, userId),
 

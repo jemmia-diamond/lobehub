@@ -31,7 +31,11 @@ export const getServerFeatureFlagsValue = () => {
  * Get feature flags from EdgeConfig with fallback to environment variables
  * @param userId - Optional user ID for user-specific feature flag evaluation
  */
-export const getServerFeatureFlagsFromEdgeConfig = async (userId?: string) => {
+export const getServerFeatureFlagsFromEdgeConfig = async (
+  userId?: string,
+  userEmail?: string | null,
+  userEnterpriseEmail?: string | null,
+) => {
   // Try to get feature flags from EdgeConfig first
   if (EdgeConfig.isEnabled()) {
     try {
@@ -41,7 +45,12 @@ export const getServerFeatureFlagsFromEdgeConfig = async (userId?: string) => {
       if (edgeFeatureFlags && Object.keys(edgeFeatureFlags).length > 0) {
         // Merge EdgeConfig flags with defaults
         const mergedFlags = merge(DEFAULT_FEATURE_FLAGS, edgeFeatureFlags);
-        log('[FeatureFlags] Using EdgeConfig flags for user:', userId || 'anonymous');
+        log(
+          '[FeatureFlags] Using EdgeConfig flags for user: %s (email: %s, enterpriseEmail: %s)',
+          userId || 'anonymous',
+          userEmail || 'no-email',
+          userEnterpriseEmail || 'no-enterprise-email',
+        );
         return mergedFlags;
       } else {
         log(
@@ -60,14 +69,23 @@ export const getServerFeatureFlagsFromEdgeConfig = async (userId?: string) => {
 
   // Fallback to environment variable-based feature flags
   const envFlags = getServerFeatureFlagsValue();
-  log('[FeatureFlags] Using environment variable flags for user:', userId || 'anonymous');
+  log(
+    '[FeatureFlags] Using environment variable flags for user: %s (email: %s, enterpriseEmail: %s)',
+    userId || 'anonymous',
+    userEmail || 'no-email',
+    userEnterpriseEmail || 'no-enterprise-email',
+  );
   return envFlags;
 };
 
-export const serverFeatureFlags = (userId?: string, userEmail?: string | null) => {
+export const serverFeatureFlags = (
+  userId?: string,
+  userEmail?: string | null,
+  userEnterpriseEmail?: string | null,
+) => {
   const serverConfig = getServerFeatureFlagsValue();
 
-  return mapFeatureFlagsEnvToState(serverConfig, userId, userEmail);
+  return mapFeatureFlagsEnvToState(serverConfig, userId, userEmail, userEnterpriseEmail);
 };
 
 /**
@@ -77,9 +95,10 @@ export const serverFeatureFlags = (userId?: string, userEmail?: string | null) =
 export const getServerFeatureFlagsStateFromEdgeConfig = async (
   userId?: string,
   userEmail?: string | null,
+  userEnterpriseEmail?: string | null,
 ) => {
-  const flags = await getServerFeatureFlagsFromEdgeConfig(userId);
-  return mapFeatureFlagsEnvToState(flags, userId, userEmail);
+  const flags = await getServerFeatureFlagsFromEdgeConfig(userId, userEmail, userEnterpriseEmail);
+  return mapFeatureFlagsEnvToState(flags, userId, userEmail, userEnterpriseEmail);
 };
 
 export * from './schema';

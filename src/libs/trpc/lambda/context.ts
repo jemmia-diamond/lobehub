@@ -73,6 +73,7 @@ export interface AuthContext {
   traceContext?: OtContext;
   userAgent?: string;
   userEmail?: string | null;
+  userEnterpriseEmail?: string | null;
   userId?: string | null;
 }
 
@@ -88,6 +89,7 @@ export const createContextInner = async (params?: {
   userAgent?: string;
   userId?: string | null;
   userEmail?: string | null;
+  userEnterpriseEmail?: string | null;
 }): Promise<AuthContext> => {
   log('createContextInner called with params: %O', params);
   const responseHeaders = new Headers();
@@ -101,6 +103,7 @@ export const createContextInner = async (params?: {
     userAgent: params?.userAgent,
     userId: params?.userId,
     userEmail: params?.userEmail,
+    userEnterpriseEmail: params?.userEnterpriseEmail,
   };
 };
 
@@ -220,12 +223,14 @@ export const createLambdaContext = async (request: NextRequest): Promise<LambdaC
     if (session && session?.user?.id) {
       userId = session.user.id;
       const userEmail = session.user.email;
-      log('Better Auth authentication successful, userId: %s, email: %s', userId, userEmail);
+      const userEnterpriseEmail = (session.user as any).enterpriseEmail;
+      log('Better Auth authentication successful, userId: %s, email: %s, enterpriseEmail: %s', userId, userEmail, userEnterpriseEmail);
 
       return createContextInner({
         ...commonContext,
         traceContext,
         userEmail,
+        userEnterpriseEmail,
         userId,
       });
     } else {

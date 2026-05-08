@@ -11,6 +11,7 @@ import { FileS3 } from '@/server/modules/S3';
 type CreatedUser = {
   createdAt?: Date | null;
   email?: string | null;
+  enterpriseEmail?: string | null;
   firstName?: string | null;
   id: string;
   lastName?: string | null;
@@ -27,28 +28,37 @@ export class UserService {
 
   async initUser(user: CreatedUser) {
     // 1. Assign Role based on Whitelists
-    if (user.email) {
-      const adminEmails = authEnv.ADMIN_EMAILS?.split(',').map((e) => e.trim().toLowerCase()) || [];
-      const betaEmails =
-        authEnv.BETA_WHITE_LIST_EMAILS?.split(',').map((e) => e.trim().toLowerCase()) || [];
-      const alphaEmails =
-        authEnv.ALPHA_WHITE_LIST_EMAILS?.split(',').map((e) => e.trim().toLowerCase()) || [];
+    if (user.email || user.enterpriseEmail) {
+      const adminEmails = authEnv.ADMIN_EMAILS?.split(',') || [];
+      const betaEmails = authEnv.BETA_WHITE_LIST_EMAILS?.split(',') || [];
+      const alphaEmails = authEnv.ALPHA_WHITE_LIST_EMAILS?.split(',') || [];
+
+      const email = user.email;
+      const enterpriseEmail = user.enterpriseEmail;
+
+      const isMatch = (list: string[]) =>
+        (email && list.includes(email)) || (enterpriseEmail && list.includes(enterpriseEmail));
 
       let role = 'user';
-      if (adminEmails.includes(user.email.toLowerCase())) {
+      if (isMatch(adminEmails)) {
         role = 'admin';
-      } else if (alphaEmails.includes(user.email.toLowerCase())) {
+      } else if (isMatch(alphaEmails)) {
         role = 'alpha';
-      } else if (betaEmails.includes(user.email.toLowerCase())) {
+      } else if (isMatch(betaEmails)) {
         role = 'beta';
       }
 
       try {
         const userModel = new UserModel(this.db, user.id);
         await userModel.updateUser({ role });
-        console.info(`[UserService] Assigned role "${role}" to user ${user.email}`);
+        console.info(
+          `[UserService] Assigned role "${role}" to user ${user.email || user.enterpriseEmail}`,
+        );
       } catch (error) {
-        console.error(`[UserService] Failed to assign role to user ${user.email}`, error);
+        console.error(
+          `[UserService] Failed to assign role to user ${user.email || user.enterpriseEmail}`,
+          error,
+        );
       }
     }
 

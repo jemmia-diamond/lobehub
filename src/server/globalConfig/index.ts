@@ -23,9 +23,13 @@ import { getPublicMemoryExtractionConfig } from './parseMemoryExtractionConfig';
  * Get Better-Auth SSO providers list
  * Parses AUTH_SSO_PROVIDERS and returns enabled providers
  */
-const getBetterAuthSSOProviders = (userId?: string, userEmail?: string | null) => {
+const getBetterAuthSSOProviders = (
+  userId?: string,
+  userEmail?: string | null,
+  userEnterpriseEmail?: string | null,
+) => {
   const providers = parseSSOProviders(authEnv.AUTH_SSO_PROVIDERS);
-  const flags = serverFeatureFlags(userId, userEmail);
+  const flags = serverFeatureFlags(userId, userEmail, userEnterpriseEmail);
 
   return providers.filter((provider) => {
     switch (provider) {
@@ -45,7 +49,11 @@ const getBetterAuthSSOProviders = (userId?: string, userEmail?: string | null) =
   });
 };
 
-export const getServerGlobalConfig = async (userId?: string, userEmail?: string | null) => {
+export const getServerGlobalConfig = async (
+  userId?: string,
+  userEmail?: string | null,
+  userEnterpriseEmail?: string | null,
+) => {
   const { DEFAULT_AGENT_CONFIG } = getAppConfig();
 
   const config: GlobalServerConfig = {
@@ -98,7 +106,7 @@ export const getServerGlobalConfig = async (userId?: string, userEmail?: string 
     },
     disableEmailPassword:
       authEnv.AUTH_DISABLE_EMAIL_PASSWORD ||
-      !serverFeatureFlags(userId, userEmail).enableAuthEmailPassword,
+      !serverFeatureFlags(userId, userEmail, userEnterpriseEmail).enableAuthEmailPassword,
     enableBusinessFeatures: ENABLE_BUSINESS_FEATURES,
     enableEmailVerification: authEnv.AUTH_EMAIL_VERIFICATION,
     enableKlavis: !!klavisEnv.KLAVIS_API_KEY,
@@ -120,7 +128,7 @@ export const getServerGlobalConfig = async (userId?: string, userEmail?: string 
     memory: {
       userMemory: cleanObject(getPublicMemoryExtractionConfig()),
     },
-    oAuthSSOProviders: getBetterAuthSSOProviders(userId, userEmail),
+    oAuthSSOProviders: getBetterAuthSSOProviders(userId, userEmail, userEnterpriseEmail),
     systemAgent: parseSystemAgent(appEnv.SYSTEM_AGENT),
     telemetry: {
       langfuse: langfuseEnv.ENABLE_LANGFUSE,
