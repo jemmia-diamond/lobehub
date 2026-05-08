@@ -113,7 +113,7 @@ const InputEditor = memo<{ defaultRows?: number; placeholder?: ReactNode }>(({ d
               : Promise.resolve({ success: false }),
             enableMentionDoc
               ? larkDocService.searchWiki({
-                  pageSize: 4,
+                  pageSize: 5,
                   query: search.matchingString,
                 })
               : Promise.resolve({ success: false }),
