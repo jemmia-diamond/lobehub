@@ -3,6 +3,9 @@
 import { memo, type PropsWithChildren, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useUserStore } from '@/store/user';
+import { userProfileSelectors } from '@/store/user/selectors';
+
 /**
  * Ensures Sentry is initialized in the SPA context.
  * sentry.client.config.ts runs for App Router pages automatically.
@@ -11,6 +14,8 @@ import { useTranslation } from 'react-i18next';
  */
 const SentryProvider = memo<PropsWithChildren>(({ children }) => {
   const { t } = useTranslation('common');
+
+  const user = useUserStore(userProfileSelectors.userProfile);
 
   useEffect(() => {
     const serverConfig = (window as any).__SERVER_CONFIG__;
@@ -22,12 +27,9 @@ const SentryProvider = memo<PropsWithChildren>(({ children }) => {
 
     if (!sentryDsn) return;
 
-    // sentry.client.config.ts should have already run and initialized Sentry for Next.js pages.
-    // For the SPA entry point, we need to ensure it's initialized with the runtime DSN.
     import('@sentry/nextjs').then((Sentry) => {
       const client = Sentry.getClient();
 
-      // If already initialized with the correct DSN, skip.
       if (client && client.getDsn()?.toString() === sentryDsn) return;
 
       Sentry.init({
@@ -42,20 +44,16 @@ const SentryProvider = memo<PropsWithChildren>(({ children }) => {
             triggerLabel: t('feedback.widget.buttonLabel'),
             cancelButtonLabel: t('feedback.widget.cancelButtonLabel'),
             colorScheme: 'light',
-            emailLabel: t('feedback.widget.emailLabel'),
-            emailPlaceholder: t('feedback.widget.emailPlaceholder'),
             enableScreenshot: true,
             formTitle: t('feedback.widget.formTitle'),
-            isEmailRequired: false,
-            isNameRequired: false,
             messageLabel: t('feedback.widget.messageLabel'),
             messagePlaceholder: t('feedback.widget.messagePlaceholder'),
-            nameLabel: t('feedback.widget.nameLabel'),
-            namePlaceholder: t('feedback.widget.namePlaceholder'),
             addScreenshotButtonLabel: t('feedback.widget.addScreenshotButtonLabel'),
             removeScreenshotButtonLabel: t('feedback.widget.removeScreenshotButtonLabel'),
             submitButtonLabel: t('feedback.widget.submitButtonLabel'),
             successMessageText: t('feedback.widget.successMessage'),
+            showEmail: false,
+            showName: false,
           }),
         ],
         tracesSampleRate: 0.1,
@@ -63,6 +61,17 @@ const SentryProvider = memo<PropsWithChildren>(({ children }) => {
       });
     });
   }, [t]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    import('@sentry/nextjs').then((Sentry) => {
+      Sentry.setUser({
+        email: user.email || undefined,
+        username: user.fullName || user.username || undefined,
+      });
+    });
+  }, [user]);
 
   return <>{children}</>;
 });
