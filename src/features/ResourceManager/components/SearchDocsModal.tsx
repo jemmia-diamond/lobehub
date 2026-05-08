@@ -45,7 +45,7 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
   const { showLarkSearchFilterWiki } = useServerConfigStore(featureFlagsSelectors);
 
   const [query, setQuery] = useState('');
-  const debouncedQuery = useDebounce(query, { wait: 500 });
+  const debouncedQuery = useDebounce(query, { wait: 300 });
 
   const [spaceId, setSpaceId] = useState<string>('all');
   const [activeSpaceLabel, setActiveSpaceLabel] = useState<string>(() => t('lark.filter.allSpaces'));
@@ -129,6 +129,14 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
   useEffect(() => {
     if (!open) return;
 
+    const queryStr = String(debouncedQuery || '').trim();
+    if (!queryStr && spaceId === 'all') {
+      setAllItems([]);
+      setHasMore(false);
+      setIsLoadingInitial(false);
+      return;
+    }
+
     let cancelled = false;
     setIsLoadingInitial(true);
     setAllItems([]);
@@ -136,18 +144,23 @@ const SearchDocsModal = memo<SearchDocsModalProps>(({ open, onClose }) => {
     setHasMore(false);
 
     (async () => {
-      const result = await fetchItems();
-      if (cancelled) return;
-      setAllItems(result.items || []);
-      setPageToken(result.page_token);
-      setHasMore(result.has_more || false);
-      setIsLoadingInitial(false);
+      try {
+        const result = await fetchItems();
+        if (cancelled) return;
+        setAllItems(result.items || []);
+        setPageToken(result.page_token);
+        setHasMore(result.has_more || false);
+      } catch (e) {
+        console.error('Failed to fetch initial items:', e);
+      } finally {
+        if (!cancelled) setIsLoadingInitial(false);
+      }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [open, fetchItems]);
+  }, [open, fetchItems, debouncedQuery, spaceId]);
 
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasMore || !pageToken) return;

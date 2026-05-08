@@ -99,6 +99,10 @@ const InputEditor = memo<{ defaultRows?: number; placeholder?: ReactNode }>(({ d
 
         const localResults = fuse.search(search.matchingString).map((r) => r.item);
 
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        if (stateRef.current.matchingString !== search.matchingString) return localResults;
+
         try {
           const [employeeRes, docRes] = (await Promise.all([
             enableMentionEmployee
