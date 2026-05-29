@@ -91,6 +91,7 @@ RUN set -e && \
     pnpm i && \
     mkdir -p /deps && \
     cd /deps && \
+    corepack use $(sed -n 's/.*"packageManager": "\(.*\)".*/\1/p' /app/package.json) && \
     pnpm init && \
     pnpm add pg drizzle-orm
 
