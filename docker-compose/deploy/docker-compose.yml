@@ -1,8 +1,9 @@
 name: lobehub
 services:
   lobe:
-    image: ghcr.io/jemmia-diamond/lobehub:latest
-    pull_policy: always
+    build:
+      context: .
+      dockerfile: Dockerfile.zerotrust
     container_name: lobehub
     ports:
       - '${LOBE_PORT}:3210'
@@ -12,6 +13,8 @@ services:
       redis:
         condition: service_healthy
     environment:
+      - 'INFISICAL_TOKEN=${INFISICAL_TOKEN}'
+      - 'INFISICAL_API_URL=${INFISICAL_API_URL:-https://infisical.jemmia.vn}'
       - 'KEY_VAULTS_SECRET=${KEY_VAULTS_SECRET}'
       - 'AUTH_SECRET=${AUTH_SECRET}'
       - 'DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgresql:5432/${LOBE_DB_NAME}'
