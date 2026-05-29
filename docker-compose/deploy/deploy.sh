@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 echo "🚀 Bắt đầu quá trình Deploy Zero-Trust với Infisical..."
 
