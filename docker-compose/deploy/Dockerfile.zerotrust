@@ -4,10 +4,6 @@ RUN apt-get update && apt-get install -y curl bash && \
     apt-get update && apt-get install -y infisical
 
 FROM ghcr.io/jemmia-diamond/lobehub:latest
-
-# Bỏ qua quyền USER nextjs để chép file vào
 COPY --from=infisical-builder /usr/bin/infisical /bin/infisical
-
-# Infisical sẽ bọc lệnh Node.js lại để truyền biến trực tiếp vào RAM
 ENTRYPOINT ["/bin/infisical", "run", "--projectId", "79601934-6801-4afa-a075-60fcc40d90f8", "--env", "prod", "--path", "/lobehub", "--", "/bin/node"]
 CMD ["/app/startServer.js"]
