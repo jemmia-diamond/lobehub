@@ -33,6 +33,10 @@ export class IoRedisRedisProvider implements BaseRedisProvider {
       username: this.config.username,
     });
 
+    this.client.on('error', (error) => {
+      log('Redis connection error: %O', error);
+    });
+
     await this.client.connect();
     await this.client.ping();
 

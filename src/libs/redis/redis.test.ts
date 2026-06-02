@@ -99,6 +99,7 @@ const createMockedProvider = async () => {
       hgetall = mocks.hgetall;
       eval = mocks.eval;
       pipeline = mocks.pipeline;
+      on = vi.fn();
     }
 
     return { default: FakeRedis };
