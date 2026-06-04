@@ -20,6 +20,7 @@ Sentry.init({
     'cannot find pc bridge',
     'hydration-mismatch',
     'Active sessions list not found in secondary storage',
+    '[DEP0169]', // Legacy url.parse() warning
   ],
   beforeSend(event, hint) {
     const error = hint.originalException as any;
