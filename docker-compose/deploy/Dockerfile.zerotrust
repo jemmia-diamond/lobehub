@@ -5,5 +5,5 @@ RUN apt-get update && apt-get install -y curl bash && \
 
 FROM ghcr.io/jemmia-diamond/lobehub:latest
 COPY --from=infisical-builder /usr/bin/infisical /bin/infisical
-ENTRYPOINT ["/bin/infisical", "run", "--projectId", "79601934-6801-4afa-a075-60fcc40d90f8", "--env", "prod", "--path", "/lobehub", "--", "/bin/node"]
+ENTRYPOINT ["/bin/infisical", "run", "--projectId", "79601934-6801-4afa-a075-60fcc40d90f8", "--env", "prod", "--path", "/brainy", "--", "/bin/node"]
 CMD ["/app/startServer.js"]
