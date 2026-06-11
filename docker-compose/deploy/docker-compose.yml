@@ -40,7 +40,7 @@ services:
     image: paradedb/paradedb:latest-pg17
     container_name: lobe-postgres
     ports:
-      - '5432:5432'
+      - '127.0.0.1:5432:5432'
     volumes:
       - 'postgres_data:/var/lib/postgresql/data'
     environment:
@@ -59,7 +59,7 @@ services:
     image: redis:7-alpine
     container_name: lobe-redis
     ports:
-      - '6379:6379'
+      - '127.0.0.1:6379:6379'
     command: redis-server --save 60 1000 --appendonly yes
     volumes:
       - 'redis_data:/data'
@@ -76,8 +76,8 @@ services:
     image: rustfs/rustfs:latest
     container_name: lobe-rustfs
     ports:
-      - '${RUSTFS_PORT:-9000}:9000'
-      - '${RUSTFS_ADMIN_PORT:-9001}:9001'
+      - '127.0.0.1:${RUSTFS_PORT:-9000}:9000'
+      - '127.0.0.1:${RUSTFS_ADMIN_PORT:-9001}:9001'
     environment:
       - RUSTFS_CONSOLE_ENABLE=true
       - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY}
