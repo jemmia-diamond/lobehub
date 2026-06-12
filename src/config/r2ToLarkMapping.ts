@@ -176,6 +176,10 @@ export const JEMMIA_KNOWLEDGE_FILES: Record<string, KnowledgeFileEntry> = {
     label: 'Điều chỉnh chính sách thu tiền khách hàng',
     larkUrl: '',
   },
+  'Tai lieu tro ly ao_Quy trinh thanh toan_Full.md': {
+    label: 'Quy trình thanh toán',
+    larkUrl: '',
+  },
 };
 
 /** Derived: filename → larkUrl (for backward-compat and getLarkUrlForR2) */
