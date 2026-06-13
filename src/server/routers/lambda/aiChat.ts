@@ -207,6 +207,7 @@ export const aiChatRouter = router({
         includeTopic: isCreateNewTopic,
         sessionId,
         threadId,
+        topicFilter: input.topicFilter,
         topicId,
       });
 

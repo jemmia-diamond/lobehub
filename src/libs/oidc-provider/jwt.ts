@@ -99,22 +99,24 @@ const getVerificationKey = async () => {
  * @returns Parsed token payload and user information
  */
 export const validateOIDCJWT = async (token: string) => {
+  log('Starting OIDC JWT token validation');
+
+  // JWKS / signing key retrieval is an infrastructure concern (misconfigured
+  // env, malformed JWKS, key import failure). Let these errors propagate as
+  // plain Error so upstream middleware maps them to 500 and triggers ops
+  // alerts — treating them as 401 would incorrectly ask clients to re-auth
+  // while the real problem is server-side.
+  const publicKey = await getVerificationKey();
+
   try {
-    log('开始验证 OIDC JWT token');
 
-    // Get public key
-    const publicKey = await getVerificationKey();
-
-    // Verify JWT
     const { jwtVerify } = await import('jose');
     const { payload } = await jwtVerify(token, publicKey, {
       algorithms: ['RS256'],
-      // Additional validation options can be added, such as issuer, audience, etc.
     });
 
     log('JWT 验证成功，payload: %O', payload);
 
-    // Extract user information
     const userId = payload.sub;
     const clientId = payload.client_id;
     const aud = payload.aud;
@@ -148,7 +150,10 @@ export const validateOIDCJWT = async (token: string) => {
 
     log('JWT 验证失败: %O', error);
 
+    // Preserve the original jose error via `cause` so upstream middleware
+    // can still inspect specific codes like `ERR_JWT_EXPIRED`.
     throw new TRPCError({
+      cause: error,
       code: 'UNAUTHORIZED',
       message: `JWT token 验证失败: ${(error as Error).message}`,
     });

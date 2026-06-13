@@ -144,6 +144,22 @@ const chatStreamable = async function* <T>(stream: AsyncIterable<T>) {
 
 const ERROR_CHUNK_PREFIX = '%FIRST_CHUNK_ERROR%: ';
 
+export const ABORT_CHUNK = '%ABORT_CHUNK%';
+
+const isAbortError = (error: unknown): boolean => {
+  // SDK iterators may throw non-Error values (strings, plain objects without
+  // a `message`) — guard before touching `.name`/`.message` so the abort
+  // check itself can't blow up inside the stream error handler.
+  if (!error || typeof error !== 'object') return false;
+
+  const { name, message } = error as { message?: unknown; name?: unknown };
+
+  return (
+    name === 'AbortError' ||
+    (typeof message === 'string' && (message.includes('aborted') || message.includes('cancelled')))
+  );
+};
+
 export function readableFromAsyncIterable<T>(iterable: AsyncIterable<T>) {
   const it = iterable[Symbol.asyncIterator]();
   return new ReadableStream<T>({
@@ -158,6 +174,12 @@ export function readableFromAsyncIterable<T>(iterable: AsyncIterable<T>) {
         else controller.enqueue(value);
       } catch (e) {
         const error = e as Error;
+
+        if (isAbortError(error)) {
+          controller.enqueue(ABORT_CHUNK as T);
+          controller.close();
+          return;
+        }
 
         controller.enqueue(
           (ERROR_CHUNK_PREFIX +
@@ -189,6 +211,12 @@ export const convertIterableToStream = <T>(stream: AsyncIterable<T>) => {
       } catch (e) {
         const error = e as Error;
 
+        if (isAbortError(error)) {
+          controller.enqueue(ABORT_CHUNK as T);
+          controller.close();
+          return;
+        }
+
         controller.enqueue(
           (ERROR_CHUNK_PREFIX +
             JSON.stringify({ message: error.message, name: error.name, stack: error.stack })) as T,
@@ -204,6 +232,12 @@ export const convertIterableToStream = <T>(stream: AsyncIterable<T>) => {
         else controller.enqueue(value);
       } catch (e) {
         const error = e as Error;
+
+        if (isAbortError(error)) {
+          controller.enqueue(ABORT_CHUNK as T);
+          controller.close();
+          return;
+        }
 
         controller.enqueue(
           (ERROR_CHUNK_PREFIX +
@@ -268,6 +302,7 @@ export function createCallbacksTransformer(cb: ChatStreamCallbacks | undefined) 
   let grounding: any;
   let toolsCalling: any;
   let streamError: any;
+  let finishReason: string | undefined;
   // Track base64 images for accumulation
   const base64Images: Array<{ data: string; id: string }> = [];
 
@@ -278,6 +313,7 @@ export function createCallbacksTransformer(cb: ChatStreamCallbacks | undefined) 
     async flush(): Promise<void> {
       const data = {
         error: streamError,
+        finishReason,
         grounding,
         speed,
         text: aggregatedText,
@@ -391,6 +427,22 @@ export function createCallbacksTransformer(cb: ChatStreamCallbacks | undefined) 
             break;
           }
 
+          case 'stop': {
+            // Provider's terminal finishReason (e.g. Google's RECITATION / MAX_TOKENS,
+            // OpenAI's length, Anthropic's end_turn). Capture so downstream consumers
+            // can detect soft interrupts where content is empty but tokens were billed.
+            //
+            // Some providers emit multiple stop chunks per stream — Anthropic sends
+            // `message_delta` (carrying the real `stop_reason` like `end_turn` /
+            // `max_tokens` / `tool_use`) followed by a `message_stop` sentinel.
+            // Keep the FIRST non-empty value so the meaningful reason is not
+            // clobbered by the trailing sentinel.
+            if (typeof data === 'string' && data && !finishReason) {
+              finishReason = data;
+            }
+            break;
+          }
+
           case 'error': {
             streamError = data;
             await callbacks.onError?.(data);
@@ -410,6 +462,11 @@ export const createFirstErrorHandleTransformer = (
 ) => {
   return new TransformStream({
     transform(chunk, controller) {
+      if (chunk === ABORT_CHUNK) {
+        controller.enqueue(chunk);
+        return;
+      }
+
       if (chunk.toString().startsWith(ERROR_CHUNK_PREFIX)) {
         const errorData = JSON.parse(chunk.toString().replace(ERROR_CHUNK_PREFIX, ''));
 
@@ -523,6 +580,15 @@ export const createTokenSpeedCalculator = (
 
   return new TransformStream({
     transform(chunk, controller) {
+      if (chunk === ABORT_CHUNK) {
+        controller.enqueue({
+          data: 'abort',
+          id: streamStack?.id || '',
+          type: 'stop',
+        } as StreamProtocolChunk);
+        return;
+      }
+
       let result = transformer(chunk, streamStack || { id: '' });
       if (!Array.isArray(result)) result = [result];
       result.forEach((r) => {

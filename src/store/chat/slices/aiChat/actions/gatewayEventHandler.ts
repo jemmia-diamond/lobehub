@@ -56,6 +56,14 @@ export const createGatewayEventHandler = (
   let accumulatedContent = '';
   let accumulatedReasoning = '';
 
+  // LOBE-9523: tracks whether any server-confirmed state has actually arrived
+  // (server-assigned assistant id, streamed text/reasoning/tools, or a SoT
+  // uiMessages snapshot). Used by `agent_runtime_end` to decide between
+  // preserving in-memory streamed content (when interrupted MID-stream) vs.
+  // falling back to a DB refetch (when interrupted BEFORE any server state
+  // landed — otherwise the optimistic `tmp_*` placeholder messages stay in
+  // the store indefinitely).
+  let hasStreamedContent = false;
   // Sequential processing queue — ensures stream_chunk waits for stream_start's fetch
   let processingChain: Promise<void> = Promise.resolve();
 
@@ -76,6 +84,9 @@ export const createGatewayEventHandler = (
             currentAssistantMessageId = newAssistantMessageId;
             // Associate the new message with the operation so UI shows generating state
             get().associateMessageWithOperation(currentAssistantMessageId, operationId);
+            // Server-confirmed assistant id is durable state — preserve it on
+            // interrupt instead of falling back to a placeholder-clobbering refetch.
+            hasStreamedContent = true;
           }
 
           // Reset accumulators for the new stream
@@ -95,6 +106,7 @@ export const createGatewayEventHandler = (
 
           if (data.chunkType === 'text' && data.content) {
             accumulatedContent += data.content;
+            hasStreamedContent = true;
             get().internal_dispatchMessage(
               {
                 id: currentAssistantMessageId,
@@ -107,6 +119,7 @@ export const createGatewayEventHandler = (
 
           if (data.chunkType === 'reasoning' && data.reasoning) {
             accumulatedReasoning += data.reasoning;
+            hasStreamedContent = true;
             get().internal_dispatchMessage(
               {
                 id: currentAssistantMessageId,
@@ -118,6 +131,7 @@ export const createGatewayEventHandler = (
           }
 
           if (data.chunkType === 'tools_calling' && data.toolsCalling) {
+            hasStreamedContent = true;
             get().internal_dispatchMessage(
               {
                 id: currentAssistantMessageId,
@@ -174,8 +188,24 @@ export const createGatewayEventHandler = (
 
       case 'agent_runtime_end': {
         enqueue(async () => {
+          const data = event.data as { reason?: string } | undefined;
+
           get().internal_toggleToolCallingStreaming(currentAssistantMessageId, undefined);
           get().completeOperation(operationId);
+
+          if (data?.reason === 'interrupted' && hasStreamedContent) {
+            // LOBE-9523: MID-stream cancel. Skip DB refetch to preserve in-memory streamed content.
+          } else {
+            await fetchAndReplaceMessages(get, context).catch(console.error);
+          }
+        });
+        break;
+      }
+
+      case 'notify_update': {
+        // Remote hetero agent (openclaw / hermes) wrote a message to DB via
+        // `lh notify`. DB is the source of truth — just refresh the message list.
+        enqueue(async () => {
           await fetchAndReplaceMessages(get, context).catch(console.error);
         });
         break;

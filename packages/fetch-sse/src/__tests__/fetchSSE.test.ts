@@ -43,6 +43,7 @@ describe('fetchSSE', () => {
     expect(mockOnMessageHandle).toHaveBeenNthCalledWith(1, { text: 'Hello World', type: 'text' });
     expect(mockOnFinish).toHaveBeenCalledWith('Hello World', {
       observationId: null,
+      planUpgradeAfterFinish: false,
       toolCalls: undefined,
       traceId: null,
       type: 'done',
@@ -90,6 +91,7 @@ describe('fetchSSE', () => {
     });
     expect(mockOnFinish).toHaveBeenCalledWith('', {
       observationId: null,
+      planUpgradeAfterFinish: false,
       toolCalls: [
         { id: '1', type: 'function', function: { name: 'func1', arguments: 'arg1' } },
         { id: '2', type: 'function', function: { name: 'func2', arguments: 'arg2' } },
@@ -115,6 +117,7 @@ describe('fetchSSE', () => {
     expect(mockOnMessageHandle).toHaveBeenCalledWith({ text: 'Hello World', type: 'text' });
     expect(mockOnFinish).toHaveBeenCalledWith('Hello World', {
       observationId: null,
+      planUpgradeAfterFinish: false,
       toolCalls: undefined,
       traceId: null,
       type: 'done',
@@ -161,6 +164,7 @@ describe('fetchSSE', () => {
     // more assertions for each character...
     expect(mockOnFinish).toHaveBeenCalledWith('Hello World', {
       observationId: null,
+      planUpgradeAfterFinish: false,
       toolCalls: undefined,
       traceId: null,
       type: 'done',
@@ -194,6 +198,7 @@ describe('fetchSSE', () => {
 
     expect(mockOnFinish).toHaveBeenCalledWith('Hello World', {
       observationId: null,
+      planUpgradeAfterFinish: false,
       toolCalls: undefined,
       traceId: null,
       type: 'done',
@@ -227,6 +232,7 @@ describe('fetchSSE', () => {
 
       expect(mockOnFinish).toHaveBeenCalledWith('hi', {
         observationId: null,
+        planUpgradeAfterFinish: false,
         toolCalls: undefined,
         reasoning: { content: 'Hello World' },
         traceId: null,
@@ -278,6 +284,7 @@ describe('fetchSSE', () => {
       // Verify output is accumulated correctly
       expect(mockOnFinish).toHaveBeenCalledWith('Hello World', {
         observationId: null,
+        planUpgradeAfterFinish: false,
         toolCalls: undefined,
         traceId: null,
         type: 'done',
@@ -315,6 +322,7 @@ describe('fetchSSE', () => {
       // Verify reasoning is accumulated correctly
       expect(mockOnFinish).toHaveBeenCalledWith('Final answer', {
         observationId: null,
+        planUpgradeAfterFinish: false,
         reasoning: { content: 'Thinking: step 1' },
         toolCalls: undefined,
         traceId: null,
@@ -357,6 +365,7 @@ describe('fetchSSE', () => {
       // Output should be empty since image content is not accumulated
       expect(mockOnFinish).toHaveBeenCalledWith('', {
         observationId: null,
+        planUpgradeAfterFinish: false,
         toolCalls: undefined,
         traceId: null,
         type: 'done',
@@ -389,6 +398,7 @@ describe('fetchSSE', () => {
 
     expect(mockOnFinish).toHaveBeenCalledWith('hi', {
       observationId: null,
+      planUpgradeAfterFinish: false,
       toolCalls: undefined,
       grounding: 'Hello',
       traceId: null,
@@ -450,6 +460,7 @@ describe('fetchSSE', () => {
 
     expect(mockOnFinish).toHaveBeenCalledWith('', {
       observationId: null,
+      planUpgradeAfterFinish: false,
       toolCalls: [
         { id: '1', type: 'function', function: { name: 'func1', arguments: 'arg1' } },
         { id: '2', type: 'function', function: { name: 'func2', arguments: 'arg2' } },
@@ -502,6 +513,7 @@ describe('fetchSSE', () => {
     expect(mockOnFinish).toHaveBeenCalledWith('Hello World', {
       type: 'done',
       observationId: null,
+      planUpgradeAfterFinish: false,
       traceId: null,
     });
   });
@@ -521,6 +533,7 @@ describe('fetchSSE', () => {
 
     expect(mockOnFinish).toHaveBeenCalledWith('Hello', {
       observationId: null,
+      planUpgradeAfterFinish: false,
       toolCalls: undefined,
       traceId: null,
       type: 'abort',
@@ -538,6 +551,7 @@ describe('fetchSSE', () => {
 
     expect(mockOnFinish).toHaveBeenCalledWith('Hello', {
       observationId: null,
+      planUpgradeAfterFinish: false,
       toolCalls: undefined,
       traceId: null,
       type: 'error',

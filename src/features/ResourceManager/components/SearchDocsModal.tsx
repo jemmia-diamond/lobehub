@@ -18,8 +18,8 @@ import { useTranslation } from 'react-i18next';
 import { LARK_BASE_URL } from '@/const/url';
 import { larkDocService } from '@/services/larkDoc';
 import { agentSelectors } from '@/store/agent/selectors';
-import { useFileStore } from '@/store/file';
 import { useAgentStore } from '@/store/agent/store';
+import { useFileStore } from '@/store/file';
 import { useServerConfigStore } from '@/store/serverConfig';
 import { featureFlagsSelectors } from '@/store/serverConfig/selectors';
 

@@ -227,6 +227,8 @@
   "messageAction.feedbackPositive": "Good response",
   "messageAction.feedbackSuccess": "Thank you for your feedback!",
   "messageAction.regenerate": "Regenerate",
+  "messageLongCollapse.collapse": "Show less",
+  "messageLongCollapse.expand": "Show more",
   "messages.dm.sentTo": "Visible only to {{name}}",
   "messages.dm.title": "DM",
   "messages.modelCard.credit": "Credits",
@@ -610,6 +612,7 @@
   "workingPanel.resources.renameEmpty": "Title cannot be empty",
   "workingPanel.resources.renameError": "Failed to rename document",
   "workingPanel.resources.renameSuccess": "Document renamed",
+
   "workingPanel.title": "Working Panel",
   "you": "You",
   "zenMode": "Zen Mode"

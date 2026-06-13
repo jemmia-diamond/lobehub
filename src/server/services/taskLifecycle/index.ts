@@ -110,6 +110,7 @@ export class TaskLifecycleService {
 
       await this.briefModel.create({
         actions: DEFAULT_BRIEF_ACTIONS['error'],
+        agentId: currentTask?.assigneeAgentId || undefined,
         priority: 'urgent',
         summary: `Execution failed: ${errorMessage || 'Unknown error'}`,
         taskId,
@@ -175,6 +176,7 @@ export class TaskLifecycleService {
   }
 
   /**
+
    * Run auto-review if configured.
    * @returns true if auto-retry is in progress (caller should skip pause)
    */
@@ -221,6 +223,7 @@ export class TaskLifecycleService {
 
       if (reviewResult.passed) {
         await this.briefModel.create({
+          agentId: currentTask?.assigneeAgentId || undefined,
           priority: 'info',
           summary: `Review passed (score: ${reviewResult.overallScore}%, iteration: ${iteration}). ${content.slice(0, 150)}`,
           taskId,
@@ -232,6 +235,7 @@ export class TaskLifecycleService {
 
       if (reviewConfig.autoRetry && iteration < reviewConfig.maxIterations) {
         await this.briefModel.create({
+          agentId: currentTask?.assigneeAgentId || undefined,
           priority: 'normal',
           summary: `Review failed (score: ${reviewResult.overallScore}%, iteration ${iteration}/${reviewConfig.maxIterations}). Auto-retrying...`,
           taskId,
@@ -251,6 +255,7 @@ export class TaskLifecycleService {
           { key: 'approve', label: '✅ 强制通过', type: 'resolve' as const },
           { key: 'feedback', label: '💬 修改意见', type: 'comment' as const },
         ],
+        agentId: currentTask?.assigneeAgentId || undefined,
         priority: 'urgent',
         summary: `Review failed after ${iteration} iteration(s) (score: ${reviewResult.overallScore}%). Suggestions: ${reviewResult.suggestions?.join('; ') || 'none'}`,
         taskId,

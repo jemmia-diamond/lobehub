@@ -23,16 +23,17 @@ export enum AsyncTaskErrorType {
   FreePlanLimit = 'FreePlanLimit',
 
   InvalidProviderAPIKey = 'InvalidProviderAPIKey',
-  /* ↑ cloud slot ↑ */
-
   /**
    * Model not found on server
    */
   ModelNotFound = 'ModelNotFound',
+  /* ↑ cloud slot ↑ */
+
   /**
    * the chunk parse result it empty
    */
   NoChunkError = 'NoChunkError',
+  ProviderContentModeration = 'ProviderContentModeration',
   ServerError = 'ServerError',
   /**
    * Subscription plan limit reached (paid users run out of credits)
@@ -49,8 +50,27 @@ export enum AsyncTaskErrorType {
   Timeout = 'TaskTimeout',
 }
 
+export interface AsyncTaskStructuredErrorItem {
+  layer?: string;
+  memoryIndex?: number;
+  message: string;
+  preview?: string;
+  sourceId?: string;
+  sourceType?: string;
+  stack?: string;
+  stage?: string;
+}
+
+export interface AsyncTaskErrorBody {
+  detail: string;
+  extractErrors?: AsyncTaskStructuredErrorItem[];
+  persistErrors?: AsyncTaskStructuredErrorItem[];
+  progressErrors?: AsyncTaskStructuredErrorItem[];
+  retrievalErrors?: AsyncTaskStructuredErrorItem[];
+}
+
 export interface IAsyncTaskError {
-  body: string | { detail: string };
+  body: string | AsyncTaskErrorBody;
   name: string;
 }
 
@@ -62,7 +82,7 @@ export class AsyncTaskError implements IAsyncTaskError {
 
   name: string;
 
-  body: { detail: string };
+  body: AsyncTaskErrorBody;
 }
 
 export interface FileParsingTask {

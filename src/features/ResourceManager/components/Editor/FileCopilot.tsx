@@ -1,7 +1,7 @@
 'use client';
 
 import { Flexbox } from '@lobehub/ui';
-import { memo, useEffect, useMemo } from 'react';
+import { memo, useMemo } from 'react';
 
 import DragUploadZone, { useUploadFiles } from '@/components/DragUploadZone';
 import { type ActionKeys } from '@/features/ChatInput';
@@ -14,17 +14,13 @@ import {
 import RightPanel from '@/features/RightPanel';
 import { useAgentStore } from '@/store/agent';
 import { agentByIdSelectors } from '@/store/agent/selectors';
-import { useChatStore } from '@/store/chat';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 /**
  * Help analyze and work with files
  */
 const FileCopilot = memo(() => {
-  const [setActiveAgentId, useFetchAgentConfig] = useAgentStore((s) => [
-    s.setActiveAgentId,
-    s.useFetchAgentConfig,
-  ]);
+  const useFetchAgentConfig = useAgentStore((s) => s.useFetchAgentConfig);
   const currentAgentId = useConversationStore(conversationSelectors.agentId);
   const { enableModel, enableSearch } = useServerConfigStore(featureFlagsSelectors);
 
@@ -35,28 +31,6 @@ const FileCopilot = memo(() => {
     ],
     [enableModel, enableSearch],
   );
-
-  useEffect(() => {
-    if (!currentAgentId) return;
-
-    if (useAgentStore.getState().activeAgentId !== currentAgentId) {
-      setActiveAgentId(currentAgentId);
-    }
-
-    const { activeAgentId, activeTopicId, switchTopic } = useChatStore.getState();
-
-    if (activeAgentId !== currentAgentId) {
-      useChatStore.setState(
-        { activeAgentId: currentAgentId },
-        false,
-        'ResourceManager/FileCopilot/syncActiveAgentId',
-      );
-    }
-
-    if (activeAgentId !== currentAgentId || !!activeTopicId) {
-      void switchTopic(null, { scope: 'page', skipRefreshMessage: true });
-    }
-  }, [currentAgentId, setActiveAgentId]);
 
   // Fetch agent config when activeAgentId changes to ensure it's loaded in the store
   useFetchAgentConfig(true, currentAgentId);

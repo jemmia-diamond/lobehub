@@ -11,6 +11,7 @@ import {
   type ConversationContext,
   type SendMessageParams,
   type SendMessageServerResponse,
+  type UIChatMessage,
 } from '@lobechat/types';
 import { nanoid } from '@lobechat/utils';
 import { TRPCClientError } from '@trpc/client';
@@ -351,23 +352,26 @@ export class ConversationLifecycleActionImpl {
     // ── Gateway mode: skip sendMessageInServer, let execAgentTask handle everything ──
     if (this.#get().isGatewayModeEnabled()) {
       try {
+        // Pass `sendMessage` as `parentOperationId` so executeGatewayAgent
+        // completes it the instant phase-1 init finishes (after the child
+        // `execServerAgentRuntime` op starts). Without this hand-off the
+        // input loading state would drop during the execAgentTask round-trip
+        // and the send button would flicker back to "send".
         const result = await this.#get().executeGatewayAgent({
           context: operationContext,
           fileIds: fileIdList,
           message,
-          onComplete: () => {
-             this.#get().completeOperation(operationId);
-          },
+          parentOperationId: operationId,
         });
 
         // ── Map the optimistic temporary IDs to the real database IDs IMMEDIATELY
         this.#get().internal_dispatchMessage(
           { id: tempId, type: 'updateMessage', value: { id: result.userMessageId } },
-          { operationId }
+          { operationId },
         );
         this.#get().internal_dispatchMessage(
           { id: tempAssistantId, type: 'updateMessage', value: { id: result.assistantMessageId } },
-          { operationId }
+          { operationId },
         );
 
         // ── Ensure the operation store tracks the loading state for the NEW real IDs
@@ -379,12 +383,18 @@ export class ConversationLifecycleActionImpl {
           userMessageId: result.userMessageId,
         };
       } catch (e) {
+        // User cancelled during phase-1 init — `cancelOperation` already set
+        // the op to 'cancelled' and `executeGatewayAgent` cleaned up the
+        // server task. Don't clobber that with 'failed'.
+        const op = this.#get().operations[operationId];
+        if (op?.status === 'cancelled') return;
+
         console.error('[Gateway] Failed to start server-side agent:', e);
         this.#get().failOperation(operationId, {
           message: e instanceof Error ? e.message : 'Unknown error',
           type: 'GatewayError',
         });
-        
+
         // Cleanup temp messages and restore input on failure
         this.#get().internal_dispatchMessage(
           { type: 'deleteMessages', ids: [tempId, tempAssistantId] },
@@ -442,6 +452,7 @@ export class ConversationLifecycleActionImpl {
           preloadMessages: undefined,
           // if there is topicId, then add topicId to message
           topicId: topicId ?? undefined,
+
           threadId: operationContext.threadId ?? undefined,
           // Support creating new thread along with message
           newThread: newThread
@@ -536,7 +547,10 @@ export class ConversationLifecycleActionImpl {
         e.message?.includes('topic_id') &&
         e.message?.includes('not present in table')
       ) {
-        console.warn('[sendMessage] Stale topicId detected, clearing from store:', operationContext.topicId);
+        console.warn(
+          '[sendMessage] Stale topicId detected, clearing from store:',
+          operationContext.topicId,
+        );
         if (operationContext.topicId) {
           this.#get().internal_dispatchTopic({ type: 'deleteTopic', id: operationContext.topicId });
         }
@@ -584,10 +598,31 @@ export class ConversationLifecycleActionImpl {
 
     if (data.topicId) this.#get().internal_updateTopicLoading(data.topicId, true);
 
+    // Dev-only fast path: fall back to slicing the first user message instead of calling
+    // the LLM. Keeps chat logs uncluttered while still giving the topic a usable title.
+    // Only honored in non-production builds so a misconfigured prod env can't disable it.
+    const shouldSliceTopicTitle =
+      process.env.NODE_ENV !== 'production' &&
+      process.env.NEXT_PUBLIC_DEV_DISABLE_AUTO_TOPIC === '1';
+
+    const applyTopicTitle = async (topicId: string, messages: UIChatMessage[]) => {
+      if (!shouldSliceTopicTitle) {
+        await this.#get().summaryTopicTitle(topicId, messages);
+        return;
+      }
+
+      const firstUserText = messages.find((m) => m.role === 'user')?.content?.trim() ?? '';
+      const title = firstUserText.slice(0, 30) || 'New Topic';
+      await this.#get().internal_updateTopic(topicId, { title });
+      // summaryTopicTitle would normally clear loading via onLoadingChange; do it manually.
+      this.#get().internal_updateTopicLoading(topicId, false);
+      console.info('[dev] sliced topic title (NEXT_PUBLIC_DEV_DISABLE_AUTO_TOPIC=1):', title);
+    };
+
     const summaryTitle = async () => {
       // check activeTopic and then auto update topic title
       if (data.isCreateNewTopic) {
-        await this.#get().summaryTopicTitle(data.topicId, data.messages);
+        await applyTopicTitle(data.topicId, data.messages);
         return;
       }
 
@@ -600,7 +635,7 @@ export class ConversationLifecycleActionImpl {
           .getDisplayMessagesByKey(messageMapKey({ agentId, topicId: topic.id }))(this.#get())
           .filter((item) => item.id !== data.assistantMessageId);
 
-        await this.#get().summaryTopicTitle(topic.id, chats);
+        await applyTopicTitle(topic.id, chats);
       }
     };
 
@@ -671,7 +706,8 @@ export class ConversationLifecycleActionImpl {
         // so the AI can delegate directly without activating the full agent-management tool
         const injectedManifests = hasMentionedAgents ? [createCallAgentManifest()] : undefined;
 
-        const hasInitialContext = hasMentionedAgents || !!injectedManifests || (contexts && contexts.length > 0);
+        const hasInitialContext =
+          hasMentionedAgents || !!injectedManifests || (contexts && contexts.length > 0);
 
         // Note: selectedSkills and selectedTools are NOT passed here — they are
         // persisted into the user message content above so they survive across

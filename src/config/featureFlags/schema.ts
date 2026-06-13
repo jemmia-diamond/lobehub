@@ -55,6 +55,8 @@ export const FeatureFlagsSchema = z.object({
   show_upload_folder: FeatureFlagValue.optional(),
 
   // internal flag
+  // Cloud feature flag. Keep here until cloud owns a separate runtime flag domain.
+  auth_captcha: FeatureFlagValue.optional(),
   cloud_promotion: FeatureFlagValue.optional(),
 
   // The new custom MVP restriction flags
@@ -207,6 +209,7 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   show_upload_image: false,
   show_upload_folder: false,
 
+  auth_captcha: true,
   cloud_promotion: false,
 
   market: false,
@@ -344,6 +347,7 @@ export const mapFeatureFlagsEnvToState = (
     showUploadLark: evaluateAlphaFeatureFlag(config.show_upload_lark, userEmail, userEnterpriseEmail),
     showUploadImage: evaluateFeatureFlag(config.show_upload_image, userId),
     showUploadFolder: evaluateFeatureFlag(config.show_upload_folder, userId),
+    enableAuthCaptcha: evaluateFeatureFlag(config.auth_captcha, userId),
 
     showCloudPromotion: evaluateFeatureFlag(config.cloud_promotion, userId),
 

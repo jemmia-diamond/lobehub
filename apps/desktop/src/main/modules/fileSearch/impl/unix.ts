@@ -336,7 +336,7 @@ export abstract class UnixFileSearch extends BaseFileSearch {
    * @returns Glob results
    */
   protected async globWithFd(params: GlobFilesParams): Promise<GlobFilesResult> {
-    const searchPath = params.scope || process.cwd();
+    const searchPath = params.scope || os.homedir() || process.cwd();
     const logPrefix = `[glob:fd: ${params.pattern}]`;
 
     logger.debug(`${logPrefix} Starting fd glob`, { searchPath });
@@ -392,7 +392,7 @@ export abstract class UnixFileSearch extends BaseFileSearch {
    * @returns Glob results
    */
   protected async globWithFind(params: GlobFilesParams): Promise<GlobFilesResult> {
-    const searchPath = params.scope || process.cwd();
+    const searchPath = params.scope || os.homedir() || process.cwd();
     const logPrefix = `[glob:find: ${params.pattern}]`;
 
     logger.debug(`${logPrefix} Starting find glob`, { searchPath });
@@ -454,7 +454,7 @@ export abstract class UnixFileSearch extends BaseFileSearch {
    * @returns Glob results
    */
   protected async globWithFastGlob(params: GlobFilesParams): Promise<GlobFilesResult> {
-    const searchPath = params.scope || process.cwd();
+    const searchPath = params.scope || os.homedir() || process.cwd();
     const logPrefix = `[glob:fast-glob: ${params.pattern}]`;
 
     logger.debug(`${logPrefix} Starting fast-glob`, { searchPath });

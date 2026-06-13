@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { evaluateFeatureFlag, FeatureFlagsSchema, mapFeatureFlagsEnvToState } from './schema';
+import {
+  DEFAULT_FEATURE_FLAGS,
+  evaluateFeatureFlag,
+  FeatureFlagsSchema,
+  mapFeatureFlagsEnvToState,
+} from './schema';
 
 describe('FeatureFlagsSchema', () => {
   it('should validate correct feature flags with boolean values', () => {
@@ -101,6 +106,12 @@ describe('evaluateFeatureFlag', () => {
 });
 
 describe('mapFeatureFlagsEnvToState', () => {
+  it('should enable auth captcha by default', () => {
+    const mappedState = mapFeatureFlagsEnvToState(DEFAULT_FEATURE_FLAGS);
+
+    expect(mappedState.enableAuthCaptcha).toBe(true);
+  });
+
   it('should correctly map boolean feature flags to state', () => {
     const config = {
       provider_settings: true,
@@ -112,6 +123,7 @@ describe('mapFeatureFlagsEnvToState', () => {
       welcome_suggest: true,
       knowledge_base: false,
       rag_eval: true,
+      auth_captcha: true,
       market: true,
       speech_to_text: true,
       changelog: false,
@@ -140,6 +152,7 @@ describe('mapFeatureFlagsEnvToState', () => {
       showWelcomeSuggest: true,
       enableKnowledgeBase: false,
       enableRAGEval: true,
+      enableAuthCaptcha: true,
       showMarket: true,
       enableSTT: true,
       showCloudPromotion: true,
@@ -157,6 +170,7 @@ describe('mapFeatureFlagsEnvToState', () => {
     const userId = 'user-123';
     const config = {
       edit_agent: ['user-123', 'user-456'],
+      auth_captcha: ['user-123'],
       create_session: ['user-789'],
       dalle: true,
       knowledge_base: ['user-123'],
@@ -166,6 +180,7 @@ describe('mapFeatureFlagsEnvToState', () => {
 
     expect(mappedState.isAgentEditable).toBe(true); // user-123 is in allowlist
 
+    expect(mappedState.enableAuthCaptcha).toBe(true); // user-123 is in allowlist
     expect(mappedState.enableKnowledgeBase).toBe(true); // user-123 is in allowlist
   });
 

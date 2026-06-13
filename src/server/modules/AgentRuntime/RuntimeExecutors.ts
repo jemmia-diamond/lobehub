@@ -29,7 +29,7 @@ import { parse } from '@lobechat/conversation-flow';
 import { consumeStreamUntilDone } from '@lobechat/model-runtime';
 import { chainCompressContext } from '@lobechat/prompts';
 import { type ChatToolPayload, type MessageToolCall, type UIChatMessage } from '@lobechat/types';
-import { serializePartsForStorage } from '@lobechat/utils';
+import { sanitizeToolCallArguments, serializePartsForStorage } from '@lobechat/utils';
 import debug from 'debug';
 
 import { type MessageModel, MessageModel as MessageModelClass } from '@/database/models/message';
@@ -48,6 +48,7 @@ import {
 } from '@/server/services/toolExecution';
 
 import { dispatchClientTool } from './dispatchClientTool';
+import { formatErrorEventData } from './formatErrorEventData';
 import { classifyLLMError, type LLMErrorKind } from './llmErrorClassification';
 import {
   createConversationParentMissingError,
@@ -192,51 +193,6 @@ const buildToolDiscoveryConfig = (operationToolSet: OperationToolSet, enabledToo
   if (availableTools.length === 0) return undefined;
 
   return { availableTools };
-};
-
-const formatErrorEventData = (error: unknown, phase: string) => {
-  let errorMessage = 'Unknown error';
-  let errorType: string | undefined;
-
-  if (error && typeof error === 'object') {
-    const payload = error as { error?: unknown; errorType?: unknown; message?: unknown };
-
-    if (typeof payload.errorType === 'string') {
-      errorType = payload.errorType;
-    }
-
-    if (typeof payload.message === 'string' && payload.message.length > 0) {
-      errorMessage = payload.message;
-    } else if (typeof payload.error === 'string' && payload.error.length > 0) {
-      errorMessage = payload.error;
-    } else if (
-      payload.error &&
-      typeof payload.error === 'object' &&
-      'message' in payload.error &&
-      typeof payload.error.message === 'string'
-    ) {
-      errorMessage = payload.error.message;
-    } else if (error instanceof Error && error.message.length > 0) {
-      errorMessage = error.message;
-    } else if (errorType) {
-      errorMessage = errorType;
-    }
-  } else if (error instanceof Error && error.message.length > 0) {
-    errorMessage = error.message;
-    errorType = error.name;
-  } else if (typeof error === 'string' && error.length > 0) {
-    errorMessage = error;
-  }
-
-  if (!errorType && error instanceof Error && error.name) {
-    errorType = error.name;
-  }
-
-  return {
-    error: errorMessage,
-    errorType,
-    phase,
-  };
 };
 
 export interface RuntimeExecutorContext {
@@ -574,10 +530,14 @@ export const createRuntimeExecutors = (
               return info?.abilities?.video ?? false;
             },
             isCanUseVision: (m: string, p: string) => {
-              const info = LOBE_DEFAULT_MODEL_LIST.find(
-                (item) => item.id === m && item.providerId === p,
-              );
-              return info?.abilities?.vision ?? true;
+              // Aggregator providers (e.g. lobehub) route to upstream model cards
+              // that live under the original provider's id in the registry, so
+              // fall back to a cross-provider lookup by model id when the
+              // (model, provider) pair has no direct entry.
+              const info =
+                LOBE_DEFAULT_MODEL_LIST.find((item) => item.id === m && item.providerId === p) ??
+                LOBE_DEFAULT_MODEL_LIST.find((item) => item.id === m);
+              return info?.abilities?.vision ?? false;
             },
           },
           botPlatformContext: ctx.botPlatformContext,
@@ -727,6 +687,7 @@ export const createRuntimeExecutors = (
         const imageList: any[] = [];
         let grounding: any = null;
         let currentStepUsage: any = undefined;
+        let currentStepFinishReason: string | undefined = undefined;
         let streamError: any = undefined;
         const contentParts: ContentPart[] = [];
         const reasoningParts: ContentPart[] = [];
@@ -767,6 +728,12 @@ export const createRuntimeExecutors = (
                 // Capture usage (may or may not include cost)
                 if (data.usage) {
                   currentStepUsage = data.usage;
+                }
+                // Capture provider's terminal finishReason so soft interrupts
+                // (e.g. Gemini RECITATION / MAX_TOKENS with empty content)
+                // are visible in tracing instead of being silently swallowed.
+                if (data.finishReason) {
+                  currentStepFinishReason = data.finishReason;
                 }
               },
               onGrounding: async (groundingData) => {
@@ -819,7 +786,14 @@ export const createRuntimeExecutors = (
               },
               onToolsCalling: async ({ toolsCalling: raw }) => {
                 const resolvedCalls = new ToolNameResolver().resolve(raw, resolved.manifestMap);
-                // Attach source (origin) and executor (dispatch target) for routing
+                // Attach source (origin) and executor (dispatch target) for routing.
+                // `arguments` are kept RAW here on purpose so the tool executor can
+                // still detect malformed JSON and return an `INVALID_JSON_ARGUMENTS`
+                // tool-result with the original bad string — that's the
+                // self-reflection signal the model needs to fix its own output.
+                // Sanitization happens later, only at the persist boundaries
+                // (DB write and state.messages push) to protect strict providers
+                // replaying history. See LOBE-7761.
                 const payload = resolvedCalls.map((p) => ({
                   ...p,
                   executor: resolved.executorMap?.[p.identifier],
@@ -899,7 +873,13 @@ export const createRuntimeExecutors = (
 
           // Add a complete llm_stream event (including all streaming chunks)
           events.push({
-            result: { content, reasoning: thinkingContent, tool_calls, usage: currentStepUsage },
+            result: {
+              content,
+              finishReason: currentStepFinishReason,
+              reasoning: thinkingContent,
+              tool_calls,
+              usage: currentStepUsage,
+            },
             type: 'llm_result',
           });
 
@@ -949,13 +929,24 @@ export const createRuntimeExecutors = (
               metadata.isMultimodal = true;
             }
 
+            // Sanitize tool_call `arguments` before persisting to DB so malformed
+            // JSON (e.g. Qwen emitting `{, ...}`) can't poison future context
+            // builds and 400 strict providers like NVIDIA NIM. See LOBE-7761.
+            const persistedTools =
+              toolsCalling.length > 0
+                ? toolsCalling.map((t) => ({
+                    ...t,
+                    arguments: sanitizeToolCallArguments(t.arguments),
+                  }))
+                : undefined;
+
             await ctx.messageModel.update(assistantMessageItem.id, {
               content: finalContent,
               imageList: imageList.length > 0 ? imageList : undefined,
               metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
               reasoning: finalReasoning,
               search: grounding,
-              tools: toolsCalling.length > 0 ? toolsCalling : undefined,
+              tools: persistedTools,
             });
           } catch (error) {
             console.error('[call_llm] Failed to update message:', error);
@@ -964,19 +955,31 @@ export const createRuntimeExecutors = (
           // ===== 2. Then accumulate to AgentState =====
           const newState = structuredClone(state);
 
-          // Carry the persisted DB id so downstream executors (notably
-          // `request_human_approve`) can look up the parent assistant from
-          // `state.messages` without an extra DB round-trip. Without the id
-          // the lookup at `request_human_approve` (which filters on `m.id`)
-          // falls through to a DB query; when human-approve fires on the
-          // fresh LLM turn, both code paths miss and the op errors with
-          // "No assistant message found as parent for pending tool messages".
+          // state.messages flows into the next LLM call payload, so entries
+          // must be safe for strict-provider history replay:
+          //   - drop tool_calls with empty name (undispatchable, and strict
+          //     providers 400 on nameless entries)
+          //   - coerce malformed JSON `arguments` to valid JSON
+          const sanitizedToolCalls =
+            tool_calls.length > 0
+              ? tool_calls
+                  .filter((tc) => !!tc.function.name)
+                  .map((tc) => ({
+                    ...tc,
+                    function: {
+                      ...tc.function,
+                      arguments: sanitizeToolCallArguments(tc.function.arguments),
+                    },
+                  }))
+              : [];
+          const stateToolCalls = sanitizedToolCalls.length > 0 ? sanitizedToolCalls : undefined;
+
           newState.messages.push({
             content,
             id: assistantMessageItem.id,
             reasoning: finalReasoning,
             role: 'assistant',
-            tool_calls: tool_calls.length > 0 ? tool_calls : undefined,
+            tool_calls: stateToolCalls,
           });
 
           if (currentStepUsage) {
@@ -1052,6 +1055,47 @@ export const createRuntimeExecutors = (
             }
 
             continue;
+          }
+
+          // LOBE-9523: cancel/interrupt path — the model-runtime stream was aborted
+          // before reaching the post-stream finalize at line 1078, so the DB row is
+          // still the LOADING_FLAT placeholder. Persist whatever partial content the
+          // `onText` / `onThinking` / `onToolsCalling` callbacks already accumulated
+          // so (a) a subsequent reload still shows the user's streamed answer, and
+          // (b) the agent_runtime_end uiMessages snapshot doesn't carry placeholder
+          // values that would clobber the client's in-memory streamed content.
+          if (interrupted && (content || thinkingContent || toolsCalling.length > 0)) {
+            try {
+              const persistedTools =
+                toolsCalling.length > 0
+                  ? toolsCalling.map((t) => ({
+                      ...t,
+                      arguments: t.arguments,
+                    }))
+                  : undefined;
+              const interruptedReasoning = thinkingContent
+                ? { content: thinkingContent }
+                : undefined;
+              const interruptedMetadata: Record<string, any> = { interruptedMidStream: true };
+              if (currentStepUsage && typeof currentStepUsage === 'object') {
+                Object.assign(interruptedMetadata, currentStepUsage);
+              }
+              await ctx.messageModel.update(assistantMessageItem.id, {
+                content,
+                metadata: interruptedMetadata,
+                reasoning: interruptedReasoning,
+                tools: persistedTools,
+              });
+              log(
+                '[%s] Interrupted finalize: persisted partial content (c=%d r=%d tools=%d)',
+                operationLogId,
+                content.length,
+                thinkingContent.length,
+                toolsCalling.length,
+              );
+            } catch (persistErr) {
+              log('[%s] Interrupted finalize update failed: %O', operationLogId, persistErr);
+            }
           }
 
           throw error;
