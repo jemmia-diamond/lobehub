@@ -1,98 +1,142 @@
-# Core Chat Flow — User Message to Response
+# Core Chat & Model Routing Flow
+
+This document outlines the detailed execution flow of user messages, including model routing evaluations, fallback heuristics, RAG lookups, and citation mapping.
+
+---
+
+## 1. Message Execution Sequence
 
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant FE as Frontend (SPA)
-    participant tRPC as tRPC Lambda
-    participant MR as ModelRuntime (beforeChat hook)
+    participant FE as Frontend (SPA Store)
+    participant MR as ModelRuntime (beforeChat / beforeGenerateObject)
     participant Router as ModelRouterService
-    participant Proxy as aiproxy.jemmia.vn
-    participant KB as Knowledge Base Tool
-    participant WB as Web Browsing Tool
-    participant Gemini as Gemini API
+    participant LarkAPI as Lark Contacts API
+    participant RAG as RagService & pgvector
+    participant Provider as Google Gemini / Proxy
 
-    U->>FE: Send message (with selected mode: auto/fast/thinking)
-    FE->>tRPC: aiChat.sendMessageInServer { agentId, topicId, message }
-    tRPC->>tRPC: Validate agentId + topicId exist in DB
-    tRPC->>tRPC: Create user message + assistant placeholder in DB
-    tRPC-->>FE: { userMessageId, assistantMessageId }
+    U->>FE: Send chat message (Mode: auto/fast/thinking/expert)
+    FE->>FE: Get Lark Profile & inject "## USER PROFILE" into system prompt
+    FE->>MR: Initiate chat request (POST /api/chat/...)
+    MR->>MR: Trigger beforeChat hook
 
-    FE->>Proxy: POST /webapi/chat/jemmia (streaming)
-    Proxy->>MR: initModelRuntimeFromDB → beforeChat hook
-
-    alt mode = "auto"
-        MR->>Router: evaluate() with 15s timeout
-        Router->>Gemini: generateObject (flash-lite) — pick model
-        alt evaluate succeeds
-            Gemini-->>Router: { modelId: "gemini-2.5-flash" }
-            Router-->>MR: model selected
-        else timeout or error
-            Router->>Router: resolve() — static heuristics
-            Note over Router: tokens/files/KB → pick tier
-            Router-->>MR: model selected
+    alt Mode = "auto"
+        alt beforeChat (Chat completion)
+            MR->>Router: evaluate() (with 30s AbortSignal timeout)
+        else beforeGenerateObject (Structured JSON extraction)
+            MR->>Router: evaluate() (with 15s AbortSignal timeout)
         end
-    else mode = "fast"
-        MR->>Router: resolve(mode="fast") → gemini-2.5-flash-lite
-    else mode = "thinking"
-        MR->>Router: resolve(mode="thinking") → gemini-2.5-flash
+        Router->>Provider: generateObject() using gemini-2.5-flash-lite (Select Model)
+        alt Evaluation Success
+            Provider-->>Router: { modelId: "gemini-2.5-flash" }
+            Router-->>MR: Return evaluated model
+        else Timeout (30s/15s) or API Error
+            Router->>Router: resolve() (Execute heuristic analysis)
+            Note over Router: 3+ files / >256k tokens -> EXPERT<br/>1-2 files / RAG context / Lark tool / >128k tokens -> THINKING<br/>otherwise -> FAST
+            Router-->>MR: Return heuristic model
+        end
+    else Mode is explicit (fast / thinking / expert)
+        MR->>Router: resolve(explicitMode)
+        Router-->>MR: Return mapped model (flash-lite / flash / pro)
+    }
+
+    Note over MR: Mandatory Upgrade Check:<br/>If "lobe-knowledge-base" tool is active & model is FAST -> force upgrade to THINKING
+    MR->>Provider: Forward chat request with finalized model
+
+    alt Chat uses Knowledge Base (RAG)
+        Provider->>RAG: Call lobe-knowledge-base tool
+        RAG->>Provider: generateEmbedding (gemini-embedding-2-preview, 3072 dims)
+        RAG->>RAG: Cosine query on pgvector: USING hnsw (embeddings::halfvec(3072))
+        RAG->>RAG: Map R2 files to Lark Wiki URLs using r2ToLarkMapping.ts
+        alt Citation mapped (larkUrl exists)
+            RAG-->>Provider: Relevant chunks with citationUrl parameters
+            Note over Provider: Generate footnotes: [^1]: [Label](larkUrl)
+        else Citation unmapped (larkUrl empty)
+            RAG-->>Provider: Chunks without citationUrl
+            Note over Provider: Generate plain text answers (Hide R2 URLs / DB IDs)
+        end
+        Provider-->>MR: Return tool result response
     end
 
-    MR->>Proxy: Forward chat request with resolved model
-    Proxy->>Gemini: Stream chat completion
-
-    alt Agent has KB tool enabled
-        Gemini->>KB: knowledge-base search (RAG)
-        KB->>KB: Embed query (gemini-embedding-2-preview, 3072 dims)
-        KB->>KB: Cosine similarity search in pgvector
-        KB-->>Gemini: Relevant chunks (NO R2 URL citations)
-    end
-
-    alt KB returns no results OR web browsing tool active
-        Gemini->>WB: crawlSinglePage / crawlMultiPages (R2 fallback KB)
-        WB->>WB: Fetch R2 markdown files
-        WB-->>Gemini: File content
-        Note over Gemini: Cite R2 URLs in footnotes → maps to Lark wiki
-    end
-
-    Gemini-->>FE: Stream response chunks
-    FE->>FE: Render markdown + resolve R2→Lark URLs
-    FE-->>U: Display streamed response
-    FE->>tRPC: message.update (save final content)
+    Provider-->>FE: Stream chat response chunks
+    FE-->>U: Display formatted markdown text with footnotes
 ```
 
-## Mode Decision Logic
+---
+
+## 2. Model Routing Resolution Rules
 
 ```
-payload.model = "auto" / "fast" / "thinking" / "expert"
-                    ↓
-            beforeChat hook
-                    ↓
-    ┌───────────────────────────────┐
-    │ auto                          │
-    │  1. evaluate() [15s timeout]  │
-    │     → LLM picks model         │
-    │  2. fallback: resolve()       │
-    │     → static heuristics       │
-    │     · 3+ files / >256k → pro  │
-    │     · KB/RAG/Lark → flash     │
-    │     · default → flash-lite    │
-    ├───────────────────────────────┤
-    │ fast    → gemini-2.5-flash-lite│
-    │ thinking→ gemini-2.5-flash    │
-    │ expert  → gemini-2.5-pro      │
-    └───────────────────────────────┘
+                User Request Mode (auto / fast / thinking / expert)
+                                       │
+                                beforeChat hook
+                                       │
+                ┌──────────────────────┴──────────────────────┐
+                ▼                                             ▼
+        [Explicit Mode]                                 [Auto Mode]
+                │                                             │
+      Resolve Statically                               1. run evaluate()
+      (flash-lite / flash / pro)                          (with 30s/15s timeout)
+                │                                             │
+                │                                    ┌────────┴────────┐
+                │                                    ▼                 ▼
+                │                                [Success]          [Failed / Timeout]
+                │                                    │                 │
+                │                             Use Selected Model       │
+                │                                    │                 │
+                │                                    │          2. run resolve()
+                │                                    │             (Heuristic check)
+                │                                    │                 │
+                │                                    │        ┌────────┴────────┐
+                │                                    │        ▼                 ▼
+                │                                    │     [Context Rules]   [Default]
+                │                                    │     · >=3 files /     · FAST
+                │                                    │       >256k -> EXPERT
+                │                                    │     · >=1 file / RAG /
+                │                                    │       Lark / >128k -> THINKING
+                │                                    │        └────────┬────────┘
+                ▼                                    ▼                 ▼
+             ┌────────────────────────────────────────────────────────────┐
+             │                   Final Candidate Model                    │
+             └──────────────────────────────┬─────────────────────────────┘
+                                            │
+                                            ▼
+                              [Mandatory Upgrade Check]
+                   Does request contain "lobe-knowledge-base"?
+                                            │
+                             ┌──────────────┴──────────────┐
+                             ▼ (Yes)                       ▼ (No)
+                      Is model FAST?                       Keep Model
+                             │
+                      ┌──────┴──────┐
+                      ▼ (Yes)       ▼ (No)
+                     Force to      Keep Model
+                     THINKING
 ```
 
-## KB vs Web Browsing (R2 Fallback)
+---
+
+## 3. RAG Citation Resolution Flow
 
 ```
-User query
-    ↓
-KB Tool (knowledge-base) ──→ Indexed local markdown (pgvector 3072d)
-    │                         No R2 URL citations in response
-    │ if no results / rate limit
-    ↓
-Web Browsing Tool ──────────→ Crawls R2 URLs directly
-                              Cites R2 URLs → getLarkUrlForR2() → Lark wiki
+                        RAG Document Retrieval
+                                   │
+                     Fetch candidate chunk from R2
+                      (local://jemmia-diamond/...)
+                                   │
+                 Lookup key in R2_TO_LARK_MAP config
+                                   │
+                 ┌─────────────────┴─────────────────┐
+                 ▼ (Match Found)                     ▼ (No Match / Empty URL)
+         Assign citationUrl                          Omit citationUrl
+                 │                                           │
+                 ▼                                           ▼
+      Instruct LLM to generate                   Instruct LLM to answer
+    footnote: [^1]: [Label](larkUrl)            plain text (No footnotes)
+                 │                                           │
+                 └─────────────────┬─────────────────────────┘
+                                   ▼
+                       Stream response to client
+            (Cloudflare R2 storage URLs are strictly hidden)
 ```
