@@ -1,4 +1,4 @@
-# LobeChat Self-Host Development Guide
+# Brainy Self-Host Development Guide
 
 This guide provides the necessary commands to run and manage your local self-hosted development environment.
 
@@ -12,7 +12,7 @@ To start the full development stack, run these commands in separate terminal win
    pnpm run dev:docker
    ```
 
-2. **Start LobeChat App**:
+2. **Start Brainy App**:
    ```bash
    pnpm run dev
    ```
