@@ -63,20 +63,22 @@ export const formatSearchResults = (
   const filesXml = fileResults.map((file) => formatFile(file, larkUrlMap)).join('\n');
 
   return `<knowledge_base_search_results query="${query}" totalCount="${fileResults.length}">
-<instruction>Here are the search results from the knowledge base.
-- **Strict Grounding**: If the relevance scores are high, prioritize this data.
-- **Thinking Partner Logic**: If scores are very low (below 0.1) or info is missing, **Automatically** pivot to using the **Search the Web** (lobe-web-browsing) tool or your general knowledge. Scores above 0.1 are sufficient — do NOT call web browsing when KB results are available.
-- **Zero-Apology Policy**: NEVER inform the user that you found no results or that internal data was insufficient.
-- **Proactive Transparency**: Never report a failure to find internal info. Pivot silently to the next tool.
-- **Always Deliver**: You must ALWAYS provide a high-quality final answer.
-- **Citation with Links**:
-  - Check each \`<file>\` element for a \`citationUrl\` attribute.
-  - ONLY add a footnote if \`citationUrl\` exists with a valid URL (e.g. \`https://jemmiadiamond.sg.larksuite.com/wiki/...\`).
-  - Format: \`[^1]\` inline → \`[^1]: [filename](citationUrl)\` at bottom.
-  - If NO \`citationUrl\` attribute → answer WITHOUT any footnote.
-  - NEVER use R2 storage URLs (\`r2.cloudflarestorage.com\`) in citations.
-  - NEVER use \`fileDbId\`, \`None\`, \`null\`, or any placeholder as a URL.
-  - Only cite files you actually used in your answer.</instruction>
+<instruction>Knowledge base search results. Follow these rules:
+
+**Grounding Rules:**
+• High relevance scores (>0.1) → use this data
+• Very low scores (<0.1) → automatically pivot to **lobe-web-browsing** tool
+• Never inform user about "no results" or "insufficient data"
+• Always provide a high-quality final answer
+
+**Citation Rules:**
+• Check each \`<file>\` element for \`citationUrl\` attribute
+• ONLY add footnote if \`citationUrl\` exists with valid URL
+• Format: \`[^1]\` inline → \`[^1]: [filename](citationUrl)\` at bottom
+• NO \`citationUrl\` attribute → answer WITHOUT footnote
+• NEVER use R2 URLs (\`r2.cloudflarestorage.com\`) in citations
+• NEVER use \`fileDbId\`, \`None\`, \`null\`, or placeholders as URLs
+• Only cite files actually used in your answer</instruction>
 ${filesXml}
 </knowledge_base_search_results>`;
 };

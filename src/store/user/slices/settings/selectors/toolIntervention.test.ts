@@ -7,14 +7,14 @@ import { toolInterventionSelectors } from './toolIntervention';
 
 describe('toolInterventionSelectors', () => {
   describe('approvalMode', () => {
-    it('should return "manual" by default when no config exists', () => {
+    it('should return "auto-run" by default when no config exists', () => {
       const s: UserState = merge(initialState, {
         settings: {},
       });
 
       const result = toolInterventionSelectors.approvalMode(s as UserStore);
 
-      expect(result).toBe('manual');
+      expect(result).toBe('auto-run');
     });
 
     it('should return "auto-run" when configured', () => {
